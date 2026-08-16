@@ -1,0 +1,40 @@
+MASTER SATUAN - IMPLEMENTASI
+
+1. Tabel final:
+   tbl_master_satuan
+
+2. Field:
+   id_master_satuan      PK
+   kd_master_satuan      UNIQUE
+   nm_master_satuan
+   desc_master_satuan
+   status_master_satuan
+   created_by
+   updated_by
+   deleted_by
+   created_at
+   updated_at
+   deleted_at
+
+3. Relasi:
+   tbl_master_satuan.id_master_satuan
+       -> tbl_master_barang.fk_satuan
+
+   Satu satuan dapat dipakai banyak barang.
+   Satu barang memiliki satu satuan.
+
+4. Migration 2026_08_12_110000_create_tbl_master_satuan_and_repoint_barang.php
+   membuat tabel master satuan, menyalin data dari tabel satuans lama bila ada,
+   mempertahankan ID lama, lalu mengganti FK tbl_master_barang.fk_satuan.
+
+5. Tabel satuans lama sengaja dipertahankan sebagai legacy/compatibility table
+   agar data dan rollback database lama tidak rusak. Kode aplikasi baru memakai
+   tbl_master_satuan.
+
+6. Master Barang sekarang mengambil satuan aktif dari tbl_master_satuan.
+
+7. Master Satuan memiliki CRUD, search, pagination 10/25/35/50, status aktif/
+   tidak aktif, soft delete, deleted_by, dan jumlah barang yang menggunakannya.
+
+8. Master Kategori migration 100000 juga sudah dibuat aman terhadap struktur
+   categories lama yang tidak memiliki kd_master_kategori.

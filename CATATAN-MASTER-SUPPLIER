@@ -1,0 +1,141 @@
+Tabel baru:
+tbl_master_supplier
+
+Field:
+
+id_master_supplier — PK
+kd_master_supplier — UNIQUE, dibuat otomatis oleh sistem
+nm_master_supplier
+alamat_supplier
+kontak_supplier
+email_supplier — nullable
+desc_master_supplier — nullable
+status_master_supplier
+created_by
+updated_by
+deleted_at
+deleted_by
+created_at
+updated_at
+Kode Supplier:
+kd_master_supplier tidak diinput manual oleh user.
+Sistem otomatis membuat kode ketika supplier baru ditambahkan.
+Format kode dibuat konsisten, contoh:
+SUP-001
+SUP-002
+SUP-003
+Kode harus UNIQUE.
+Kode yang sudah pernah digunakan tidak boleh terduplikasi.
+
+Status Supplier:
+
+Status supplier digunakan untuk menentukan apakah supplier masih dapat digunakan dalam proses pengadaan/barang.
+
+Contoh status:
+
+AKTIF
+TIDAK AKTIF
+
+Status dibuat konsisten dengan master data lainnya.
+
+Relasi dengan Master Barang:
+
+Untuk tahap awal, supplier disiapkan sebagai master data pemasok.
+
+Relasi nantinya:
+
+tbl_master_supplier
+→ supplier menyediakan barang
+
+Jika satu barang dapat memiliki lebih dari satu supplier, jangan langsung memasukkan fk_supplier ke tbl_master_barang.
+
+Lebih baik nanti dibuat tabel penghubung/transaksi supplier-barang apabila fitur tersebut benar-benar dibutuhkan.
+
+Dengan begitu struktur database tidak membatasi satu barang hanya memiliki satu supplier.
+
+Fungsi Master Supplier:
+
+Master Supplier digunakan untuk:
+
+Menyimpan data supplier.
+Menyimpan kode supplier otomatis.
+Menyimpan nama supplier.
+Menyimpan alamat supplier.
+Menyimpan kontak supplier.
+Menyimpan email supplier jika tersedia.
+Mengatur status aktif/tidak aktif supplier.
+Menjadi referensi untuk proses pengadaan/penerimaan barang di tahap berikutnya.
+CRUD Master Supplier:
+Tambah supplier.
+Lihat daftar supplier.
+Edit supplier.
+Soft delete supplier.
+Search berdasarkan kode atau nama supplier.
+Filter berdasarkan status.
+Pagination.
+
+Pagination:
+
+Tampilan pagination harus disamakan dengan Master Barang dan Master Kategori.
+
+Pilihan jumlah data per halaman:
+
+10
+25
+35
+50
+
+Posisi:
+
+Search/filter berada di bagian atas tabel.
+Pilihan jumlah data berada pada posisi yang konsisten.
+Pagination berada di bagian bawah tabel.
+Jangan membuat layout pagination berbeda-beda antar master.
+
+Soft Delete:
+
+Supplier menggunakan SoftDeletes.
+
+Jika supplier sudah pernah digunakan dalam histori transaksi/pengadaan, data tidak langsung dihapus permanen.
+
+Data cukup diberi:
+
+deleted_at
+
+sehingga histori tetap aman.
+
+Tampilan Master Supplier:
+
+Tampilan harus mengikuti pola halaman master yang sudah ada:
+
+Navbar tetap.
+Sidebar tetap.
+Layout tetap.
+Breadcrumb mengikuti halaman.
+Judul halaman.
+Tombol Tambah Supplier.
+Search.
+Filter.
+Dropdown jumlah data.
+Tabel.
+Status badge.
+Aksi edit/hapus.
+Pagination.
+
+Yang berubah hanya isi/content sesuai data supplier.
+
+Struktur data supplier ke depannya:
+
+Alur sederhananya:
+
+Master Supplier
+↓
+Supplier menyediakan barang
+↓
+Master Barang
+↓
+Barang masuk / pengadaan
+↓
+Stok barang bertambah
+↓
+Monitoring stok
