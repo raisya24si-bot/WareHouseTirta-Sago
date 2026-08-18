@@ -2,6 +2,13 @@
 <?php $__env->startSection('breadcrumb', 'Stock Opname'); ?>
 
 <?php $__env->startSection('content'); ?>
+<style>
+    @media print {
+        aside, header, #opname-print-hide, nav, .no-print { display: none !important; }
+        main, body { padding: 0 !important; margin: 0 !important; }
+        input { border: none !important; }
+    }
+</style>
 <div class="mb-6">
     <a href="<?php echo e(route('opname.index')); ?>" class="mb-2 inline-flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary">
         <span class="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -74,7 +81,7 @@
 </div>
 
 <div class="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
-    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-low/50 p-4">
+    <div class="no-print flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-low/50 p-4">
         <?php if (isset($component)) { $__componentOriginal778e8091b3f0626b9482cfb19294fdf3 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal778e8091b3f0626b9482cfb19294fdf3 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.search-filter','data' => ['action' => route('opname.show', $opname),'placeholder' => 'Search bin or material...','filterName' => 'bin','filterLabel' => 'Bin','filterOptions' => $bins->map(fn($b) => ['value' => $b->id_lokasi, 'label' => $b->bin])->all()]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -112,10 +119,6 @@
                 <span class="material-symbols-outlined text-[19px]">add</span>
                 Tambah Barang
             </button>
-            <button type="submit" form="opname-detail-form" class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm hover:bg-primary-container">
-                <span class="material-symbols-outlined text-[19px]">save</span>
-                Simpan Hasil Opname
-            </button>
         </div>
     </div>
 
@@ -145,7 +148,57 @@
 <?php unset($__componentOriginal4245ad562478bd66068050c769982bc4); ?>
 <?php endif; ?>
 
-    <?php if (isset($component)) { $__componentOriginal27cf80496510f134775277283842cfa5 = $component; } ?>
+    <div class="flex flex-col gap-3 border-t border-outline-variant bg-surface-container-low px-4 py-3 sm:flex-row sm:items-center sm:justify-between" id="opname-print-hide">
+        <div class="text-sm text-on-surface-variant">
+            Showing <?php echo e($details->count()); ?> of <?php echo e($totalItems); ?> Items | Progress: <?php echo e($countedItems); ?>/<?php echo e($totalItems); ?> (<?php echo e($progress); ?>%)
+            <div class="mt-1 h-1.5 w-48 overflow-hidden rounded-full bg-surface-container-high">
+                <div class="h-1.5 rounded-full bg-primary" style="width: <?php echo e($progress); ?>%"></div>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="submit" form="opname-detail-form" class="inline-flex items-center gap-2 rounded-md border border-outline-variant px-4 py-2.5 text-body-sm font-label-bold text-primary hover:bg-surface-container-lowest">
+                <span class="material-symbols-outlined text-[19px]">save</span>
+                Save Progress
+            </button>
+            <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-md border border-outline-variant px-4 py-2.5 text-body-sm font-label-bold text-on-surface hover:bg-surface-container-lowest">
+                <span class="material-symbols-outlined text-[19px]">print</span>
+                Print
+            </button>
+           <?php if($opname->status_opname === 'ONGOING'): ?>
+            <form
+                method="POST"
+                action="<?php echo e(route('opname.submit-adjustment', $opname)); ?>"
+                onsubmit="return confirm('Submit adjustment? Setelah disubmit, stok resmi pada tbl_stok_lokasi akan diperbarui dan opname tidak dapat diedit lagi.')"
+            >
+                <?php echo csrf_field(); ?>
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm hover:bg-primary-container"
+                >
+                    <span class="material-symbols-outlined text-[19px]">
+                        check_circle
+                    </span>
+
+                    Submit Adjustment
+                </button>
+            </form>
+        <?php else: ?>
+            <span
+                class="inline-flex items-center gap-2 rounded-md bg-gray-100 px-5 py-2.5 text-body-sm font-label-bold text-gray-600"
+            >
+                <span class="material-symbols-outlined text-[19px]">
+                    check_circle
+                </span>
+
+                Opname Completed
+            </span>
+        <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="no-print">
+        <?php if (isset($component)) { $__componentOriginal27cf80496510f134775277283842cfa5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal27cf80496510f134775277283842cfa5 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.pagination','data' => ['items' => $details,'label' => 'item','perPage' => $perPage]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('master.shared.pagination'); ?>
@@ -165,6 +218,7 @@
 <?php $component = $__componentOriginal27cf80496510f134775277283842cfa5; ?>
 <?php unset($__componentOriginal27cf80496510f134775277283842cfa5); ?>
 <?php endif; ?>
+    </div>
 </div>
 <?php $__env->stopSection(); ?>
 
@@ -250,4 +304,6 @@
     }
 </script>
 <?php $__env->stopPush(); ?>
+
+
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/opname/show.blade.php ENDPATH**/ ?>

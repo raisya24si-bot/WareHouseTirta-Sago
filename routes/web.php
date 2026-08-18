@@ -55,6 +55,7 @@ Route::get('/opname', [OpnameController::class, 'index'])->name('opname.index');
 Route::post('/opname', [OpnameController::class, 'store'])->name('opname.store');
 Route::get('/opname/{opname}', [OpnameController::class, 'show'])->name('opname.show');
 Route::put('/opname/{opname}', [OpnameController::class, 'update'])->name('opname.update');
+Route::post('/opname/{opname}/submit-adjustment', [OpnameController::class, 'submitAdjustment'])->name('opname.submit-adjustment');
 Route::post('/opname/{opname}/items', [OpnameController::class, 'addItem'])->name('opname.add-item');
 Route::put('/opname/{opname}/items/{item}', [OpnameController::class, 'updateItem'])->name('opname.update-item');
 Route::delete('/opname/{opname}/items/{item}', [OpnameController::class, 'deleteItem'])->name('opname.delete-item');

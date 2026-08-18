@@ -4,6 +4,13 @@
 @section('breadcrumb', 'Stock Opname')
 
 @section('content')
+<style>
+    @media print {
+        aside, header, #opname-print-hide, nav, .no-print { display: none !important; }
+        main, body { padding: 0 !important; margin: 0 !important; }
+        input { border: none !important; }
+    }
+</style>
 <div class="mb-6">
     <a href="{{ route('opname.index') }}" class="mb-2 inline-flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary">
         <span class="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -56,7 +63,7 @@
 </div>
 
 <div class="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
-    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-low/50 p-4">
+    <div class="no-print flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-low/50 p-4">
         <x-master.shared.search-filter
             :action="route('opname.show', $opname)"
             placeholder="Search bin or material..."
@@ -81,10 +88,6 @@
                 <span class="material-symbols-outlined text-[19px]">add</span>
                 Tambah Barang
             </button>
-            <button type="submit" form="opname-detail-form" class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm hover:bg-primary-container">
-                <span class="material-symbols-outlined text-[19px]">save</span>
-                Simpan Hasil Opname
-            </button>
         </div>
     </div>
 
@@ -95,7 +98,58 @@
 
     <x-opname.detail-table :details="$details" :emptyBins="$emptyBins" :opname="$opname" />
 
-    <x-master.shared.pagination :items="$details" label="item" :perPage="$perPage" />
+    <div class="flex flex-col gap-3 border-t border-outline-variant bg-surface-container-low px-4 py-3 sm:flex-row sm:items-center sm:justify-between" id="opname-print-hide">
+        <div class="text-sm text-on-surface-variant">
+            Showing {{ $details->count() }} of {{ $totalItems }} Items | Progress: {{ $countedItems }}/{{ $totalItems }} ({{ $progress }}%)
+            <div class="mt-1 h-1.5 w-48 overflow-hidden rounded-full bg-surface-container-high">
+                <div class="h-1.5 rounded-full bg-primary" style="width: {{ $progress }}%"></div>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="submit" form="opname-detail-form" class="inline-flex items-center gap-2 rounded-md border border-outline-variant px-4 py-2.5 text-body-sm font-label-bold text-primary hover:bg-surface-container-lowest">
+                <span class="material-symbols-outlined text-[19px]">save</span>
+                Save Progress
+            </button>
+            <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-md border border-outline-variant px-4 py-2.5 text-body-sm font-label-bold text-on-surface hover:bg-surface-container-lowest">
+                <span class="material-symbols-outlined text-[19px]">print</span>
+                Print
+            </button>
+           @if($opname->status_opname === 'ONGOING')
+            <form
+                method="POST"
+                action="{{ route('opname.submit-adjustment', $opname) }}"
+                onsubmit="return confirm('Submit adjustment? Setelah disubmit, stok resmi pada tbl_stok_lokasi akan diperbarui dan opname tidak dapat diedit lagi.')"
+            >
+                @csrf
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm hover:bg-primary-container"
+                >
+                    <span class="material-symbols-outlined text-[19px]">
+                        check_circle
+                    </span>
+
+                    Submit Adjustment
+                </button>
+            </form>
+        @else
+            <span
+                class="inline-flex items-center gap-2 rounded-md bg-gray-100 px-5 py-2.5 text-body-sm font-label-bold text-gray-600"
+            >
+                <span class="material-symbols-outlined text-[19px]">
+                    check_circle
+                </span>
+
+                Opname Completed
+            </span>
+        @endif
+        </div>
+    </div>
+
+    <div class="no-print">
+        <x-master.shared.pagination :items="$details" label="item" :perPage="$perPage" />
+    </div>
 </div>
 @endsection
 
@@ -143,3 +197,4 @@
     }
 </script>
 @endpush
+
