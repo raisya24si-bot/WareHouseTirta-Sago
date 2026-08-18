@@ -160,41 +160,110 @@
 
 @push('scripts')
 <script>
-    // Update kolom Diff + badge Status secara langsung saat user mengetik Actual Qty,
-    // tanpa perlu reload halaman.
-    function opnameDetailRecalc(id) {
-        const input = document.querySelector(`input[name="detail[${id}]"]`);
-        const diffEl = document.getElementById('detail-diff-' + id);
-        const iconEl = document.getElementById('detail-icon-' + id);
+function opnameDetailRecalc(id) {
 
-        const sistem = Number(input.dataset.sistem);
-        const raw = input.value;
+    const actualInput =
+        document.querySelector(
+            `input[name="detail[${id}][actual]"]`
+        );
 
-        if (raw === '') {
-            diffEl.textContent = '--';
-            diffEl.className = 'font-label-bold text-on-surface-variant';
-            iconEl.innerHTML = '<span class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500" title="Belum dihitung"><span class="material-symbols-outlined text-[18px]">more_horiz</span></span>';
-            input.classList.remove('border-error');
-            input.classList.add('border-outline-variant');
-            return;
-        }
+    const baikInput =
+        document.getElementById(
+            'baik-' + id
+        );
 
-        const aktual = Number(raw);
-        const diff = aktual - sistem;
+    const rusakInput =
+        document.getElementById(
+            'rusak-' + id
+        );
 
-        diffEl.textContent = diff > 0 ? ('+' + diff) : String(diff);
-        diffEl.className = 'font-label-bold ' + (diff === 0 ? 'text-green-700' : 'text-error');
+    const diffEl =
+        document.getElementById(
+            'detail-diff-' + id
+        );
 
-        if (diff === 0) {
-            iconEl.innerHTML = '<span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white" title="Sesuai"><span class="material-symbols-outlined text-[18px]">check</span></span>';
-            input.classList.remove('border-error');
-            input.classList.add('border-outline-variant');
-        } else {
-            iconEl.innerHTML = '<span class="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-700" title="Ada selisih"><span class="material-symbols-outlined text-[18px]">warning</span></span>';
-            input.classList.remove('border-outline-variant');
-            input.classList.add('border-error');
-        }
+    const sistem =
+        Number(actualInput.dataset.sistem);
+
+    const actual =
+        actualInput.value === ''
+            ? null
+            : Number(actualInput.value);
+
+    const baik =
+        baikInput.value === ''
+            ? 0
+            : Number(baikInput.value);
+
+    const rusak =
+        rusakInput.value === ''
+            ? 0
+            : Number(rusakInput.value);
+
+    if (actual === null) {
+
+        diffEl.textContent = '--';
+
+        diffEl.className =
+            'font-label-bold text-on-surface-variant';
+
+        return;
     }
+
+    const diff =
+        actual - sistem;
+
+    diffEl.textContent =
+        diff > 0
+            ? '+' + diff
+            : String(diff);
+
+    diffEl.className =
+        'font-label-bold ' +
+        (
+            diff === 0
+                ? 'text-green-700'
+                : 'text-error'
+        );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validasi Actual = Baik + Rusak
+    |--------------------------------------------------------------------------
+    */
+
+    const total =
+        baik + rusak;
+
+    if (total !== actual) {
+
+        actualInput.classList.add(
+            'border-error'
+        );
+
+        baikInput.classList.add(
+            'border-error'
+        );
+
+        rusakInput.classList.add(
+            'border-error'
+        );
+
+    } else {
+
+        actualInput.classList.remove(
+            'border-error'
+        );
+
+        baikInput.classList.remove(
+            'border-error'
+        );
+
+        rusakInput.classList.remove(
+            'border-error'
+        );
+    }
+}
 </script>
 @endpush
 

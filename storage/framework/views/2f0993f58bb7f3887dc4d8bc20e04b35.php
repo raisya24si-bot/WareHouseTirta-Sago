@@ -304,14 +304,14 @@
 <?php $__env->startSection('modals'); ?>
     <?php if (isset($component)) { $__componentOriginal864d0696638730aedb766dbeac42d363 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal864d0696638730aedb766dbeac42d363 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.gudang.gudang-modal','data' => ['statuses' => $statuses]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.gudang.gudang-modal','data' => ['statuses' => $statuses,'kategoriGudangs' => $kategoriGudangs]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('master.gudang.gudang-modal'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['statuses' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($statuses)]); ?>
+<?php $component->withAttributes(['statuses' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($statuses),'kategoriGudangs' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($kategoriGudangs)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal864d0696638730aedb766dbeac42d363)): ?>
@@ -322,6 +322,7 @@
 <?php $component = $__componentOriginal864d0696638730aedb766dbeac42d363; ?>
 <?php unset($__componentOriginal864d0696638730aedb766dbeac42d363); ?>
 <?php endif; ?>
+
     <?php if (isset($component)) { $__componentOriginal577e39c6ac54c6207af820499ce65cb3 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal577e39c6ac54c6207af820499ce65cb3 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.gudang.rak-modal','data' => ['gudangs' => $allGudangs]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -342,6 +343,7 @@
 <?php $component = $__componentOriginal577e39c6ac54c6207af820499ce65cb3; ?>
 <?php unset($__componentOriginal577e39c6ac54c6207af820499ce65cb3); ?>
 <?php endif; ?>
+
     <?php if (isset($component)) { $__componentOriginal74c5e49569b97d83cac5dea2d31bce05 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal74c5e49569b97d83cac5dea2d31bce05 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.gudang.row-modal','data' => ['raks' => $allRaks]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -362,6 +364,7 @@
 <?php $component = $__componentOriginal74c5e49569b97d83cac5dea2d31bce05; ?>
 <?php unset($__componentOriginal74c5e49569b97d83cac5dea2d31bce05); ?>
 <?php endif; ?>
+
     <?php if (isset($component)) { $__componentOriginalba47a1465b167d39e67db4d4ffa3c811 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalba47a1465b167d39e67db4d4ffa3c811 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.gudang.lokasi-modal','data' => ['raks' => $allRaks,'rows' => $allRows]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>

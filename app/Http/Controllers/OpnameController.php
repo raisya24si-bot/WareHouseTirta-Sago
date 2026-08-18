@@ -3,41 +3,78 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HasPerPage;
-use App\Models\MasterGudang;
 use App\Models\MasterBarang;
+use App\Models\MasterGudang;
 use App\Models\Opname;
 use App\Models\OpnameDetail;
 use App\Models\StokLokasi;
 use App\Models\StrukturLokasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OpnameController extends Controller
 {
     use HasPerPage;
 
+    /*
+    |--------------------------------------------------------------------------
+    | INDEX
+    |--------------------------------------------------------------------------
+    */
+
     public function index(Request $request)
     {
         $perPage = $this->perPageOption($request);
-        $search = trim((string) $request->string('search'));
+
+        $search = trim(
+            $request->string('search')->toString()
+        );
 
         $query = Opname::with('gudang')
             ->withCount([
                 'details',
-                'details as details_counted_count' => fn ($q) =>
-                    $q->whereNotNull('stok_aktual'),
-                'details as details_selisih_count' => fn ($q) =>
-                    $q->where('status_item', 'SELISIH'),
+
+                'details as details_counted_count' => function ($q) {
+                    $q->whereNotNull('stok_aktual');
+                },
+
+                'details as details_selisih_count' => function ($q) {
+                    $q->where('status_item', 'SELISIH');
+                },
             ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('kd_opname', 'like', "%{$search}%")
-                    ->orWhereHas('gudang', function ($g) use ($search) {
-                        $g->where('nm_gudang', 'like', "%{$search}%");
-                    });
+
+                $q->where(
+                    'kd_opname',
+                    'like',
+                    "%{$search}%"
+                );
+
+                $q->orWhereHas('gudang', function ($gudang) use ($search) {
+
+                    $gudang->where(
+                        'nm_gudang',
+                        'like',
+                        "%{$search}%"
+                    );
+                });
             });
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER STATUS
+        |--------------------------------------------------------------------------
+        */
 
         if ($request->filled('status')) {
             $query->where(
@@ -46,21 +83,42 @@ class OpnameController extends Controller
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER ISSUE / SELISIH
+        |--------------------------------------------------------------------------
+        */
+
         if ($request->boolean('issue')) {
             $query->whereHas(
                 'details',
-                fn ($q) => $q->where('status_item', 'SELISIH')
+                function ($q) {
+                    $q->where(
+                        'status_item',
+                        'SELISIH'
+                    );
+                }
             );
         }
 
         $opnames = $query
             ->latest('id_opname')
             ->paginate(
-                $this->resolvePerPage($request, $query)
+                $this->resolvePerPage(
+                    $request,
+                    $query
+                )
             )
             ->withQueryString();
 
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+
         $summary = [
+
             'ongoing' => Opname::where(
                 'status_opname',
                 'ONGOING'
@@ -72,7 +130,12 @@ class OpnameController extends Controller
             )
                 ->whereHas(
                     'details',
-                    fn ($q) => $q->where('status_item', 'SELISIH')
+                    function ($q) {
+                        $q->where(
+                            'status_item',
+                            'SELISIH'
+                        );
+                    }
                 )
                 ->count(),
 
@@ -80,15 +143,34 @@ class OpnameController extends Controller
                 'status_opname',
                 'COMPLETED'
             )
-                ->whereMonth('tgl_selesai', now()->month)
-                ->whereYear('tgl_selesai', now()->year)
+                ->whereMonth(
+                    'tgl_selesai',
+                    now()->month
+                )
+                ->whereYear(
+                    'tgl_selesai',
+                    now()->year
+                )
                 ->count(),
         ];
 
-        $gudangs = MasterGudang::orderBy('nm_gudang')->get();
+        /*
+        |--------------------------------------------------------------------------
+        | DATA FORM
+        |--------------------------------------------------------------------------
+        */
 
-        $lokasis = StrukturLokasi::with('row.rak.gudang')
-            ->where('status_lokasi', 'AKTIF')
+        $gudangs = MasterGudang::orderBy(
+            'nm_gudang'
+        )->get();
+
+        $lokasis = StrukturLokasi::with(
+            'row.rak.gudang'
+        )
+            ->where(
+                'status_lokasi',
+                'AKTIF'
+            )
             ->orderBy('bin')
             ->get();
 
@@ -104,17 +186,26 @@ class OpnameController extends Controller
         );
     }
 
-    /**
-     * Membuat sesi Stock Opname baru.
-     *
-     * Data barang diambil dari tbl_stok_lokasi sebagai
-     * snapshot stok sistem.
-     *
-     * TIDAK mengubah tbl_stok_lokasi.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE OPNAME
+    |--------------------------------------------------------------------------
+    |
+    | CREATE hanya membuat:
+    |
+    | tbl_opname
+    | tbl_opname_lokasi
+    | tbl_opname_detail
+    |
+    | TIDAK mengubah tbl_stok_lokasi.
+    |
+    */
+
     public function store(Request $request)
     {
         $validated = $request->validate([
+
             'fk_gudang' => [
                 'required',
                 'exists:tbl_master_gudang,id_gudang',
@@ -132,88 +223,249 @@ class OpnameController extends Controller
             ],
         ]);
 
-        $opname = DB::transaction(function () use ($validated) {
-            $userId = auth()->id() ?? 1;
+        /*
+        |--------------------------------------------------------------------------
+        | Pastikan BIN memang milik gudang yang dipilih
+        |--------------------------------------------------------------------------
+        */
 
-            $opname = Opname::create([
-                'fk_gudang' => $validated['fk_gudang'],
-                'tgl_mulai' => now()->toDateString(),
-                'status_opname' => 'ONGOING',
-                'created_by' => $userId,
-            ]);
+        $validLokasiIds = StrukturLokasi::query()
+            ->whereIn(
+                'id_lokasi',
+                $validated['lokasi_ids']
+            )
+            ->whereHas(
+                'row.rak.gudang',
+                function ($q) use ($validated) {
+                    $q->where(
+                        'id_gudang',
+                        $validated['fk_gudang']
+                    );
+                }
+            )
+            ->pluck('id_lokasi')
+            ->toArray();
 
-            $opname->lokasis()->attach($validated['lokasi_ids']);
+        if (
+            count($validLokasiIds)
+            !== count($validated['lokasi_ids'])
+        ) {
+            return back()
+                ->withErrors([
+                    'lokasi_ids' =>
+                        'Ada BIN yang tidak termasuk dalam gudang yang dipilih.',
+                ])
+                ->withInput();
+        }
 
-            /*
-             * Ambil stok resmi dari tbl_stok_lokasi.
-             *
-             * Hanya stok > 0 yang otomatis dibuat sebagai detail.
-             * Bin yang tidak mempunyai stok akan tetap muncul
-             * sebagai Empty Bin di halaman opname.
-             */
-            $stokItems = StokLokasi::with('barang')
-                ->whereIn('fk_lokasi', $validated['lokasi_ids'])
-                ->where('qty_stok', '>', 0)
-                ->get();
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
 
-            foreach ($stokItems as $stok) {
-                OpnameDetail::create([
-                    'fk_opname' => $opname->id_opname,
-                    'fk_lokasi' => $stok->fk_lokasi,
-                    'fk_barang' => $stok->fk_barang,
-                    'stok_sistem' => $stok->qty_stok,
-                    'status_item' => 'BELUM DIHITUNG',
-                    'created_by' => $userId,
+        $opname = DB::transaction(
+            function () use (
+                $validated
+            ) {
+
+                $userId =
+                    auth()->id() ?? 1;
+
+                /*
+                |--------------------------------------------------------------------------
+                | HEADER OPNAME
+                |--------------------------------------------------------------------------
+                */
+
+                $opname = Opname::create([
+
+                    'fk_gudang' =>
+                        $validated['fk_gudang'],
+
+                    'tgl_mulai' =>
+                        now()->toDateString(),
+
+                    'status_opname' =>
+                        'ONGOING',
+
+                    'created_by' =>
+                        $userId,
                 ]);
-            }
 
-            return $opname;
-        });
+                /*
+                |--------------------------------------------------------------------------
+                | BIN YANG DIPILIH
+                |--------------------------------------------------------------------------
+                */
+
+                $opname->lokasis()->attach(
+                    $validated['lokasi_ids']
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | SNAPSHOT STOK
+                |--------------------------------------------------------------------------
+                |
+                | Hanya mengambil stok resmi.
+                |
+                | Stok rusak dari opname BELUM masuk sini.
+                |
+                */
+
+                $stokItems = StokLokasi::query()
+                    ->whereIn(
+                        'fk_lokasi',
+                        $validated['lokasi_ids']
+                    )
+                    ->where(
+                        'qty_stok',
+                        '>',
+                        0
+                    )
+                    ->get();
+
+                foreach (
+                    $stokItems as $stok
+                ) {
+
+                    OpnameDetail::create([
+
+                        'fk_opname' =>
+                            $opname->id_opname,
+
+                        'fk_lokasi' =>
+                            $stok->fk_lokasi,
+
+                        'fk_barang' =>
+                            $stok->fk_barang,
+
+                        /*
+                        | Snapshot stok saat opname dibuat.
+                        */
+                        'stok_sistem' =>
+                            $stok->qty_stok,
+
+                        /*
+                        | Belum dihitung.
+                        */
+                        'stok_aktual' =>
+                            null,
+
+                        /*
+                        | Belum ada barang rusak.
+                        */
+                        'stok_rusak' =>
+                            0,
+
+                        'selisih' =>
+                            null,
+
+                        'status_item' =>
+                            'BELUM DIHITUNG',
+
+                        'created_by' =>
+                            $userId,
+                    ]);
+                }
+
+                return $opname;
+            }
+        );
 
         return redirect()
-            ->route('opname.show', $opname)
+            ->route(
+                'opname.show',
+                $opname
+            )
             ->with(
                 'success',
-                'Opname ' . $opname->kd_opname .
-                ' berhasil dibuat. Silakan mulai hitung fisik.'
+                'Opname ' .
+                $opname->kd_opname .
+                ' berhasil dibuat.'
             );
     }
 
-    public function show(Request $request, Opname $opname)
-    {
+
+    /*
+    |--------------------------------------------------------------------------
+    | SHOW
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(
+        Request $request,
+        Opname $opname
+    ) {
         $opname->load('gudang');
 
-        $perPage = $this->perPageOption($request);
-        $search = trim((string) $request->string('search'));
+        $perPage =
+            $this->perPageOption(
+                $request
+            );
 
-        $query = OpnameDetail::with(['barang', 'lokasi'])
-            ->where('fk_opname', $opname->id_opname);
+        $search = trim(
+            $request->string('search')->toString()
+        );
+
+        $query = OpnameDetail::with([
+            'barang',
+            'lokasi',
+        ])
+            ->where(
+                'fk_opname',
+                $opname->id_opname
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
 
         if ($search !== '') {
+
             $query->where(function ($q) use ($search) {
-                $q->whereHas('barang', function ($b) use ($search) {
-                    $b->where(
-                        'kd_master_barang',
-                        'like',
-                        "%{$search}%"
-                    )
-                        ->orWhere(
-                            'nm_master_barang',
+
+                $q->whereHas(
+                    'barang',
+                    function ($b) use ($search) {
+
+                        $b->where(
+                            'kd_master_barang',
                             'like',
                             "%{$search}%"
-                        );
-                })
-                    ->orWhereHas('lokasi', function ($l) use ($search) {
-                        $l->where(
-                            'bin',
-                            'like',
-                            "%{$search}%"
-                        );
-                    });
+                        )
+                            ->orWhere(
+                                'nm_master_barang',
+                                'like',
+                                "%{$search}%"
+                            );
+                    }
+                )
+                    ->orWhereHas(
+                        'lokasi',
+                        function ($l) use ($search) {
+
+                            $l->where(
+                                'bin',
+                                'like',
+                                "%{$search}%"
+                            );
+                        }
+                    );
             });
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER BIN
+        |--------------------------------------------------------------------------
+        */
+
         if ($request->filled('bin')) {
+
             $query->where(
                 'fk_lokasi',
                 $request->integer('bin')
@@ -223,9 +475,18 @@ class OpnameController extends Controller
         $details = $query
             ->orderBy('fk_lokasi')
             ->paginate(
-                $this->resolvePerPage($request, $query)
+                $this->resolvePerPage(
+                    $request,
+                    $query
+                )
             )
             ->withQueryString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEMUA BIN DALAM OPNAME
+        |--------------------------------------------------------------------------
+        */
 
         $bins = $opname
             ->lokasis()
@@ -233,22 +494,30 @@ class OpnameController extends Controller
             ->get();
 
         /*
-         * Cari bin yang belum mempunyai detail.
-         */
-        $binIdsWithDetails = OpnameDetail::where(
-            'fk_opname',
-            $opname->id_opname
-        )
-            ->pluck('fk_lokasi')
-            ->unique();
+        |--------------------------------------------------------------------------
+        | DETEKSI BIN KOSONG
+        |--------------------------------------------------------------------------
+        */
+
+        $binIdsWithDetails =
+            OpnameDetail::where(
+                'fk_opname',
+                $opname->id_opname
+            )
+                ->pluck('fk_lokasi')
+                ->unique();
 
         $emptyBins = $bins
-            ->whereNotIn('id_lokasi', $binIdsWithDetails)
+            ->whereNotIn(
+                'id_lokasi',
+                $binIdsWithDetails
+            )
             ->values();
 
         if ($search !== '') {
             $emptyBins = collect();
         } elseif ($request->filled('bin')) {
+
             $emptyBins = $emptyBins
                 ->where(
                     'id_lokasi',
@@ -257,6 +526,12 @@ class OpnameController extends Controller
                 ->values();
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | SEMUA BARANG AKTIF
+        |--------------------------------------------------------------------------
+        */
+
         $allBarangs = MasterBarang::where(
             'status_master_barang',
             'AKTIF'
@@ -264,16 +539,25 @@ class OpnameController extends Controller
             ->orderBy('nm_master_barang')
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | SELECTED BIN
+        |--------------------------------------------------------------------------
+        */
+
         $selectedBin = null;
+
         $selectedBinCanDelete = false;
 
         if ($request->filled('bin')) {
+
             $selectedBin = $bins->firstWhere(
                 'id_lokasi',
                 $request->integer('bin')
             );
 
             if ($selectedBin) {
+
                 $selectedBinCanDelete =
                     ! OpnameDetail::where(
                         'fk_opname',
@@ -283,28 +567,50 @@ class OpnameController extends Controller
                             'fk_lokasi',
                             $selectedBin->id_lokasi
                         )
-                        ->whereNotNull('stok_aktual')
+                        ->whereNotNull(
+                            'stok_aktual'
+                        )
                         ->exists();
             }
         }
 
-        $totalItems = $opname->details()->count();
+        /*
+        |--------------------------------------------------------------------------
+        | PROGRESS
+        |--------------------------------------------------------------------------
+        */
 
-        $countedItems = $opname
-            ->details()
-            ->whereNotNull('stok_aktual')
-            ->count();
+        $totalItems =
+            $opname
+                ->details()
+                ->count();
 
-        $selisihItems = $opname
-            ->details()
-            ->where('status_item', 'SELISIH')
-            ->count();
+        $countedItems =
+            $opname
+                ->details()
+                ->whereNotNull(
+                    'stok_aktual'
+                )
+                ->count();
 
-        $progress = $totalItems > 0
-            ? (int) round(
-                ($countedItems / $totalItems) * 100
-            )
-            : 0;
+        $selisihItems =
+            $opname
+                ->details()
+                ->where(
+                    'status_item',
+                    'SELISIH'
+                )
+                ->count();
+
+        $progress =
+            $totalItems > 0
+                ? (int) round(
+                    (
+                        $countedItems
+                        / $totalItems
+                    ) * 100
+                )
+                : 0;
 
         return view(
             'opname.show',
@@ -325,290 +631,696 @@ class OpnameController extends Controller
         );
     }
 
-    /**
-     * SAVE PROGRESS
-     *
-     * HANYA menyimpan ke tbl_opname_detail.
-     *
-     * TIDAK menyentuh tbl_stok_lokasi.
-     */
-    public function update(Request $request, Opname $opname)
-    {
-        if ($opname->status_opname !== 'ONGOING') {
-            return back()->withErrors([
-                'opname' =>
-                    'Opname yang sudah selesai tidak dapat diubah lagi.',
-            ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | SAVE PROGRESS
+    |--------------------------------------------------------------------------
+    |
+    | PENTING:
+    |
+    | METHOD INI HANYA MENGUBAH tbl_opname_detail.
+    |
+    | tbl_stok_lokasi TIDAK DISENTUH.
+    |
+    */
+
+    public function update(
+        Request $request,
+        Opname $opname
+    ) {
+        if (
+            $opname->status_opname !== 'ONGOING'
+        ) {
+
+            return back()
+                ->withErrors([
+                    'opname' =>
+                        'Opname yang sudah selesai tidak dapat diubah lagi.',
+                ]);
         }
 
         $validated = $request->validate([
+
             'detail' => [
                 'required',
                 'array',
             ],
 
-            'detail.*' => [
+            'detail.*.actual' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            'detail.*.rusak' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            /*
+            | Kita support juga input "baik"
+            | kalau Blade nanti menampilkan field Baik.
+            */
+            'detail.*.baik' => [
                 'nullable',
                 'integer',
                 'min:0',
             ],
         ]);
 
-        DB::transaction(function () use ($validated, $opname) {
-            $userId = auth()->id() ?? 1;
-
-            foreach (
-                $validated['detail']
-                as $detailId => $stokAktual
+        DB::transaction(
+            function () use (
+                $validated,
+                $opname
             ) {
-                $detail = OpnameDetail::where(
-                    'fk_opname',
-                    $opname->id_opname
-                )
-                    ->where(
-                        'id_opname_detail',
-                        $detailId
-                    )
-                    ->first();
 
-                if (! $detail) {
-                    continue;
+                $userId =
+                    auth()->id() ?? 1;
+
+                foreach (
+                    $validated['detail']
+                    as $detailId => $values
+                ) {
+
+                    $detail =
+                        OpnameDetail::where(
+                            'fk_opname',
+                            $opname->id_opname
+                        )
+                            ->where(
+                                'id_opname_detail',
+                                $detailId
+                            )
+                            ->first();
+
+                    if (! $detail) {
+                        continue;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | INPUT
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $actual =
+                        $values['actual']
+                        ?? null;
+
+                    $rusak =
+                        (int) (
+                            $values['rusak']
+                            ?? 0
+                        );
+
+                    $baikInput =
+                        $values['baik']
+                        ?? null;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | BELUM DIHITUNG
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if ($actual === null) {
+
+                        $detail->stok_aktual =
+                            null;
+
+                        $detail->stok_rusak =
+                            0;
+
+                        $detail->selisih =
+                            null;
+
+                        $detail->status_item =
+                            'BELUM DIHITUNG';
+
+                        $detail->updated_by =
+                            $userId;
+
+                        $detail->save();
+
+                        continue;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | RUSAK TIDAK BOLEH > ACTUAL
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $rusak > (int) $actual
+                    ) {
+
+                        throw ValidationException::withMessages([
+                            "detail.{$detailId}.rusak" =>
+                                'Qty rusak tidak boleh lebih besar dari Actual Qty.',
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | HITUNG BARANG BAIK
+                    |--------------------------------------------------------------------------
+                    |
+                    | Rumus:
+                    |
+                    | BAIK = ACTUAL - RUSAK
+                    |
+                    */
+
+                    $baik =
+                        (int) $actual
+                        - $rusak;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | KALAU FRONTEND MENGIRIM BAIK
+                    |--------------------------------------------------------------------------
+                    |
+                    | Pastikan angka baik yang ditampilkan
+                    | sama dengan hasil perhitungan.
+                    |
+                    */
+
+                    if (
+                        $baikInput !== null
+                        &&
+                        (int) $baikInput !== $baik
+                    ) {
+
+                        throw ValidationException::withMessages([
+                            "detail.{$detailId}.baik" =>
+                                'Qty Baik harus sama dengan Actual Qty dikurangi Qty Rusak.',
+                        ]);
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | SIMPAN KE OPNAME DETAIL
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $detail->stok_aktual =
+                        (int) $actual;
+
+                    $detail->stok_rusak =
+                        $rusak;
+
+                    /*
+                    | Selisih berdasarkan total actual
+                    | terhadap stok sistem.
+                    */
+                    $detail->selisih =
+                        (int) $actual
+                        -
+                        (int) $detail->stok_sistem;
+
+                    /*
+                    | Status sementara.
+                    |
+                    | Save Progress TIDAK memaksa
+                    | actual harus sama dengan sistem.
+                    */
+                    $detail->status_item =
+                        $detail->selisih === 0
+                            ? 'SESUAI'
+                            : 'SELISIH';
+
+                    $detail->updated_by =
+                        $userId;
+
+                    $detail->save();
                 }
-
-                $detail->stok_aktual = $stokAktual;
-                $detail->updated_by = $userId;
-
-                $detail->recalculate();
-                $detail->save();
             }
-        });
+        );
 
         return back()->with(
             'success',
-            'Progress hitung fisik berhasil disimpan.'
+            'Progress berhasil disimpan. Stok resmi belum berubah.'
         );
     }
 
-    /**
-     * SUBMIT ADJUSTMENT
-     *
-     * Di sinilah stok resmi baru diubah.
-     *
-     * tbl_opname_detail
-     *        ↓
-     * validasi
-     *        ↓
-     * tbl_stok_lokasi
-     *
-     * Jika stok lokasi sudah ada:
-     *     UPDATE
-     *
-     * Jika belum ada:
-     *     CREATE
-     */
-    public function submitAdjustment(Opname $opname)
-    {
-        if ($opname->status_opname !== 'ONGOING') {
-            return back()->withErrors([
-                'submit' =>
-                    'Opname ini sudah selesai dan tidak dapat disubmit lagi.',
-            ]);
-        }
 
-        $bins = $opname
-            ->lokasis()
-            ->get();
+    /*
+    |--------------------------------------------------------------------------
+    | SUBMIT OPNAME
+    |--------------------------------------------------------------------------
+    |
+    | HANYA METHOD INI YANG BOLEH MENGUBAH tbl_stok_lokasi.
+    |
+    */
 
-        /*
-         * =====================================================
-         * VALIDASI 1
-         * Semua bin yang dipilih harus mempunyai minimal
-         * satu detail barang.
-         * =====================================================
-         */
-        $binIdsWithDetails = OpnameDetail::where(
+   public function submitAdjustment(Opname $opname)
+{
+    if ($opname->status_opname !== 'ONGOING') {
+        return back()->withErrors([
+            'submit' =>
+                'Opname ini sudah selesai dan tidak dapat disubmit lagi.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AMBIL BIN OPNAME
+    |--------------------------------------------------------------------------
+    */
+
+    $bins = $opname
+        ->lokasis()
+        ->orderBy('bin')
+        ->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDASI 1
+    | Tidak boleh ada BIN kosong.
+    |--------------------------------------------------------------------------
+    */
+
+    $binIdsWithDetails = OpnameDetail::where(
+        'fk_opname',
+        $opname->id_opname
+    )
+        ->pluck('fk_lokasi')
+        ->unique();
+
+    $emptyBins = $bins->whereNotIn(
+        'id_lokasi',
+        $binIdsWithDetails
+    );
+
+    if ($emptyBins->isNotEmpty()) {
+        $binNames = $emptyBins
+            ->pluck('bin')
+            ->implode(', ');
+
+        return back()->withErrors([
+            'submit' =>
+                'Submit tidak dapat dilakukan. ' .
+                'Masih ada BIN kosong: ' .
+                $binNames .
+                '. Isi barang atau hapus BIN tersebut dari opname.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AMBIL DETAIL OPNAME
+    |--------------------------------------------------------------------------
+    */
+
+    $allDetails = OpnameDetail::with([
+        'barang',
+        'lokasi.row.rak.gudang.kategoriGudang',
+    ])
+        ->where(
             'fk_opname',
             $opname->id_opname
         )
-            ->pluck('fk_lokasi')
-            ->unique();
+        ->get();
 
-        $emptyBins = $bins
-            ->whereNotIn(
-                'id_lokasi',
-                $binIdsWithDetails
+    if ($allDetails->isEmpty()) {
+        return back()->withErrors([
+            'submit' =>
+                'Belum ada barang yang tercatat dalam opname.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDASI 2
+    | Semua barang harus sudah dihitung.
+    |--------------------------------------------------------------------------
+    */
+
+    $unCounted = $allDetails->whereNull('stok_aktual');
+
+    if ($unCounted->isNotEmpty()) {
+        return back()->withErrors([
+            'submit' =>
+                'Submit tidak dapat dilakukan. ' .
+                'Masih ada ' .
+                $unCounted->count() .
+                ' barang yang belum diisi Actual Qty.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDASI 3
+    |
+    | Actual = Baik + Rusak
+    |
+    | Contoh:
+    |
+    | Sistem = 5
+    | Actual = 5
+    | Rusak  = 2
+    | Baik   = 3
+    |
+    | 3 + 2 = 5
+    |--------------------------------------------------------------------------
+    */
+
+    foreach ($allDetails as $detail) {
+
+        $system = (int) $detail->stok_sistem;
+
+        $actual = (int) $detail->stok_aktual;
+
+        $rusak = max(
+            0,
+            (int) ($detail->stok_rusak ?? 0)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RUSAK TIDAK BOLEH > ACTUAL
+        |--------------------------------------------------------------------------
+        */
+
+        if ($rusak > $actual) {
+            return back()->withErrors([
+                'submit' =>
+                    'Barang ' .
+                    ($detail->barang?->nm_master_barang ?? '-') .
+                    ' tidak valid. ' .
+                    'Qty rusak tidak boleh lebih besar dari Actual Qty.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HITUNG BARANG BAIK
+        |--------------------------------------------------------------------------
+        */
+
+        $baik = $actual - $rusak;
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL FISIK HARUS SAMA DENGAN SISTEM
+        |--------------------------------------------------------------------------
+        */
+
+        if (($baik + $rusak) !== $system) {
+            return back()->withErrors([
+                'submit' =>
+                    'Barang ' .
+                    ($detail->barang?->nm_master_barang ?? '-') .
+                    ' tidak valid. ' .
+                    'Qty Baik + Qty Rusak harus sama dengan Stok Sistem. ' .
+                    'Sistem: ' . $system .
+                    ', Actual: ' . $actual .
+                    ', Baik: ' . $baik .
+                    ', Rusak: ' . $rusak . '.',
+            ]);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CARI BIN REJECTED
+    |--------------------------------------------------------------------------
+    */
+
+    $rejectedLocation = StrukturLokasi::query()
+        ->where(
+            'status_lokasi',
+            'AKTIF'
+        )
+        ->whereHas(
+            'row.rak.gudang.kategoriGudang',
+            function ($query) {
+                $query->whereRaw(
+                    'UPPER(nm_kategori_gudang) = ?',
+                    ['REJECTED']
+                );
+            }
+        )
+        ->with(
+            'row.rak.gudang.kategoriGudang'
+        )
+        ->orderBy('id_lokasi')
+        ->first();
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK APAKAH ADA BARANG RUSAK
+    |--------------------------------------------------------------------------
+    */
+
+    $adaBarangRusak = $allDetails->contains(
+        function ($detail) {
+            return (int) (
+                $detail->stok_rusak ?? 0
+            ) > 0;
+        }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADA RUSAK TAPI BIN REJECTED BELUM ADA
+    |--------------------------------------------------------------------------
+    */
+
+    if ($adaBarangRusak && ! $rejectedLocation) {
+        return back()->withErrors([
+            'submit' =>
+                'Submit tidak dapat dilakukan karena belum ada BIN aktif ' .
+                'pada gudang kategori REJECTED. ' .
+                'Buat gudang kategori REJECTED beserta BIN-nya terlebih dahulu.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEMUA VALIDASI LOLOS
+    |
+    | BARU SEKARANG STOK RESMI DIUBAH.
+    |--------------------------------------------------------------------------
+    */
+
+    DB::transaction(function () use (
+        $allDetails,
+        $opname,
+        $rejectedLocation
+    ) {
+
+        $userId = auth()->id() ?? 1;
+
+        foreach ($allDetails as $detail) {
+
+            $actual = (int) $detail->stok_aktual;
+
+            $rusak = max(
+                0,
+                (int) ($detail->stok_rusak ?? 0)
             );
 
-        if ($emptyBins->isNotEmpty()) {
-            $binNames = $emptyBins
-                ->pluck('bin')
-                ->implode(', ');
+            /*
+            |--------------------------------------------------------------------------
+            | BARANG BAIK
+            |--------------------------------------------------------------------------
+            */
 
-            return back()->withErrors([
-                'submit' =>
-                    'Submit tidak dapat dilakukan. ' .
-                    'Masih ada bin yang kosong: ' .
-                    $binNames .
-                    '. Silakan isi barang pada bin tersebut ' .
-                    'atau hapus bin dari opname.',
-            ]);
-        }
+            $baik = $actual - $rusak;
 
-        /*
-         * =====================================================
-         * VALIDASI 2
-         * SEMUA detail harus mempunyai stok_aktual.
-         * =====================================================
-         */
-        $allDetails = OpnameDetail::where(
-            'fk_opname',
-            $opname->id_opname
-        )->get();
+            /*
+            |--------------------------------------------------------------------------
+            | 1. UPDATE STOK LOKASI ASAL
+            |--------------------------------------------------------------------------
+            |
+            | Barang baik tetap berada di BIN asal.
+            |
+            */
 
-        if ($allDetails->isEmpty()) {
-            return back()->withErrors([
-                'submit' =>
-                    'Belum ada barang yang tercatat dalam opname.',
-            ]);
-        }
+            $stokAsal = StokLokasi::withTrashed()
+                ->where(
+                    'fk_barang',
+                    $detail->fk_barang
+                )
+                ->where(
+                    'fk_lokasi',
+                    $detail->fk_lokasi
+                )
+                ->first();
 
-        $unCounted = $allDetails
-            ->whereNull('stok_aktual');
+            if (! $stokAsal) {
 
-        if ($unCounted->isNotEmpty()) {
-            return back()->withErrors([
-                'submit' =>
-                    'Submit tidak dapat dilakukan. ' .
-                    'Masih ada ' .
-                    $unCounted->count() .
-                    ' barang yang belum diisi Actual Qty. ' .
-                    'Silakan isi semua barang atau hapus item/bin ' .
-                    'yang memang tidak diperlukan.',
-            ]);
-        }
+                $stokAsal = new StokLokasi();
 
-        /*
-         * =====================================================
-         * SEMUA VALIDASI SUDAH LOLOS
-         *
-         * BARU SEKARANG UPDATE / CREATE tbl_stok_lokasi.
-         * =====================================================
-         */
-        DB::transaction(function () use ($allDetails, $opname) {
-            $userId = auth()->id() ?? 1;
+                $stokAsal->fk_barang =
+                    $detail->fk_barang;
 
-            foreach ($allDetails as $detail) {
-                /*
-                 * Cari stok lokasi termasuk yang pernah
-                 * di-soft-delete.
-                 */
-                $stokLokasi = StokLokasi::withTrashed()
-                    ->where(
-                        'fk_lokasi',
-                        $detail->fk_lokasi
-                    )
+                $stokAsal->fk_lokasi =
+                    $detail->fk_lokasi;
+
+                $stokAsal->created_by =
+                    $userId;
+
+                $stokAsal->qty_rusak =
+                    0;
+            }
+
+            /*
+            | Restore kalau sebelumnya soft deleted.
+            */
+
+            if (
+                $stokAsal->exists &&
+                $stokAsal->trashed()
+            ) {
+                $stokAsal->restore();
+            }
+
+            /*
+            | Barang baik.
+            */
+
+            $stokAsal->qty_stok =
+                $baik;
+
+            /*
+            | Barang rusak pada BIN asal
+            | tidak lagi ditaruh sebagai stok aktif
+            | karena dipindahkan ke REJECTED.
+            */
+
+            $stokAsal->qty_rusak =
+                0;
+
+            $stokAsal->updated_by =
+                $userId;
+
+            $stokAsal->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2. BARANG RUSAK → BIN REJECTED
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $rusak > 0 &&
+                $rejectedLocation
+            ) {
+
+                $stokRejected = StokLokasi::withTrashed()
                     ->where(
                         'fk_barang',
                         $detail->fk_barang
                     )
+                    ->where(
+                        'fk_lokasi',
+                        $rejectedLocation->id_lokasi
+                    )
                     ->first();
 
                 /*
-                 * Kalau belum ada:
-                 * CREATE
-                 */
-                if (! $stokLokasi) {
-                    $stokLokasi = new StokLokasi();
+                | Belum ada record → CREATE
+                */
 
-                    $stokLokasi->fk_lokasi =
-                        $detail->fk_lokasi;
+                if (! $stokRejected) {
 
-                    $stokLokasi->fk_barang =
+                    $stokRejected = new StokLokasi();
+
+                    $stokRejected->fk_barang =
                         $detail->fk_barang;
 
-                    $stokLokasi->created_by = $userId;
-                } else {
-                    /*
-                     * Kalau sebelumnya soft delete,
-                     * aktifkan kembali.
-                     */
-                    if ($stokLokasi->trashed()) {
-                        $stokLokasi->restore();
-                    }
+                    $stokRejected->fk_lokasi =
+                        $rejectedLocation->id_lokasi;
+
+                    $stokRejected->qty_stok =
+                        0;
+
+                    $stokRejected->qty_rusak =
+                        0;
+
+                    $stokRejected->created_by =
+                        $userId;
                 }
 
                 /*
-                 * Hasil Actual Qty dari opname menjadi
-                 * stok resmi.
-                 */
-                $stokLokasi->qty_stok =
-                    $detail->stok_aktual;
+                | Restore jika soft deleted.
+                */
 
-                $stokLokasi->updated_by = $userId;
+                if (
+                    $stokRejected->exists &&
+                    $stokRejected->trashed()
+                ) {
+                    $stokRejected->restore();
+                }
 
-                $stokLokasi->save();
+                /*
+                |--------------------------------------------------------------------------
+                | TAMBAHKAN BARANG RUSAK
+                |--------------------------------------------------------------------------
+                |
+                | INI BAGIAN YANG TADI KURANG.
+                |
+                */
+
+                $stokRejected->qty_rusak =
+                    (int) $stokRejected->qty_rusak
+                    +
+                    $rusak;
+
+                $stokRejected->updated_by =
+                    $userId;
+
+                $stokRejected->save();
             }
-
-            /*
-             * Setelah semua stok berhasil disimpan,
-             * baru tandai opname COMPLETED.
-             */
-            $opname->update([
-                'status_opname' => 'COMPLETED',
-                'tgl_selesai' => now()->toDateString(),
-                'updated_by' => $userId,
-            ]);
-        });
-
-        return back()->with(
-            'success',
-            'Adjustment berhasil disubmit. Stok lokasi berhasil diperbarui/dibuat dan opname telah selesai.'
-        );
-    }
-
-    public function destroy(Opname $opname)
-    {
-        if ($opname->status_opname === 'COMPLETED') {
-            return back()->withErrors([
-                'opname' =>
-                    'Opname yang sudah selesai tidak dapat dihapus.',
-            ]);
         }
 
-        $opname->delete();
+        /*
+        |--------------------------------------------------------------------------
+        | 3. SELESAIKAN OPNAME
+        |--------------------------------------------------------------------------
+        */
 
-        return redirect()
-            ->route('opname.index')
-            ->with(
-                'success',
-                'Opname berhasil dihapus.'
-            );
-    }
+        $opname->update([
+            'status_opname' =>
+                'COMPLETED',
 
-    /**
-     * Tambah barang ke opname.
-     *
-     * PENTING:
-     * Method ini TIDAK mengubah tbl_stok_lokasi.
-     *
-     * Kalau barang sudah ada di tbl_stok_lokasi,
-     * stok_sistem diambil dari sana.
-     *
-     * Kalau belum ada,
-     * stok_sistem = 0.
-     */
+            'tgl_selesai' =>
+                now()->toDateString(),
+
+            'updated_by' =>
+                $userId,
+        ]);
+    });
+
+    return back()->with(
+        'success',
+        'Stock Opname berhasil disubmit. ' .
+        'Stok barang baik dan barang rusak berhasil diperbarui.'
+    );
+}
     public function addItem(
         Request $request,
         Opname $opname
     ) {
-        if ($opname->status_opname !== 'ONGOING') {
-            return back()->withErrors([
-                'item' =>
-                    'Opname yang sudah selesai tidak dapat ditambahkan barang.',
-            ]);
+
+        if (
+            $opname->status_opname !== 'ONGOING'
+        ) {
+
+            return back()
+                ->withErrors([
+                    'item' =>
+                        'Opname yang sudah selesai tidak dapat ditambahkan barang.',
+                ]);
         }
 
         $validated = $request->validate([
+
             'fk_lokasi' => [
                 'required',
                 'exists:tbl_master_lokasi,id_lokasi',
@@ -621,74 +1333,89 @@ class OpnameController extends Controller
         ]);
 
         /*
-         * Pastikan bin termasuk dalam opname.
-         */
-        $isBinValid = $opname
-            ->lokasis()
-            ->where(
-                'tbl_master_lokasi.id_lokasi',
-                $validated['fk_lokasi']
-            )
-            ->exists();
+        |--------------------------------------------------------------------------
+        | BIN HARUS TERMASUK OPNAME
+        |--------------------------------------------------------------------------
+        */
+
+        $isBinValid =
+            $opname
+                ->lokasis()
+                ->where(
+                    'tbl_master_lokasi.id_lokasi',
+                    $validated['fk_lokasi']
+                )
+                ->exists();
 
         if (! $isBinValid) {
-            return back()->withErrors([
-                'fk_lokasi' =>
-                    'Bin tersebut tidak termasuk dalam sesi opname ini.',
-            ]);
+
+            return back()
+                ->withErrors([
+                    'fk_lokasi' =>
+                        'Bin tersebut tidak termasuk dalam sesi opname ini.',
+                ]);
         }
 
         /*
-         * Cek apakah barang sudah ada di opname ini.
-         */
-        $alreadyExists = OpnameDetail::where(
-            'fk_opname',
-            $opname->id_opname
-        )
-            ->where(
+        |--------------------------------------------------------------------------
+        | BARANG TIDAK BOLEH DUPLIKAT
+        |--------------------------------------------------------------------------
+        */
+
+        $alreadyExists =
+            OpnameDetail::where(
+                'fk_opname',
+                $opname->id_opname
+            )
+                ->where(
+                    'fk_lokasi',
+                    $validated['fk_lokasi']
+                )
+                ->where(
+                    'fk_barang',
+                    $validated['fk_barang']
+                )
+                ->exists();
+
+        if ($alreadyExists) {
+
+            return back()
+                ->withErrors([
+                    'fk_barang' =>
+                        'Barang ini sudah tercatat di bin tersebut untuk opname ini.',
+                ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | AMBIL SNAPSHOT STOK
+        |--------------------------------------------------------------------------
+        */
+
+        $stokLokasi =
+            StokLokasi::where(
                 'fk_lokasi',
                 $validated['fk_lokasi']
             )
-            ->where(
-                'fk_barang',
-                $validated['fk_barang']
-            )
-            ->exists();
+                ->where(
+                    'fk_barang',
+                    $validated['fk_barang']
+                )
+                ->first();
 
-        if ($alreadyExists) {
-            return back()->withErrors([
-                'fk_barang' =>
-                    'Barang ini sudah tercatat di bin tersebut untuk opname ini.',
-            ]);
-        }
+        $stokSistem =
+            $stokLokasi
+                ? $stokLokasi->qty_stok
+                : 0;
 
         /*
-         * Ambil System Qty dari STOK RESMI.
-         *
-         * Tidak ada:
-         * StokLokasi::updateOrCreate()
-         *
-         * di sini.
-         */
-        $stokLokasi = StokLokasi::where(
-            'fk_lokasi',
-            $validated['fk_lokasi']
-        )
-            ->where(
-                'fk_barang',
-                $validated['fk_barang']
-            )
-            ->first();
+        |--------------------------------------------------------------------------
+        | CREATE DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        $stokSistem = $stokLokasi
-            ? $stokLokasi->qty_stok
-            : 0;
-
-        /*
-         * Hanya membuat data sementara di
-         * tbl_opname_detail.
-         */
         OpnameDetail::create([
+
             'fk_opname' =>
                 $opname->id_opname,
 
@@ -701,6 +1428,15 @@ class OpnameController extends Controller
             'stok_sistem' =>
                 $stokSistem,
 
+            'stok_aktual' =>
+                null,
+
+            'stok_rusak' =>
+                0,
+
+            'selisih' =>
+                null,
+
             'status_item' =>
                 'BELUM DIHITUNG',
 
@@ -708,36 +1444,45 @@ class OpnameController extends Controller
                 auth()->id() ?? 1,
         ]);
 
-        return back()->with(
-            'success',
-            'Barang berhasil ditambahkan ke opname. Stok resmi belum diubah.'
-        );
+        return back()
+            ->with(
+                'success',
+                'Barang berhasil ditambahkan ke opname. Stok resmi belum diubah.'
+            );
     }
 
-    /**
-     * Edit System Qty / keterangan.
-     *
-     * Tetap hanya mengubah tbl_opname_detail.
-     * Stok resmi baru berubah saat Submit.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE ITEM
+    |--------------------------------------------------------------------------
+    */
+
     public function updateItem(
         Request $request,
         Opname $opname,
         OpnameDetail $item
     ) {
-        if ($opname->status_opname !== 'ONGOING') {
-            return back()->withErrors([
-                'item' =>
-                    'Opname yang sudah selesai tidak dapat diedit.',
-            ]);
+
+        if (
+            $opname->status_opname !== 'ONGOING'
+        ) {
+
+            return back()
+                ->withErrors([
+                    'item' =>
+                        'Opname yang sudah selesai tidak dapat diedit.',
+                ]);
         }
 
         abort_unless(
-            $item->fk_opname === $opname->id_opname,
+            $item->fk_opname ===
+            $opname->id_opname,
             404
         );
 
         $validated = $request->validate([
+
             'stok_sistem' => [
                 'required',
                 'integer',
@@ -760,106 +1505,128 @@ class OpnameController extends Controller
         $item->updated_by =
             auth()->id() ?? 1;
 
-        $item->recalculate();
+        /*
+        | Jangan mengubah stok resmi.
+        */
+
         $item->save();
 
-        return back()->with(
-            'success',
-            'Barang berhasil diperbarui.'
-        );
+        return back()
+            ->with(
+                'success',
+                'Barang berhasil diperbarui.'
+            );
     }
 
-    /**
-     * Hapus item dari opname.
-     *
-     * Tidak menyentuh tbl_stok_lokasi.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE ITEM
+    |--------------------------------------------------------------------------
+    */
+
     public function deleteItem(
         Opname $opname,
         OpnameDetail $item
     ) {
-        if ($opname->status_opname !== 'ONGOING') {
-            return back()->withErrors([
-                'item' =>
-                    'Opname yang sudah selesai tidak dapat diubah.',
-            ]);
+
+        if (
+            $opname->status_opname !== 'ONGOING'
+        ) {
+
+            return back()
+                ->withErrors([
+                    'item' =>
+                        'Opname yang sudah selesai tidak dapat diubah.',
+                ]);
         }
 
         abort_unless(
-            $item->fk_opname === $opname->id_opname,
+            $item->fk_opname ===
+            $opname->id_opname,
             404
         );
 
-        if ($item->stok_aktual !== null) {
-            return back()->withErrors([
-                'item' =>
-                    'Barang ini sudah dihitung (ada Actual Qty), tidak bisa dihapus dari opname.',
-            ]);
+        /*
+        |--------------------------------------------------------------------------
+        | BARANG YANG SUDAH DIHITUNG TIDAK BOLEH DIHAPUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $item->stok_aktual !== null
+        ) {
+
+            return back()
+                ->withErrors([
+                    'item' =>
+                        'Barang yang sudah dihitung tidak dapat dihapus dari opname.',
+                ]);
         }
 
         $item->delete();
 
-        return back()->with(
-            'success',
-            'Barang berhasil dihapus dari opname.'
-        );
+        return back()
+            ->with(
+                'success',
+                'Barang berhasil dihapus dari opname.'
+            );
     }
 
-    /**
-     * Keluarkan bin dari opname.
-     *
-     * Tidak menyentuh tbl_stok_lokasi.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE BIN
+    |--------------------------------------------------------------------------
+    */
+
     public function deleteBin(
         Opname $opname,
         StrukturLokasi $lokasi
     ) {
-        if ($opname->status_opname !== 'ONGOING') {
-            return back()->withErrors([
-                'bin' =>
-                    'Opname yang sudah selesai tidak dapat diubah.',
-            ]);
+
+        if (
+            $opname->status_opname !== 'ONGOING'
+        ) {
+
+            return back()
+                ->withErrors([
+                    'bin' =>
+                        'Opname yang sudah selesai tidak dapat diubah.',
+                ]);
         }
 
-        $isBinValid = $opname
-            ->lokasis()
-            ->where(
-                'tbl_master_lokasi.id_lokasi',
-                $lokasi->id_lokasi
-            )
-            ->exists();
+        /*
+        |--------------------------------------------------------------------------
+        | BIN HARUS TERMASUK OPNAME
+        |--------------------------------------------------------------------------
+        */
+
+        $isBinValid =
+            $opname
+                ->lokasis()
+                ->where(
+                    'tbl_master_lokasi.id_lokasi',
+                    $lokasi->id_lokasi
+                )
+                ->exists();
 
         if (! $isBinValid) {
-            return back()->withErrors([
-                'bin' =>
-                    'Bin tersebut tidak termasuk dalam sesi opname ini.',
-            ]);
+
+            return back()
+                ->withErrors([
+                    'bin' =>
+                        'Bin tersebut tidak termasuk dalam sesi opname ini.',
+                ]);
         }
 
-        $adaYangSudahDihitung = OpnameDetail::where(
-            'fk_opname',
-            $opname->id_opname
-        )
-            ->where(
-                'fk_lokasi',
-                $lokasi->id_lokasi
-            )
-            ->whereNotNull('stok_aktual')
-            ->exists();
+        /*
+        |--------------------------------------------------------------------------
+        | JIKA SUDAH ADA BARANG YANG DIHITUNG
+        |--------------------------------------------------------------------------
+        */
 
-        if ($adaYangSudahDihitung) {
-            return back()->withErrors([
-                'bin' =>
-                    'Bin ' .
-                    $lokasi->bin .
-                    ' masih ada barang yang sudah dihitung, tidak bisa dihapus dari opname.',
-            ]);
-        }
-
-        DB::transaction(function () use (
-            $opname,
-            $lokasi
-        ) {
+        $adaYangSudahDihitung =
             OpnameDetail::where(
                 'fk_opname',
                 $opname->id_opname
@@ -868,12 +1635,53 @@ class OpnameController extends Controller
                     'fk_lokasi',
                     $lokasi->id_lokasi
                 )
-                ->delete();
+                ->whereNotNull(
+                    'stok_aktual'
+                )
+                ->exists();
 
-            $opname
-                ->lokasis()
-                ->detach($lokasi->id_lokasi);
-        });
+        if (
+            $adaYangSudahDihitung
+        ) {
+
+            return back()
+                ->withErrors([
+                    'bin' =>
+                        'Bin ' .
+                        $lokasi->bin .
+                        ' masih ada barang yang sudah dihitung, tidak bisa dihapus dari opname.',
+                ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE DETAIL + DETACH BIN
+        |--------------------------------------------------------------------------
+        */
+
+        DB::transaction(
+            function () use (
+                $opname,
+                $lokasi
+            ) {
+
+                OpnameDetail::where(
+                    'fk_opname',
+                    $opname->id_opname
+                )
+                    ->where(
+                        'fk_lokasi',
+                        $lokasi->id_lokasi
+                    )
+                    ->delete();
+
+                $opname
+                    ->lokasis()
+                    ->detach(
+                        $lokasi->id_lokasi
+                    );
+            }
+        );
 
         return redirect()
             ->route(
@@ -885,6 +1693,40 @@ class OpnameController extends Controller
                 'Bin ' .
                 $lokasi->bin .
                 ' berhasil dikeluarkan dari opname.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE OPNAME
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(
+        Opname $opname
+    ) {
+
+        if (
+            $opname->status_opname === 'COMPLETED'
+        ) {
+
+            return back()
+                ->withErrors([
+                    'opname' =>
+                        'Opname yang sudah selesai tidak dapat dihapus.',
+                ]);
+        }
+
+        $opname->delete();
+
+        return redirect()
+            ->route(
+                'opname.index'
+            )
+            ->with(
+                'success',
+                'Opname berhasil dihapus.'
             );
     }
 }

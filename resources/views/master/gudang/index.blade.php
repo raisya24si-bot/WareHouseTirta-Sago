@@ -68,8 +68,17 @@
 @endsection
 
 @section('modals')
-    <x-master.gudang.gudang-modal :statuses="$statuses" />
+    <x-master.gudang.gudang-modal
+        :statuses="$statuses"
+        :kategoriGudangs="$kategoriGudangs"
+    />
+
     <x-master.gudang.rak-modal :gudangs="$allGudangs" />
+
     <x-master.gudang.row-modal :raks="$allRaks" />
-    <x-master.gudang.lokasi-modal :raks="$allRaks" :rows="$allRows" />
+
+    <x-master.gudang.lokasi-modal
+        :raks="$allRaks"
+        :rows="$allRows"
+    />
 @endsection

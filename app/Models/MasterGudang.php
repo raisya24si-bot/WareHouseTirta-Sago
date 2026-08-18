@@ -12,11 +12,28 @@ class MasterGudang extends Model
     use SoftDeletes;
 
     protected $table = 'tbl_master_gudang';
+
     protected $primaryKey = 'id_gudang';
 
     protected $fillable = [
-        'kd_gudang', 'nm_gudang', 'desc_gudang', 'kepala_gudang', 'alamat_gudang', 'fk_status_gudang',
-        'created_by', 'updated_by', 'deleted_by',
+        'kd_gudang',
+        'nm_gudang',
+        'desc_gudang',
+        'kepala_gudang',
+        'alamat_gudang',
+        'fk_status_gudang',
+        'fk_kategori_gudang',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+    ];
+
+    protected $casts = [
+        'fk_status_gudang' => 'integer',
+        'fk_kategori_gudang' => 'integer',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
+        'deleted_by' => 'integer',
     ];
 
     public function statusGudang(): BelongsTo
@@ -28,8 +45,21 @@ class MasterGudang extends Model
         );
     }
 
+    public function kategoriGudang(): BelongsTo
+    {
+        return $this->belongsTo(
+            MasterKategoriGudang::class,
+            'fk_kategori_gudang',
+            'id_kategori_gudang'
+        );
+    }
+
     public function raks(): HasMany
     {
-        return $this->hasMany(MasterRak::class, 'fk_gudang', 'id_gudang');
+        return $this->hasMany(
+            MasterRak::class,
+            'fk_gudang',
+            'id_gudang'
+        );
     }
 }
