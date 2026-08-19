@@ -118,7 +118,7 @@
             <form
                 method="POST"
                 action="{{ route('opname.submit-adjustment', $opname) }}"
-                onsubmit="return confirm('Submit adjustment? Setelah disubmit, stok resmi pada tbl_stok_lokasi akan diperbarui dan opname tidak dapat diedit lagi.')"
+                onsubmit="return confirmSubmitAdjustment({{ $selisihItems }})"
             >
                 @csrf
 
@@ -154,18 +154,43 @@
 @endsection
 
 @section('modals')
-<x-opname.add-item-modal :opname="$opname" :bins="$bins" :allBarangs="$allBarangs" />
+<x-opname.add-item-modal :opname="$opname" :bins="$bins" :allBarangs="$allBarangs" :rows="$rows" />
 <x-opname.edit-item-modal :opname="$opname" />
 @endsection
 
 @push('scripts')
 <script>
+
+function confirmSubmitAdjustment(selisihCount) {
+
+    if (selisihCount > 0) {
+
+        return confirm(
+            ' Terdapat selisih stok pada ' + selisihCount + ' barang.\n\n' +
+            'Stok sistem akan diubah sesuai hasil hitung fisik dan data opname akan dikunci.\n\n' +
+            'Lanjutkan submit?'
+        );
+    }
+
+    return confirm(
+        'Submit adjustment? Setelah disubmit, stok resmi pada ' +
+        'tbl_stok_lokasi akan diperbarui dan opname tidak dapat ' +
+        'diedit lagi.'
+    );
+}
+
 function opnameDetailRecalc(id) {
 
-    const actualInput =
-        document.querySelector(
-            `input[name="detail[${id}][actual]"]`
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | Actual Qty sekarang OTOMATIS = Baik + Rusak
+    |--------------------------------------------------------------------------
+    |
+    | User cuma input "Baik" (Good/RFS) dan "Rusak" (Damage).
+    | Field Actual read-only, dihitung di sini lalu di-submit
+    | apa adanya (readonly input tetap ikut ke-POST, beda dengan disabled).
+    |
+    */
 
     const baikInput =
         document.getElementById(
@@ -177,30 +202,29 @@ function opnameDetailRecalc(id) {
             'rusak-' + id
         );
 
+    const actualInput =
+        document.getElementById(
+            'actual-' + id
+        );
+
     const diffEl =
         document.getElementById(
             'detail-diff-' + id
         );
 
     const sistem =
-        Number(actualInput.dataset.sistem);
+        Number(baikInput.dataset.sistem);
 
-    const actual =
-        actualInput.value === ''
-            ? null
-            : Number(actualInput.value);
+    const baikRaw = baikInput.value;
+    const rusakRaw = rusakInput.value;
 
-    const baik =
-        baikInput.value === ''
-            ? 0
-            : Number(baikInput.value);
+    /*
+    | Kalau dua-duanya masih kosong,
+    | anggap item ini belum dihitung sama sekali.
+    */
+    if (baikRaw === '' && rusakRaw === '') {
 
-    const rusak =
-        rusakInput.value === ''
-            ? 0
-            : Number(rusakInput.value);
-
-    if (actual === null) {
+        actualInput.value = '';
 
         diffEl.textContent = '--';
 
@@ -209,6 +233,17 @@ function opnameDetailRecalc(id) {
 
         return;
     }
+
+    const baik =
+        baikRaw === '' ? 0 : Number(baikRaw);
+
+    const rusak =
+        rusakRaw === '' ? 0 : Number(rusakRaw);
+
+    const actual =
+        baik + rusak;
+
+    actualInput.value = actual;
 
     const diff =
         actual - sistem;
@@ -225,45 +260,6 @@ function opnameDetailRecalc(id) {
                 ? 'text-green-700'
                 : 'text-error'
         );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validasi Actual = Baik + Rusak
-    |--------------------------------------------------------------------------
-    */
-
-    const total =
-        baik + rusak;
-
-    if (total !== actual) {
-
-        actualInput.classList.add(
-            'border-error'
-        );
-
-        baikInput.classList.add(
-            'border-error'
-        );
-
-        rusakInput.classList.add(
-            'border-error'
-        );
-
-    } else {
-
-        actualInput.classList.remove(
-            'border-error'
-        );
-
-        baikInput.classList.remove(
-            'border-error'
-        );
-
-        rusakInput.classList.remove(
-            'border-error'
-        );
-    }
 }
 </script>
 @endpush
-

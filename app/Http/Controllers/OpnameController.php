@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\MasterBarang;
 use App\Models\MasterGudang;
+use App\Models\MasterRow;
 use App\Models\Opname;
 use App\Models\OpnameDetail;
 use App\Models\StokLokasi;
@@ -398,6 +399,7 @@ class OpnameController extends Controller
         Request $request,
         Opname $opname
     ) {
+        $id_opname = $opname->id_opname;
         $opname->load('gudang');
 
         $perPage =
@@ -541,6 +543,34 @@ class OpnameController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | ROW YANG BISA DIPAKAI UNTUK BIKIN BIN BARU
+        |--------------------------------------------------------------------------
+        |
+        | Cuma row yang ada di GUDANG yang sama dengan opname ini.
+        | Bin baru bakal dibuat di salah satu row ini.
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = MasterRow::whereHas(
+            'rak',
+            function ($q) use ($opname) {
+
+                $q->where(
+                    'fk_gudang',
+                    $opname->fk_gudang
+                );
+            }
+        )
+            ->where(
+                'status_row',
+                'AKTIF'
+            )
+            ->with('rak')
+            ->orderBy('kd_row')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
         | SELECTED BIN
         |--------------------------------------------------------------------------
         */
@@ -626,24 +656,13 @@ class OpnameController extends Controller
                 'selisihItems',
                 'progress',
                 'selectedBin',
-                'selectedBinCanDelete'
+                'selectedBinCanDelete',
+                'rows'
             )
         );
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | SAVE PROGRESS
-    |--------------------------------------------------------------------------
-    |
-    | PENTING:
-    |
-    | METHOD INI HANYA MENGUBAH tbl_opname_detail.
-    |
-    | tbl_stok_lokasi TIDAK DISENTUH.
-    |
-    */
 
     public function update(
         Request $request,
@@ -783,30 +802,12 @@ class OpnameController extends Controller
                         ]);
                     }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | HITUNG BARANG BAIK
-                    |--------------------------------------------------------------------------
-                    |
-                    | Rumus:
-                    |
-                    | BAIK = ACTUAL - RUSAK
-                    |
-                    */
+            
 
                     $baik =
                         (int) $actual
                         - $rusak;
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | KALAU FRONTEND MENGIRIM BAIK
-                    |--------------------------------------------------------------------------
-                    |
-                    | Pastikan angka baik yang ditampilkan
-                    | sama dengan hasil perhitungan.
-                    |
-                    */
 
                     if (
                         $baikInput !== null
@@ -820,11 +821,6 @@ class OpnameController extends Controller
                         ]);
                     }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | SIMPAN KE OPNAME DETAIL
-                    |--------------------------------------------------------------------------
-                    */
 
                     $detail->stok_aktual =
                         (int) $actual;
@@ -832,21 +828,13 @@ class OpnameController extends Controller
                     $detail->stok_rusak =
                         $rusak;
 
-                    /*
-                    | Selisih berdasarkan total actual
-                    | terhadap stok sistem.
-                    */
+                    
                     $detail->selisih =
                         (int) $actual
                         -
                         (int) $detail->stok_sistem;
 
-                    /*
-                    | Status sementara.
-                    |
-                    | Save Progress TIDAK memaksa
-                    | actual harus sama dengan sistem.
-                    */
+                   
                     $detail->status_item =
                         $detail->selisih === 0
                             ? 'SESUAI'
@@ -875,9 +863,10 @@ class OpnameController extends Controller
     | HANYA METHOD INI YANG BOLEH MENGUBAH tbl_stok_lokasi.
     |
     */
-
    public function submitAdjustment(Opname $opname)
 {
+
+// return $opname->all();
     if ($opname->status_opname !== 'ONGOING') {
         return back()->withErrors([
             'submit' =>
@@ -1023,21 +1012,14 @@ class OpnameController extends Controller
 
         $baik = $actual - $rusak;
 
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL FISIK HARUS SAMA DENGAN SISTEM
-        |--------------------------------------------------------------------------
-        */
-
-        if (($baik + $rusak) !== $system) {
+        if (($baik + $rusak) !== $actual) {
             return back()->withErrors([
                 'submit' =>
                     'Barang ' .
                     ($detail->barang?->nm_master_barang ?? '-') .
                     ' tidak valid. ' .
-                    'Qty Baik + Qty Rusak harus sama dengan Stok Sistem. ' .
-                    'Sistem: ' . $system .
-                    ', Actual: ' . $actual .
+                    'Qty Baik + Qty Rusak harus sama dengan Actual Qty. ' .
+                    'Actual: ' . $actual .
                     ', Baik: ' . $baik .
                     ', Rusak: ' . $rusak . '.',
             ]);
@@ -1111,10 +1093,11 @@ class OpnameController extends Controller
         $allDetails,
         $opname,
         $rejectedLocation
-    ) {
+    ){
+        $id_lokasi = collect($allDetails)->select('fk_lokasi')->pluck('fk_lokasi')->toArray();
 
+        $hapus_stok_by_bin = StokLokasi::whereIn('fk_lokasi',$id_lokasi)->delete();
         $userId = auth()->id() ?? 1;
-
         foreach ($allDetails as $detail) {
 
             $actual = (int) $detail->stok_aktual;
@@ -1141,8 +1124,7 @@ class OpnameController extends Controller
             |
             */
 
-            $stokAsal = StokLokasi::withTrashed()
-                ->where(
+            $stokAsal = StokLokasi::where(
                     'fk_barang',
                     $detail->fk_barang
                 )
@@ -1167,17 +1149,6 @@ class OpnameController extends Controller
 
                 $stokAsal->qty_rusak =
                     0;
-            }
-
-            /*
-            | Restore kalau sebelumnya soft deleted.
-            */
-
-            if (
-                $stokAsal->exists &&
-                $stokAsal->trashed()
-            ) {
-                $stokAsal->restore();
             }
 
             /*
@@ -1212,8 +1183,7 @@ class OpnameController extends Controller
                 $rejectedLocation
             ) {
 
-                $stokRejected = StokLokasi::withTrashed()
-                    ->where(
+                $stokRejected = StokLokasi::where(
                         'fk_barang',
                         $detail->fk_barang
                     )
@@ -1245,17 +1215,6 @@ class OpnameController extends Controller
 
                     $stokRejected->created_by =
                         $userId;
-                }
-
-                /*
-                | Restore jika soft deleted.
-                */
-
-                if (
-                    $stokRejected->exists &&
-                    $stokRejected->trashed()
-                ) {
-                    $stokRejected->restore();
                 }
 
                 /*
@@ -1321,9 +1280,21 @@ class OpnameController extends Controller
 
         $validated = $request->validate([
 
+            'new_bin' => [
+                'nullable',
+                'boolean',
+            ],
+
             'fk_lokasi' => [
-                'required',
+                'required_if:new_bin,1',
+                'nullable',
                 'exists:tbl_master_lokasi,id_lokasi',
+            ],
+
+            'fk_row' => [
+                'required_if:new_bin,1',
+                'nullable',
+                'exists:tbl_master_row,id_row',
             ],
 
             'fk_barang' => [
@@ -1332,28 +1303,116 @@ class OpnameController extends Controller
             ],
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | BIN HARUS TERMASUK OPNAME
-        |--------------------------------------------------------------------------
-        */
+        $isNewBin = $request->boolean('new_bin');
 
-        $isBinValid =
-            $opname
-                ->lokasis()
-                ->where(
-                    'tbl_master_lokasi.id_lokasi',
-                    $validated['fk_lokasi']
-                )
-                ->exists();
+        if ($isNewBin) {
 
-        if (! $isBinValid) {
+            /*
+            |--------------------------------------------------------------------------
+            | BIN BARU
+            |--------------------------------------------------------------------------
+            |
+            | User pilih ROW, sistem yang bikinin BIN-nya otomatis
+            | (nomor urut 2 digit, sama kayak logic di
+            | StrukturLokasiController::store()), lalu langsung
+            | disambungkan ke sesi opname ini (tbl_opname_lokasi).
+            |--------------------------------------------------------------------------
+            */
 
-            return back()
-                ->withErrors([
-                    'fk_lokasi' =>
-                        'Bin tersebut tidak termasuk dalam sesi opname ini.',
-                ]);
+            $row = MasterRow::findOrFail(
+                $validated['fk_row']
+            );
+
+            /*
+            | ROW harus ada di gudang yang sama dengan opname ini.
+            */
+
+            $rowGudangId =
+                $row->rak?->fk_gudang;
+
+            if ((int) $rowGudangId !== (int) $opname->fk_gudang) {
+
+                return back()
+                    ->withErrors([
+                        'fk_row' =>
+                            'Row tersebut bukan bagian dari gudang opname ini.',
+                    ]);
+            }
+
+            $lokasi = DB::transaction(
+                function () use ($row) {
+
+                    $existing =
+                        StrukturLokasi::where(
+                                'fk_row',
+                                $row->id_row
+                            )
+                            ->count();
+
+                    $seq = $existing + 1;
+
+                    $binCode = str_pad(
+                        (string) $seq,
+                        2,
+                        '0',
+                        STR_PAD_LEFT
+                    );
+
+                    return StrukturLokasi::create([
+
+                        'kd_lokasi' =>
+                            $row->kd_row . '.' . $binCode,
+
+                        'fk_row' =>
+                            $row->id_row,
+
+                        'bin' =>
+                            $binCode,
+
+                        'status_lokasi' =>
+                            'AKTIF',
+
+                        'created_by' =>
+                            auth()->id() ?? 1,
+                    ]);
+                }
+            );
+
+            /*
+            | Sambungkan bin baru ini ke sesi opname (kalau belum).
+            */
+
+            $opname->lokasis()->syncWithoutDetaching([
+                $lokasi->id_lokasi,
+            ]);
+
+            $validated['fk_lokasi'] = $lokasi->id_lokasi;
+
+        } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | BIN HARUS TERMASUK OPNAME
+            |--------------------------------------------------------------------------
+            */
+
+            $isBinValid =
+                $opname
+                    ->lokasis()
+                    ->where(
+                        'tbl_master_lokasi.id_lokasi',
+                        $validated['fk_lokasi']
+                    )
+                    ->exists();
+
+            if (! $isBinValid) {
+
+                return back()
+                    ->withErrors([
+                        'fk_lokasi' =>
+                            'Bin tersebut tidak termasuk dalam sesi opname ini.',
+                    ]);
+            }
         }
 
         /*
@@ -1730,3 +1789,4 @@ class OpnameController extends Controller
             );
     }
 }
+

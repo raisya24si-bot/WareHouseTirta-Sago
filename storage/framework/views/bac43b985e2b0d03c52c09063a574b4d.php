@@ -168,7 +168,7 @@
             <form
                 method="POST"
                 action="<?php echo e(route('opname.submit-adjustment', $opname)); ?>"
-                onsubmit="return confirm('Submit adjustment? Setelah disubmit, stok resmi pada tbl_stok_lokasi akan diperbarui dan opname tidak dapat diedit lagi.')"
+                onsubmit="return confirmSubmitAdjustment(<?php echo e($selisihItems); ?>)"
             >
                 <?php echo csrf_field(); ?>
 
@@ -225,14 +225,14 @@
 <?php $__env->startSection('modals'); ?>
 <?php if (isset($component)) { $__componentOriginalaa08cdeda0ee61a22495e6d0b0bc5562 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalaa08cdeda0ee61a22495e6d0b0bc5562 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.opname.add-item-modal','data' => ['opname' => $opname,'bins' => $bins,'allBarangs' => $allBarangs]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.opname.add-item-modal','data' => ['opname' => $opname,'bins' => $bins,'allBarangs' => $allBarangs,'rows' => $rows]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('opname.add-item-modal'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['opname' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($opname),'bins' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($bins),'allBarangs' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($allBarangs)]); ?>
+<?php $component->withAttributes(['opname' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($opname),'bins' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($bins),'allBarangs' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($allBarangs),'rows' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($rows)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalaa08cdeda0ee61a22495e6d0b0bc5562)): ?>
@@ -267,12 +267,37 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+
+function confirmSubmitAdjustment(selisihCount) {
+
+    if (selisihCount > 0) {
+
+        return confirm(
+            ' Terdapat selisih stok pada ' + selisihCount + ' barang.\n\n' +
+            'Stok sistem akan diubah sesuai hasil hitung fisik dan data opname akan dikunci.\n\n' +
+            'Lanjutkan submit?'
+        );
+    }
+
+    return confirm(
+        'Submit adjustment? Setelah disubmit, stok resmi pada ' +
+        'tbl_stok_lokasi akan diperbarui dan opname tidak dapat ' +
+        'diedit lagi.'
+    );
+}
+
 function opnameDetailRecalc(id) {
 
-    const actualInput =
-        document.querySelector(
-            `input[name="detail[${id}][actual]"]`
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | Actual Qty sekarang OTOMATIS = Baik + Rusak
+    |--------------------------------------------------------------------------
+    |
+    | User cuma input "Baik" (Good/RFS) dan "Rusak" (Damage).
+    | Field Actual read-only, dihitung di sini lalu di-submit
+    | apa adanya (readonly input tetap ikut ke-POST, beda dengan disabled).
+    |
+    */
 
     const baikInput =
         document.getElementById(
@@ -284,30 +309,29 @@ function opnameDetailRecalc(id) {
             'rusak-' + id
         );
 
+    const actualInput =
+        document.getElementById(
+            'actual-' + id
+        );
+
     const diffEl =
         document.getElementById(
             'detail-diff-' + id
         );
 
     const sistem =
-        Number(actualInput.dataset.sistem);
+        Number(baikInput.dataset.sistem);
 
-    const actual =
-        actualInput.value === ''
-            ? null
-            : Number(actualInput.value);
+    const baikRaw = baikInput.value;
+    const rusakRaw = rusakInput.value;
 
-    const baik =
-        baikInput.value === ''
-            ? 0
-            : Number(baikInput.value);
+    /*
+    | Kalau dua-duanya masih kosong,
+    | anggap item ini belum dihitung sama sekali.
+    */
+    if (baikRaw === '' && rusakRaw === '') {
 
-    const rusak =
-        rusakInput.value === ''
-            ? 0
-            : Number(rusakInput.value);
-
-    if (actual === null) {
+        actualInput.value = '';
 
         diffEl.textContent = '--';
 
@@ -316,6 +340,17 @@ function opnameDetailRecalc(id) {
 
         return;
     }
+
+    const baik =
+        baikRaw === '' ? 0 : Number(baikRaw);
+
+    const rusak =
+        rusakRaw === '' ? 0 : Number(rusakRaw);
+
+    const actual =
+        baik + rusak;
+
+    actualInput.value = actual;
 
     const diff =
         actual - sistem;
@@ -332,47 +367,7 @@ function opnameDetailRecalc(id) {
                 ? 'text-green-700'
                 : 'text-error'
         );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validasi Actual = Baik + Rusak
-    |--------------------------------------------------------------------------
-    */
-
-    const total =
-        baik + rusak;
-
-    if (total !== actual) {
-
-        actualInput.classList.add(
-            'border-error'
-        );
-
-        baikInput.classList.add(
-            'border-error'
-        );
-
-        rusakInput.classList.add(
-            'border-error'
-        );
-
-    } else {
-
-        actualInput.classList.remove(
-            'border-error'
-        );
-
-        baikInput.classList.remove(
-            'border-error'
-        );
-
-        rusakInput.classList.remove(
-            'border-error'
-        );
-    }
 }
 </script>
 <?php $__env->stopPush(); ?>
-
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/opname/show.blade.php ENDPATH**/ ?>

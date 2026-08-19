@@ -32,15 +32,15 @@
     </th>
 
     <th class="px-4 py-3 text-label-bold">
-        Actual
-    </th>
-
-    <th class="px-4 py-3 text-label-bold">
         Baik
     </th>
 
     <th class="px-4 py-3 text-label-bold">
         Rusak
+    </th>
+
+    <th class="px-4 py-3 text-label-bold">
+        Actual
     </th>
 
     <th class="px-4 py-3 text-label-bold">
@@ -217,27 +217,7 @@
     </td>
 
 
-    {{-- ACTUAL --}}
-
-    <td class="px-4 py-3">
-
-        <input
-            type="number"
-            min="0"
-            form="opname-detail-form"
-            name="detail[{{ $d->id_opname_detail }}][actual]"
-            value="{{ $d->stok_aktual }}"
-            data-sistem="{{ $d->stok_sistem }}"
-            data-detail-id="{{ $d->id_opname_detail }}"
-            oninput="opnameDetailRecalc({{ $d->id_opname_detail }})"
-            class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
-            placeholder="Actual"
-        >
-
-    </td>
-
-
-    {{-- BAIK --}}
+    {{-- BAIK (Good/RFS) --}}
 
     <td class="px-4 py-3">
 
@@ -248,6 +228,8 @@
             name="detail[{{ $d->id_opname_detail }}][baik]"
             value="{{ $d->stok_baik }}"
             id="baik-{{ $d->id_opname_detail }}"
+            data-sistem="{{ $d->stok_sistem }}"
+            data-detail-id="{{ $d->id_opname_detail }}"
             oninput="opnameDetailRecalc({{ $d->id_opname_detail }})"
             class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
             placeholder="Baik"
@@ -256,7 +238,7 @@
     </td>
 
 
-    {{-- RUSAK --}}
+    {{-- RUSAK (Damage) --}}
 
     <td class="px-4 py-3">
 
@@ -270,6 +252,25 @@
             oninput="opnameDetailRecalc({{ $d->id_opname_detail }})"
             class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
             placeholder="Rusak"
+        >
+
+    </td>
+
+
+    {{-- ACTUAL (auto: Baik + Rusak, tidak diinput manual) --}}
+
+    <td class="px-4 py-3">
+
+        <input
+            type="number"
+            readonly
+            tabindex="-1"
+            form="opname-detail-form"
+            name="detail[{{ $d->id_opname_detail }}][actual]"
+            value="{{ $d->stok_aktual }}"
+            id="actual-{{ $d->id_opname_detail }}"
+            class="w-24 cursor-not-allowed rounded-md border border-outline-variant bg-surface-container-low px-3 py-1.5 text-on-surface-variant"
+            placeholder="--"
         >
 
     </td>

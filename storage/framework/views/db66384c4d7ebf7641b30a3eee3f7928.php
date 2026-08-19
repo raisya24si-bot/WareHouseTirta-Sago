@@ -64,15 +64,15 @@ unset($__defined_vars, $__key, $__value); ?>
     </th>
 
     <th class="px-4 py-3 text-label-bold">
-        Actual
-    </th>
-
-    <th class="px-4 py-3 text-label-bold">
         Baik
     </th>
 
     <th class="px-4 py-3 text-label-bold">
         Rusak
+    </th>
+
+    <th class="px-4 py-3 text-label-bold">
+        Actual
     </th>
 
     <th class="px-4 py-3 text-label-bold">
@@ -262,29 +262,11 @@ unset($__defined_vars, $__key, $__value); ?>
             type="number"
             min="0"
             form="opname-detail-form"
-            name="detail[<?php echo e($d->id_opname_detail); ?>][actual]"
-            value="<?php echo e($d->stok_aktual); ?>"
-            data-sistem="<?php echo e($d->stok_sistem); ?>"
-            data-detail-id="<?php echo e($d->id_opname_detail); ?>"
-            oninput="opnameDetailRecalc(<?php echo e($d->id_opname_detail); ?>)"
-            class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
-            placeholder="Actual"
-        >
-
-    </td>
-
-
-    
-
-    <td class="px-4 py-3">
-
-        <input
-            type="number"
-            min="0"
-            form="opname-detail-form"
             name="detail[<?php echo e($d->id_opname_detail); ?>][baik]"
             value="<?php echo e($d->stok_baik); ?>"
             id="baik-<?php echo e($d->id_opname_detail); ?>"
+            data-sistem="<?php echo e($d->stok_sistem); ?>"
+            data-detail-id="<?php echo e($d->id_opname_detail); ?>"
             oninput="opnameDetailRecalc(<?php echo e($d->id_opname_detail); ?>)"
             class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
             placeholder="Baik"
@@ -307,6 +289,25 @@ unset($__defined_vars, $__key, $__value); ?>
             oninput="opnameDetailRecalc(<?php echo e($d->id_opname_detail); ?>)"
             class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
             placeholder="Rusak"
+        >
+
+    </td>
+
+
+    
+
+    <td class="px-4 py-3">
+
+        <input
+            type="number"
+            readonly
+            tabindex="-1"
+            form="opname-detail-form"
+            name="detail[<?php echo e($d->id_opname_detail); ?>][actual]"
+            value="<?php echo e($d->stok_aktual); ?>"
+            id="actual-<?php echo e($d->id_opname_detail); ?>"
+            class="w-24 cursor-not-allowed rounded-md border border-outline-variant bg-surface-container-low px-3 py-1.5 text-on-surface-variant"
+            placeholder="--"
         >
 
     </td>
