@@ -1,0 +1,71 @@
+name: Jalankan Docker Otomatis
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kode
+        uses: actions/checkout@v4
+
+      - name: Build Docker
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml build --no-cache
+
+      - name: Nyalakan Docker MySQL & PHP
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml up -d
+
+      - name: Cek Container
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml ps
+
+      - name: Cek PHP MySQL Driver
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml exec -T app \
+            php -m | grep -E 'PDO|pdo_mysql'
+
+      - name: Tunggu MySQL
+        run: |
+          for i in {1..30}; do
+            if docker compose -f .devcontainer/docker-compose.yml exec -T db \
+              mysqladmin ping -h localhost -u root -p"$MYSQL_ROOT_PASSWORD" --silent; then
+              echo "MySQL siap."
+              break
+            fi
+
+            echo "Menunggu MySQL..."
+            sleep 2
+          done
+
+      - name: Setup Environment
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml exec -T app \
+            cp .env.example .env
+
+      - name: Install Dependencies
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml exec -T app \
+            git config --global --add safe.directory /var/www/html
+
+          docker compose -f .devcontainer/docker-compose.yml exec -T app \
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate Application Key
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml exec -T app \
+            php artisan key:generate --force
+
+      - name: Database Migration
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml exec -T app \
+            php artisan migrate:fresh --force --seed
+
+      - name: Stop Docker
+        if: always()
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml down -v
