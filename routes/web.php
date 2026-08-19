@@ -9,6 +9,7 @@ use App\Http\Controllers\MasterSatuanController;
 use App\Http\Controllers\MasterSupplierController;
 use App\Http\Controllers\OpnameController;
 use App\Http\Controllers\StrukturLokasiController;
+use App\Http\Controllers\ManajemenStokController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MasterBarangController::class, 'index'])->name('barang.index');
@@ -60,4 +61,37 @@ Route::post('/opname/{opname}/items', [OpnameController::class, 'addItem'])->nam
 Route::put('/opname/{opname}/items/{item}', [OpnameController::class, 'updateItem'])->name('opname.update-item');
 Route::delete('/opname/{opname}/items/{item}', [OpnameController::class, 'deleteItem'])->name('opname.delete-item');
 Route::delete('/opname/{opname}/bins/{lokasi}', [OpnameController::class, 'deleteBin'])->name('opname.delete-bin');
+
+// MANAJEMEN STOK BARANG
+Route::get(
+    '/manajemen-stok',
+    [ManajemenStokController::class, 'index']
+)->name('manajemen-stok.index');
+
+Route::get(
+    '/manajemen-stok/barang/{masterBarang}',
+    [ManajemenStokController::class, 'show']
+)->name('manajemen-stok.show');
+
+Route::get(
+    '/manajemen-stok/stok/{stokLokasi}/edit',
+    [ManajemenStokController::class, 'edit']
+)->name('manajemen-stok.edit');
+
+Route::put(
+    '/manajemen-stok/stok/{stokLokasi}',
+    [ManajemenStokController::class, 'update']
+)->name('manajemen-stok.update');
+
+Route::post(
+    '/manajemen-stok/add-bin',
+    [ManajemenStokController::class, 'addBin']
+)->name('manajemen-stok.add-bin');
+
+Route::delete(
+    '/manajemen-stok/stok/{stokLokasi}',
+    [ManajemenStokController::class, 'destroy']
+)->name('manajemen-stok.destroy');
+
 Route::delete('/opname/{opname}', [OpnameController::class, 'destroy'])->name('opname.destroy');
+

@@ -182,6 +182,25 @@
             </span>
         </a>
 
+        <!-- Manajemen Stok Barang -->
+        <a
+            href="{{ route('manajemen-stok.index') }}"
+            class="{{ request()->routeIs('manajemen-stok.*')
+                ? 'bg-primary text-on-primary'
+                : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                mx-2 my-1 flex items-center px-4 py-3 rounded-xl transition-colors duration-200 group"
+        >
+
+    <span class="material-symbols-outlined mr-3 {{ request()->routeIs('manajemen-stok.*') ? '' : 'text-outline group-hover:text-primary' }}">
+        inventory
+    </span>
+
+    <span class="text-sidebar-nav font-sidebar-nav">
+        Manajemen Stok Barang
+    </span>
+
+</a>
+
 
         <!-- Material Requests -->
         <a href="#"
