@@ -26,20 +26,11 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tirta_sago
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-uroot",
-          "-proot"
-        ]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot" ]
       interval: 5s
       timeout: 20s
       retries: 20

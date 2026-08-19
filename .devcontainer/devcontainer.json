@@ -1,13 +1,11 @@
 {
-  "name": "Laravel Project",
+  "name": "Laravel Project WH",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/var/www/html",
-
   "features": {
     "ghcr.io/devcontainers/features/node:1": {}
   },
-
   "customizations": {
     "vscode": {
       "extensions": [
@@ -16,9 +14,7 @@
       ]
     }
   },
-
   "postCreateCommand": "composer install",
-
   "forwardPorts": [
     8000,
     3306
