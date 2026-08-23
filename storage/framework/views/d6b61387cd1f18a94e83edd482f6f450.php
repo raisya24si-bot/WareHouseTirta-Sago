@@ -7,14 +7,14 @@
 
 <?php if (isset($component)) { $__componentOriginaleb505a29c7c6ac9c6b668e6cf9210ab5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginaleb505a29c7c6ac9c6b668e6cf9210ab5 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.page-header','data' => ['title' => 'Manajemen Stok Barang','description' => 'Kelola penempatan dan stok barang berdasarkan BIN, Row, Rak, dan Gudang.']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.page-header','data' => ['title' => 'Manajemen Stok Barang','description' => 'Kelola penempatan dan stok barang berdasarkan BIN, Row, Rak, dan Gudang.','icon' => 'warehouse']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('master.shared.page-header'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['title' => 'Manajemen Stok Barang','description' => 'Kelola penempatan dan stok barang berdasarkan BIN, Row, Rak, dan Gudang.']); ?>
+<?php $component->withAttributes(['title' => 'Manajemen Stok Barang','description' => 'Kelola penempatan dan stok barang berdasarkan BIN, Row, Rak, dan Gudang.','icon' => 'warehouse']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginaleb505a29c7c6ac9c6b668e6cf9210ab5)): ?>
@@ -25,6 +25,89 @@
 <?php $component = $__componentOriginaleb505a29c7c6ac9c6b668e6cf9210ab5; ?>
 <?php unset($__componentOriginaleb505a29c7c6ac9c6b668e6cf9210ab5); ?>
 <?php endif; ?>
+
+<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <?php if (isset($component)) { $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.stat-card','data' => ['label' => 'Total Barang','value' => $stokSummary['total_barang'],'icon' => 'inventory_2','color' => 'primary']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('master.shared.stat-card'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['label' => 'Total Barang','value' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stokSummary['total_barang']),'icon' => 'inventory_2','color' => 'primary']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $attributes = $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $component = $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+    <?php if (isset($component)) { $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.stat-card','data' => ['label' => 'Belum Ada BIN','value' => $stokSummary['belum_bin'],'icon' => 'location_off','color' => 'amber']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('master.shared.stat-card'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['label' => 'Belum Ada BIN','value' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stokSummary['belum_bin']),'icon' => 'location_off','color' => 'amber']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $attributes = $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $component = $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+    <?php if (isset($component)) { $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.stat-card','data' => ['label' => 'Total Penempatan BIN','value' => $stokSummary['total_penempatan'],'icon' => 'inventory','color' => 'green']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('master.shared.stat-card'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['label' => 'Total Penempatan BIN','value' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stokSummary['total_penempatan']),'icon' => 'inventory','color' => 'green']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $attributes = $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $component = $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+    <?php if (isset($component)) { $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.master.shared.stat-card','data' => ['label' => 'Gudang Aktif','value' => $stokSummary['total_gudang'],'icon' => 'warehouse','color' => 'primary']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('master.shared.stat-card'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['label' => 'Gudang Aktif','value' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stokSummary['total_gudang']),'icon' => 'warehouse','color' => 'primary']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $attributes = $__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__attributesOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27)): ?>
+<?php $component = $__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27; ?>
+<?php unset($__componentOriginalc26d0dc8a672fdd387f8f0aee5fa7d27); ?>
+<?php endif; ?>
+</div>
 
 
 <div class="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
@@ -90,7 +173,11 @@
                     </th>
 
                     <th class="px-5 py-3 text-label-bold">
-                        Gudang Stok
+                        Gudang
+                    </th>
+
+                    <th class="px-5 py-3 text-label-bold">
+                        Stok
                     </th>
 
                     <th class="px-5 py-3 text-right text-label-bold">
@@ -192,6 +279,18 @@
 
                                 
 
+                                <td class="px-5 py-4">
+
+                                    <span class="font-label-bold tabular-nums">
+                                        <?php echo e(number_format($stok->qty_stok)); ?>
+
+                                    </span>
+
+                                </td>
+
+
+                                
+
                                 <td class="px-5 py-4 text-right">
 
                                     <div class="inline-flex items-center gap-1">
@@ -231,6 +330,30 @@
                                             </span>
 
                                         </button>
+
+
+                                        
+
+                                        <form
+                                            method="POST"
+                                            action="<?php echo e(route('manajemen-stok.destroy', $stok->id_stok_lokasi)); ?>"
+                                            onsubmit="return confirm('Lepas barang <?php echo e($barang->nm_master_barang); ?> dari BIN <?php echo e($stok->lokasi?->bin); ?>? Data stok di BIN ini akan dihapus.')"
+                                        >
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex p-1.5 text-outline transition hover:text-error"
+                                                title="Delete"
+                                            >
+
+                                                <span class="material-symbols-outlined text-[20px]">
+                                                    delete
+                                                </span>
+
+                                            </button>
+                                        </form>
 
                                     </div>
 
@@ -326,6 +449,13 @@
 
                             
 
+                            <td class="px-5 py-4 text-on-surface-variant">
+                                -
+                            </td>
+
+
+                            
+
                             <td class="px-5 py-4 text-right">
 
                                 <div class="inline-flex items-center gap-1">
@@ -360,6 +490,22 @@
 
                                     </button>
 
+
+                                    
+
+                                    <button
+                                        type="button"
+                                        disabled
+                                        class="inline-flex cursor-not-allowed p-1.5 text-outline/40"
+                                        title="Belum ada BIN"
+                                    >
+
+                                        <span class="material-symbols-outlined text-[20px]">
+                                            delete
+                                        </span>
+
+                                    </button>
+
                                 </div>
 
                             </td>
@@ -373,7 +519,7 @@
                     <tr>
 
                         <td
-                            colspan="7"
+                            colspan="8"
                             class="px-5 py-12 text-center text-on-surface-variant"
                         >
 

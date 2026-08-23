@@ -3,6 +3,9 @@
     'placeholder' => 'Cari...',
     'addAction' => null,
     'addText' => 'Tambah Data',
+    'secondaryAction' => null,
+    'secondaryText' => null,
+    'secondaryIcon' => 'upload',
     'filterName' => null,
     'filterOptions' => [],
     'filterLabel' => 'Filter',
@@ -20,7 +23,7 @@
             @if($filterName && request($filterName) !== null && request($filterName) !== '')
                 <input type="hidden" name="{{ $filterName }}" value="{{ request($filterName) }}">
             @endif
-            <div class="flex items-center overflow-hidden rounded-md border border-outline-variant bg-white">
+            <div class="flex items-center overflow-hidden rounded-md border border-outline-variant bg-white transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
                 <span class="material-symbols-outlined px-3 text-outline text-[20px]">search</span>
                 <input
                     type="text"
@@ -36,7 +39,7 @@
             <button
                 type="button"
                 onclick="document.getElementById('{{ $filterName }}-filter').classList.toggle('hidden')"
-                class="inline-flex items-center gap-2 rounded-md border border-outline-variant bg-white px-4 py-2 text-body-sm hover:bg-surface-container-low"
+                class="inline-flex items-center gap-2 rounded-md border border-outline-variant bg-white px-4 py-2 text-body-sm transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary {{ request($filterName) ? 'border-primary/40 bg-primary/5 text-primary' : '' }}"
             >
                 <span class="material-symbols-outlined text-[20px]">filter_list</span>
                 {{ $filterLabel }}
@@ -63,14 +66,29 @@
         @endif
     </div>
 
-    @if($addAction)
+    <div class="flex items-center gap-2">
+
+        @if($secondaryAction && $secondaryText)
+            <button
+                type="button"
+                onclick="{{ $secondaryAction }}"
+                class="inline-flex items-center gap-2 rounded-md border border-outline-variant bg-white px-4 py-2.5 text-body-sm font-label-bold text-on-surface-variant shadow-sm transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+            >
+                <span class="material-symbols-outlined text-[19px]">{{ $secondaryIcon }}</span>
+                {{ $secondaryText }}
+            </button>
+        @endif
+
+        @if($addAction)
         <button
             type="button"
             onclick="{{ $addAction }}"
-            class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm hover:bg-primary-container"
+            class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm transition hover:bg-primary-container hover:shadow-md active:scale-[0.98]"
         >
             <span class="material-symbols-outlined text-[19px]">add</span>
             {{ $addText }}
         </button>
-    @endif
+        @endif
+
+    </div>
 </div>

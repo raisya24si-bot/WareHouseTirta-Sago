@@ -16,6 +16,8 @@ Route::get('/', [MasterBarangController::class, 'index'])->name('barang.index');
 Route::post('/barang', [MasterBarangController::class, 'store'])->name('barang.store');
 Route::put('/barang/{masterBarang}', [MasterBarangController::class, 'update'])->name('barang.update');
 Route::delete('/barang/{masterBarang}', [MasterBarangController::class, 'destroy'])->name('barang.destroy');
+Route::post('/barang/import', [MasterBarangController::class, 'import'])->name('barang.import');
+Route::get('/barang/import/template', [MasterBarangController::class, 'importTemplate'])->name('barang.import-template');
 
 Route::get('/master-kategori', [MasterKategoriController::class, 'index'])->name('master-kategori.index');
 Route::post('/master-kategori', [MasterKategoriController::class, 'store'])->name('master-kategori.store');
@@ -94,4 +96,3 @@ Route::delete(
 )->name('manajemen-stok.destroy');
 
 Route::delete('/opname/{opname}', [OpnameController::class, 'destroy'])->name('opname.destroy');
-

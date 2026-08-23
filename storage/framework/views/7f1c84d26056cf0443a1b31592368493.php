@@ -6,6 +6,9 @@ $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'placeholder' => 'Cari...',
     'addAction' => null,
     'addText' => 'Tambah Data',
+    'secondaryAction' => null,
+    'secondaryText' => null,
+    'secondaryIcon' => 'upload',
     'filterName' => null,
     'filterOptions' => [],
     'filterLabel' => 'Filter',
@@ -30,6 +33,9 @@ foreach (array_filter(([
     'placeholder' => 'Cari...',
     'addAction' => null,
     'addText' => 'Tambah Data',
+    'secondaryAction' => null,
+    'secondaryText' => null,
+    'secondaryIcon' => 'upload',
     'filterName' => null,
     'filterOptions' => [],
     'filterLabel' => 'Filter',
@@ -57,7 +63,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <?php if($filterName && request($filterName) !== null && request($filterName) !== ''): ?>
                 <input type="hidden" name="<?php echo e($filterName); ?>" value="<?php echo e(request($filterName)); ?>">
             <?php endif; ?>
-            <div class="flex items-center overflow-hidden rounded-md border border-outline-variant bg-white">
+            <div class="flex items-center overflow-hidden rounded-md border border-outline-variant bg-white transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
                 <span class="material-symbols-outlined px-3 text-outline text-[20px]">search</span>
                 <input
                     type="text"
@@ -73,7 +79,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <button
                 type="button"
                 onclick="document.getElementById('<?php echo e($filterName); ?>-filter').classList.toggle('hidden')"
-                class="inline-flex items-center gap-2 rounded-md border border-outline-variant bg-white px-4 py-2 text-body-sm hover:bg-surface-container-low"
+                class="inline-flex items-center gap-2 rounded-md border border-outline-variant bg-white px-4 py-2 text-body-sm transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary <?php echo e(request($filterName) ? 'border-primary/40 bg-primary/5 text-primary' : ''); ?>"
             >
                 <span class="material-symbols-outlined text-[20px]">filter_list</span>
                 <?php echo e($filterLabel); ?>
@@ -102,16 +108,31 @@ unset($__defined_vars, $__key, $__value); ?>
         <?php endif; ?>
     </div>
 
-    <?php if($addAction): ?>
+    <div class="flex items-center gap-2">
+
+        <?php if($secondaryAction && $secondaryText): ?>
+            <button
+                type="button"
+                onclick="<?php echo e($secondaryAction); ?>"
+                class="inline-flex items-center gap-2 rounded-md border border-outline-variant bg-white px-4 py-2.5 text-body-sm font-label-bold text-on-surface-variant shadow-sm transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+            >
+                <span class="material-symbols-outlined text-[19px]"><?php echo e($secondaryIcon); ?></span>
+                <?php echo e($secondaryText); ?>
+
+            </button>
+        <?php endif; ?>
+
+        <?php if($addAction): ?>
         <button
             type="button"
             onclick="<?php echo e($addAction); ?>"
-            class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm hover:bg-primary-container"
+            class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-label-bold text-on-primary shadow-sm transition hover:bg-primary-container hover:shadow-md active:scale-[0.98]"
         >
             <span class="material-symbols-outlined text-[19px]">add</span>
             <?php echo e($addText); ?>
 
         </button>
-    <?php endif; ?>
-</div>
-<?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/components/master/shared/crud-toolbar.blade.php ENDPATH**/ ?>
+        <?php endif; ?>
+
+    </div>
+</div><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/components/master/shared/crud-toolbar.blade.php ENDPATH**/ ?>

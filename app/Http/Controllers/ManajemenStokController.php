@@ -168,13 +168,46 @@ class ManajemenStokController extends Controller
             ->orderBy('bin')
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | RINGKASAN (kartu statistik di atas tabel)
+        |--------------------------------------------------------------------------
+        |
+        | Dihitung dari keseluruhan data (bukan cuma halaman yang lagi
+        | ditampilkan), supaya angkanya tetap akurat walau sedang
+        | di-search / difilter / paginasi.
+        |--------------------------------------------------------------------------
+        */
+
+        $totalBarang = MasterBarang::count();
+
+        $barangDenganBinCount = MasterBarang::query()
+            ->whereHas('stokLokasis')
+            ->count();
+
+        $stokSummary = [
+
+            'total_barang' =>
+                $totalBarang,
+
+            'belum_bin' =>
+                $totalBarang - $barangDenganBinCount,
+
+            'total_penempatan' =>
+                StokLokasi::count(),
+
+            'total_gudang' =>
+                MasterGudang::count(),
+        ];
+
         return view(
             'manajemen-stok.index',
             compact(
                 'barangs',
                 'gudangs',
                 'lokasis',
-                'perPage'
+                'perPage',
+                'stokSummary'
             )
         );
     }
@@ -192,6 +225,43 @@ class ManajemenStokController extends Controller
         return view(
             'manajemen-stok.show',
             compact('masterBarang')
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | EDIT (halaman penuh)
+    |--------------------------------------------------------------------------
+    |
+    | Route & view-nya sebelumnya sudah ada, tapi method controller-nya
+    | belum dibuat -- kalau /manajemen-stok/stok/{id}/edit diakses
+    | langsung bakal 500 error. Edit sehari-hari tetap lewat modal di
+    | halaman index (lebih cepat), halaman ini cuma jaga-jaga sebagai
+    | fallback (misal dibuka lewat link langsung / bookmark).
+    |--------------------------------------------------------------------------
+    */
+
+    public function edit(
+        StokLokasi $stokLokasi
+    ) {
+        $stokLokasi->load('barang');
+
+        $lokasis = StrukturLokasi::query()
+            ->with('row.rak.gudang')
+            ->where(
+                'status_lokasi',
+                'AKTIF'
+            )
+            ->orderBy('bin')
+            ->get();
+
+        return view(
+            'manajemen-stok.edit',
+            compact(
+                'stokLokasi',
+                'lokasis'
+            )
         );
     }
 

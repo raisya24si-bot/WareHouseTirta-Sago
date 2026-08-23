@@ -8,7 +8,35 @@
 <x-master.shared.page-header
     title="Manajemen Stok Barang"
     description="Kelola penempatan dan stok barang berdasarkan BIN, Row, Rak, dan Gudang."
+    icon="warehouse"
 />
+
+<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <x-master.shared.stat-card
+        label="Total Barang"
+        :value="$stokSummary['total_barang']"
+        icon="inventory_2"
+        color="primary"
+    />
+    <x-master.shared.stat-card
+        label="Belum Ada BIN"
+        :value="$stokSummary['belum_bin']"
+        icon="location_off"
+        color="amber"
+    />
+    <x-master.shared.stat-card
+        label="Total Penempatan BIN"
+        :value="$stokSummary['total_penempatan']"
+        icon="inventory"
+        color="green"
+    />
+    <x-master.shared.stat-card
+        label="Gudang Aktif"
+        :value="$stokSummary['total_gudang']"
+        icon="warehouse"
+        color="primary"
+    />
+</div>
 
 
 <div class="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm">
@@ -62,7 +90,11 @@
                     </th>
 
                     <th class="px-5 py-3 text-label-bold">
-                        Gudang Stok
+                        Gudang
+                    </th>
+
+                    <th class="px-5 py-3 text-label-bold">
+                        Stok
                     </th>
 
                     <th class="px-5 py-3 text-right text-label-bold">
@@ -156,6 +188,17 @@
                                 </td>
 
 
+                                {{-- STOK --}}
+
+                                <td class="px-5 py-4">
+
+                                    <span class="font-label-bold tabular-nums">
+                                        {{ number_format($stok->qty_stok) }}
+                                    </span>
+
+                                </td>
+
+
                                 {{-- AKSI --}}
 
                                 <td class="px-5 py-4 text-right">
@@ -196,6 +239,30 @@
                                             </span>
 
                                         </button>
+
+
+                                        {{-- DELETE --}}
+
+                                        <form
+                                            method="POST"
+                                            action="{{ route('manajemen-stok.destroy', $stok->id_stok_lokasi) }}"
+                                            onsubmit="return confirm('Lepas barang {{ $barang->nm_master_barang }} dari BIN {{ $stok->lokasi?->bin }}? Data stok di BIN ini akan dihapus.')"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex p-1.5 text-outline transition hover:text-error"
+                                                title="Delete"
+                                            >
+
+                                                <span class="material-symbols-outlined text-[20px]">
+                                                    delete
+                                                </span>
+
+                                            </button>
+                                        </form>
 
                                     </div>
 
@@ -287,6 +354,13 @@
                             </td>
 
 
+                            {{-- STOK --}}
+
+                            <td class="px-5 py-4 text-on-surface-variant">
+                                -
+                            </td>
+
+
                             {{-- AKSI --}}
 
                             <td class="px-5 py-4 text-right">
@@ -326,6 +400,24 @@
 
                                     </button>
 
+
+                                    {{-- DELETE
+                                         Sama, belum ada apa-apa untuk dihapus.
+                                    --}}
+
+                                    <button
+                                        type="button"
+                                        disabled
+                                        class="inline-flex cursor-not-allowed p-1.5 text-outline/40"
+                                        title="Belum ada BIN"
+                                    >
+
+                                        <span class="material-symbols-outlined text-[20px]">
+                                            delete
+                                        </span>
+
+                                    </button>
+
                                 </div>
 
                             </td>
@@ -339,7 +431,7 @@
                     <tr>
 
                         <td
-                            colspan="7"
+                            colspan="8"
                             class="px-5 py-12 text-center text-on-surface-variant"
                         >
 
