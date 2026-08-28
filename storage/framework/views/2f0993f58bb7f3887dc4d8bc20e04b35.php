@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Master Gudang - Material Master'); ?>
+<?php $__env->startSection('title', 'Master Gudang - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Master Gudang'); ?>
 
 <?php $__env->startSection('content'); ?>

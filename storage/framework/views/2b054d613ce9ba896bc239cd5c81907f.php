@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Master Kategori - Material Master'); ?>
+<?php $__env->startSection('title', 'Master Kategori - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Master Kategori'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -109,5 +109,4 @@
 <?php unset($__componentOriginalbe22389eda27396c6a61e688ae9f0f09); ?>
 <?php endif; ?>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/master/kategori/index.blade.php ENDPATH**/ ?>

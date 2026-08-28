@@ -8,6 +8,7 @@ use App\Models\MasterKategori;
 use App\Models\MasterSatuan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class MasterBarangController extends Controller
 {
@@ -92,7 +93,7 @@ class MasterBarangController extends Controller
     | Minimal kolom yang dibaca: Kode Barang, Nama Barang, Kategori, Satuan.
     | Min. Stok & Stok Saat Ini opsional (default 0 kalau kosong).
     |
-    | - Nama header di baris pertama fleksibel (lihat normalizeHeader()) --
+    | - Nama header di baris pertama fleksibel (lihat normalizeHeaderKey()) --
     |   "Nama Barang", "nama_barang", "nm_master_barang" semua dikenali.
     | - Kategori & Satuan dicocokkan berdasarkan NAMA (case-insensitive)
     |   ke data master yang sudah ada. Kalau tidak ketemu, baris itu
@@ -102,16 +103,15 @@ class MasterBarangController extends Controller
     |   Barang" di file cuma dipakai untuk mencocokkan barang yang SUDAH
     |   ADA (supaya import ulang meng-update, bukan duplikat).
     |
-    | CATATAN: hanya .csv yang didukung di server ini (parser native
-    | PHP, tanpa dependency tambahan). .xlsx ditolak dengan pesan yang
-    | jelas -- lihat pesan error di bawah untuk cara mengatasinya.
+    | .csv dibaca pakai parser native PHP (fgetcsv), .xlsx/.xls dibaca
+    | lewat PhpSpreadsheet (composer require phpoffice/phpspreadsheet).
     |--------------------------------------------------------------------------
     */
 
     public function import(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt,xlsx', 'max:5120'],
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'max:5120'],
         ]);
 
         $file = $request->file('file');
@@ -120,56 +120,21 @@ class MasterBarangController extends Controller
             $file->getClientOriginalExtension()
         );
 
-        if ($extension === 'xlsx') {
+        try {
+
+            [$header, $rows] = in_array($extension, ['xlsx', 'xls'], true)
+                ? $this->readSpreadsheetRows($file->getRealPath())
+                : $this->readCsvRows($file->getRealPath());
+
+        } catch (\Throwable $e) {
 
             return back()->withErrors([
                 'file' =>
-                    'File .xlsx belum didukung di server ini (belum ada library Excel yang ' .
-                    'terpasang). Silakan buka file-nya, lalu "File > Save As / Download" pilih ' .
-                    '"CSV (Comma delimited)", dan upload ulang file .csv-nya. Kalau memang butuh ' .
-                    'upload .xlsx langsung, install dulu package-nya: ' .
-                    'composer require phpoffice/phpspreadsheet',
+                    'File tidak dapat dibaca: ' . $e->getMessage(),
             ]);
         }
-
-        $path = $file->getRealPath();
-
-        $handle = fopen($path, 'r');
-
-        if ($handle === false) {
-
-            return back()->withErrors([
-                'file' => 'File tidak dapat dibaca.',
-            ]);
-        }
-
-        /*
-        | Lewati BOM UTF-8 kalau ada (umum dari file hasil export Excel).
-        */
-
-        $bom = fread($handle, 3);
-
-        if ($bom !== "\xEF\xBB\xBF") {
-            rewind($handle);
-        }
-
-        $firstLine = fgets($handle);
-
-        rewind($handle);
-
-        if ($bom === "\xEF\xBB\xBF") {
-            fread($handle, 3);
-        }
-
-        $delimiter = $this->detectDelimiter(
-            (string) $firstLine
-        );
-
-        $header = fgetcsv($handle, 0, $delimiter);
 
         if (! $header) {
-
-            fclose($handle);
 
             return back()->withErrors([
                 'file' => 'File kosong atau format tidak dikenali.',
@@ -191,8 +156,6 @@ class MasterBarangController extends Controller
 
         if (! in_array('nama', $colMap, true)) {
 
-            fclose($handle);
-
             return back()->withErrors([
                 'file' =>
                     'Kolom "Nama Barang" tidak ditemukan di file. ' .
@@ -203,9 +166,14 @@ class MasterBarangController extends Controller
         $created = 0;
         $updated = 0;
         $skipped = [];
+
+        /*
+        | rowNum mulai dari 1 karena baris pertama (index 0) adalah
+        | header, jadi data pertama itu baris ke-2 di file aslinya.
+        */
         $rowNum = 1;
 
-        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+        foreach ($rows as $row) {
 
             $rowNum++;
 
@@ -313,8 +281,6 @@ class MasterBarangController extends Controller
             }
         }
 
-        fclose($handle);
-
         $message =
             "Import selesai: {$created} barang baru ditambahkan" .
             ($updated > 0 ? ", {$updated} barang diperbarui" : '') .
@@ -330,6 +296,110 @@ class MasterBarangController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BACA FILE CSV
+    |--------------------------------------------------------------------------
+    |
+    | Return [$header, $rows] -- $rows berupa iterable array per baris.
+    |--------------------------------------------------------------------------
+    */
+
+    private function readCsvRows(string $path): array
+    {
+        $handle = fopen($path, 'r');
+
+        if ($handle === false) {
+            throw new \RuntimeException('File tidak dapat dibuka.');
+        }
+
+        /*
+        | Lewati BOM UTF-8 kalau ada (umum dari file hasil export Excel).
+        */
+
+        $bom = fread($handle, 3);
+
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+
+        $firstLine = fgets($handle);
+
+        rewind($handle);
+
+        if ($bom === "\xEF\xBB\xBF") {
+            fread($handle, 3);
+        }
+
+        $delimiter = $this->detectDelimiter(
+            (string) $firstLine
+        );
+
+        $header = fgetcsv($handle, 0, $delimiter);
+
+        $rows = [];
+
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        return [$header ?: null, $rows];
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BACA FILE EXCEL (.xlsx / .xls)
+    |--------------------------------------------------------------------------
+    |
+    | Pakai PhpSpreadsheet. Cuma baca SHEET PERTAMA / sheet aktif.
+    |--------------------------------------------------------------------------
+    */
+
+    private function readSpreadsheetRows(string $path): array
+    {
+        $spreadsheet = IOFactory::load($path);
+
+        $sheet = $spreadsheet->getActiveSheet();
+
+        /*
+        | toArray(null, true, true, false):
+        | - null  -> sel kosong jadi null
+        | - true  -> hitung style (biarin default)
+        | - true  -> format tanggal/angka dikonversi
+        | - false -> key array numerik dari 0 (bukan pakai huruf kolom "A","B",...)
+        */
+
+        $data = $sheet->toArray(null, true, true, false);
+
+        if (empty($data)) {
+            return [null, []];
+        }
+
+        $header = array_map(
+            fn ($v) => (string) ($v ?? ''),
+            array_shift($data)
+        );
+
+        /*
+        | Nilai lain (angka, tanggal) ikut di-cast ke string juga
+        | biar konsisten dengan hasil pembacaan CSV.
+        */
+
+        $rows = array_map(
+            fn ($row) => array_map(
+                fn ($v) => $v === null ? '' : (string) $v,
+                $row
+            ),
+            $data
+        );
+
+        return [$header, $rows];
     }
 
 

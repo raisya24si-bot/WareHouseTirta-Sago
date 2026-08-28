@@ -48,14 +48,13 @@
                 <input
                     type="file"
                     name="file"
-                    accept=".csv,.txt"
+                    accept=".csv,.txt,.xlsx,.xls"
                     required
                     class="w-full rounded-md border border-outline-variant px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-primary file:font-semibold"
                 >
 
                 <p class="mt-1 text-xs text-on-surface-variant">
-                    Saat ini cuma format .csv yang didukung. Kalau punya file Excel,
-                    buka lalu "Save As" &rarr; CSV (Comma delimited) dulu.
+                    Mendukung .csv dan .xlsx/.xls.
                 </p>
             </div>
 
@@ -109,7 +108,6 @@
     }
 
     <?php if(session('import_errors')): ?>
-        // Otomatis buka modal lagi kalau baru selesai import & ada baris yang dilewati.
         openImportBarangModal();
     <?php endif; ?>
 </script><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/components/master/barang/import-modal.blade.php ENDPATH**/ ?>

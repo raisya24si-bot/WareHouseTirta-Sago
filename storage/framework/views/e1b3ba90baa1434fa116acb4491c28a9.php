@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Stock Opname - Material Master'); ?>
+<?php $__env->startSection('title', 'Stock Opname - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Stock Opname'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -136,5 +136,4 @@
 <?php unset($__componentOriginal3624506249b2e6901fb7de94fb9540ca); ?>
 <?php endif; ?>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/opname/index.blade.php ENDPATH**/ ?>

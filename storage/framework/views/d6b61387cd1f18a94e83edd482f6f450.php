@@ -1,6 +1,6 @@
 
 
-<?php $__env->startSection('title', 'Manajemen Stok Barang - Material Master'); ?>
+<?php $__env->startSection('title', 'Manajemen Stok Barang - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Manajemen Stok Barang'); ?>
 
 <?php $__env->startSection('content'); ?>

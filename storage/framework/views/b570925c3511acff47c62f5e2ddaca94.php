@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Master Supplier - Material Master'); ?>
+<?php $__env->startSection('title', 'Master Supplier - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Master Supplier'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -109,5 +109,4 @@
 <?php unset($__componentOriginal507998ff280b49245f5282f22acea41d); ?>
 <?php endif; ?>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/master/supplier/index.blade.php ENDPATH**/ ?>

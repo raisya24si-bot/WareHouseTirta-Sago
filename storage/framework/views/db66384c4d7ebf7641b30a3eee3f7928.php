@@ -176,9 +176,10 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $__empty_1 = true; $__currentLoopData = $details; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
 <tr
-    class="hover:bg-surface-container-low/50
-    <?php echo e($d->status_item === 'SELISIH' ? 'bg-orange-50/50' : ''); ?>"
+    class="border-l-[3px] transition-colors duration-200 hover:bg-surface-container-low/50
+    <?php echo e($d->status_item === 'SELISIH' ? 'bg-orange-50/50 border-l-orange-400' : ($d->status_item === 'SESUAI' ? 'border-l-green-400' : 'border-l-transparent')); ?>"
     id="detail-row-<?php echo e($d->id_opname_detail); ?>"
+    data-initial-status="<?php echo e($d->status_item); ?>"
 >
 
     
@@ -268,7 +269,7 @@ unset($__defined_vars, $__key, $__value); ?>
             data-sistem="<?php echo e($d->stok_sistem); ?>"
             data-detail-id="<?php echo e($d->id_opname_detail); ?>"
             oninput="opnameDetailRecalc(<?php echo e($d->id_opname_detail); ?>)"
-            class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
+            class="w-24 rounded-md border border-outline-variant px-3 py-1.5 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Baik"
         >
 
@@ -287,7 +288,7 @@ unset($__defined_vars, $__key, $__value); ?>
             value="<?php echo e($d->stok_rusak ?? 0); ?>"
             id="rusak-<?php echo e($d->id_opname_detail); ?>"
             oninput="opnameDetailRecalc(<?php echo e($d->id_opname_detail); ?>)"
-            class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
+            class="w-24 rounded-md border border-outline-variant px-3 py-1.5 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Rusak"
         >
 

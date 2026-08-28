@@ -143,9 +143,10 @@
 @forelse($details as $d)
 
 <tr
-    class="hover:bg-surface-container-low/50
-    {{ $d->status_item === 'SELISIH' ? 'bg-orange-50/50' : '' }}"
+    class="border-l-[3px] transition-colors duration-200 hover:bg-surface-container-low/50
+    {{ $d->status_item === 'SELISIH' ? 'bg-orange-50/50 border-l-orange-400' : ($d->status_item === 'SESUAI' ? 'border-l-green-400' : 'border-l-transparent') }}"
     id="detail-row-{{ $d->id_opname_detail }}"
+    data-initial-status="{{ $d->status_item }}"
 >
 
     {{-- STATUS --}}
@@ -231,7 +232,7 @@
             data-sistem="{{ $d->stok_sistem }}"
             data-detail-id="{{ $d->id_opname_detail }}"
             oninput="opnameDetailRecalc({{ $d->id_opname_detail }})"
-            class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
+            class="w-24 rounded-md border border-outline-variant px-3 py-1.5 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Baik"
         >
 
@@ -250,7 +251,7 @@
             value="{{ $d->stok_rusak ?? 0 }}"
             id="rusak-{{ $d->id_opname_detail }}"
             oninput="opnameDetailRecalc({{ $d->id_opname_detail }})"
-            class="w-24 rounded-md border border-outline-variant px-3 py-1.5"
+            class="w-24 rounded-md border border-outline-variant px-3 py-1.5 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Rusak"
         >
 

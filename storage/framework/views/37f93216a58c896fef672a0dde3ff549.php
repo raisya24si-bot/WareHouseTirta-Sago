@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Master Satuan - Material Master'); ?>
+<?php $__env->startSection('title', 'Master Satuan - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Master Satuan'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -109,5 +109,4 @@
 <?php unset($__componentOriginalb9020a87c19c67a9c5db932d820402d8); ?>
 <?php endif; ?>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\MasterData\resources\views/master/satuan/index.blade.php ENDPATH**/ ?>

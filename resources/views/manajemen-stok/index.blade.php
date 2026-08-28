@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Stok Barang - Material Master')
+@section('title', 'Manajemen Stok Barang - Warehouse Tirta Sago')
 @section('breadcrumb', 'Manajemen Stok Barang')
 
 @section('content')
