@@ -1,0 +1,5 @@
+FROM mcr.microsoft.com/devcontainers/php:8.4
+
+RUN docker-php-ext-install pdo_mysql
+
+WORKDIR /var/www/html
