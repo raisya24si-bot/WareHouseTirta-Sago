@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Approve ' . $po->kd_po . ' - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Approve Purchase Order'); ?>
 

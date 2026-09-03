@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Stock Monitoring & Procurement - Warehouse Tirta Sago'); ?>
 <?php $__env->startSection('breadcrumb', 'Stock Monitoring & Procurement'); ?>
 
