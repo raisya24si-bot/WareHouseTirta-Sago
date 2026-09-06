@@ -1,0 +1,23 @@
+FIX MASTER DATA - FINAL ALIGNMENT
+
+1. Master Kategori sekarang menggunakan tbl_master_kategori.
+2. kd_master_kategori UNIQUE.
+3. Master Barang menggunakan fk_master_kategori -> tbl_master_kategori.id_master_kategori.
+4. kd_master_barang UNIQUE.
+5. Status barang hanya AKTIF / NONAKTIF dari tbl_status_barang.
+6. Master Barang memiliki stok_awal, stok_saat_ini, minimum_stok, dan deleted_at.
+7. Stok saat ini ditampilkan merah + warning jika < minimum_stok.
+8. Status aktif ditampilkan hijau + icon; tidak aktif merah + icon.
+9. Pagination tersedia 10 / 25 / 35 / 50 per halaman.
+10. Delete barang: jika terdeteksi histori transaksi -> soft delete + status NONAKTIF; jika tidak ada histori -> hard delete.
+11. Delete kategori: jika masih digunakan barang/histori transaksi -> soft delete; jika benar-benar tidak digunakan -> hard delete.
+12. Route sudah konsisten: barang.* dan master-kategori.*.
+
+SETUP:
+composer install
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan serve
+
+Catatan: project saat ini belum memiliki tabel transaksi di source. Logic soft-delete mencari tabel tbl_transaksi, transaksi, atau transactions dan beberapa nama FK umum. Saat tabel transaksi final sudah tersedia, sesuaikan nama FK di method hasTransactionHistory() agar 100% mengikuti schema transaksi final.

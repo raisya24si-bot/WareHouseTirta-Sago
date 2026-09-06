@@ -1,0 +1,29 @@
+STRUKTUR FINAL MASTER BARANG
+
+Tabel: tbl_master_barang
+
+- id_master_barang       : PK
+- kd_master_barang       : UNIQUE
+- nm_master_barang
+- desc_master_barang
+- created_by
+- updated_by
+- deleted_at             : soft delete
+- deleted_by             : user yang melakukan soft delete
+- minimum_stok
+- stok_awal
+- stok_status            : NORMAL / LOW
+- status_master_barang   : AKTIF / TIDAK AKTIF
+- fk_kategori            : FK -> categories.id
+- fk_satuan              : FK -> satuans.id_satuan
+- created_at
+- updated_at
+
+Status barang TIDAK menggunakan fk_status_barang. Status disimpan langsung pada
+status_master_barang sesuai rancangan final.
+
+Jika barang punya histori transaksi -> soft delete, status menjadi TIDAK AKTIF,
+deleted_at dan deleted_by diisi.
+Jika barang tidak punya histori transaksi -> hard delete dengan forceDelete().
+
+Pagination: 10, 25, 35, 50.

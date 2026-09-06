@@ -1,0 +1,49 @@
+MASTER KATEGORI - PERUBAHAN FINAL
+
+1. Tabel baru:
+   tbl_master_kategori
+
+   Field:
+   - id_master_kategori       PK
+   - kd_master_kategori       UNIQUE
+   - nm_master_kategori
+   - desc_master_kategori
+   - created_by
+   - updated_by
+   - deleted_at
+   - deleted_by
+   - status_master_kategori
+   - created_at
+   - updated_at
+
+2. Relasi:
+   tbl_master_barang.fk_kategori
+       -> tbl_master_kategori.id_master_kategori
+
+3. Migration baru akan:
+   - Membuat tbl_master_kategori.
+   - Menyalin data kategori lama dari tabel categories.
+   - Mempertahankan ID kategori lama supaya nilai fk_kategori pada barang tetap cocok.
+   - Mengganti foreign key tbl_master_barang.fk_kategori agar menunjuk ke tbl_master_kategori.
+
+4. MasterBarang:
+   - Relasi kategori sekarang menggunakan MasterKategori.
+   - Dropdown kategori mengambil data dari tbl_master_kategori.
+   - Filter kategori mengambil data dari tbl_master_kategori.
+
+5. MasterKategori:
+   - CRUD kode, nama, deskripsi, status.
+   - Kode kategori harus UNIQUE.
+   - Nama kategori juga dibuat UNIQUE.
+   - Pagination: 10, 25, 35, 50 per halaman.
+   - Jika kategori sudah memiliki histori barang/transaksi, delete menjadi SOFT DELETE.
+   - Jika belum pernah dipakai, delete dapat menjadi HARD DELETE.
+
+6. Jalankan setelah menerima project:
+   composer install
+   php artisan migrate
+   php artisan optimize:clear
+   php artisan serve
+
+Catatan:
+Tabel categories lama sengaja tidak langsung dihapus oleh migration ini agar proses migrasi data aman. Setelah dipastikan seluruh modul sudah memakai tbl_master_kategori, tabel lama dapat dievaluasi untuk dihapus pada migration terpisah.

@@ -1,0 +1,31 @@
+FIX TERBARU - MASTER DATA
+
+Yang diperbaiki:
+1. Tombol Create/Tambah sekarang berada di dalam toolbar tabel pada semua menu:
+   - Master Barang
+   - Master Kategori
+   - Master Satuan
+   - Master Supplier
+   - Master Gudang
+   - Daftar Rak
+   - Daftar Row
+   - Struktur Lokasi
+
+2. Tampilan toolbar dibuat konsisten dan sederhana.
+3. Master Barang memiliki dropdown Kategori.
+4. Master Gudang memiliki dropdown Status.
+5. Master Supplier memiliki dropdown Status.
+6. Kategori dan Satuan menggunakan search saja.
+7. Search Daftar Rak, Daftar Row, dan Struktur Lokasi diperbaiki agar tetap berada di tab masing-masing.
+8. Search pada Rak/Row/Lokasi juga dapat menemukan relasi induknya (Gudang/Rak/Row).
+9. Tab dikirim eksplisit melalui hidden field `tab`, sehingga submit search tidak kembali ke Daftar Gudang.
+10. Filter/search yang sedang aktif tetap dipertahankan ketika melakukan pencarian atau pagination.
+11. Relasi Gudang -> Rak -> Row -> Lokasi tetap menggunakan foreign key/model relationship yang sudah ada.
+12. Migration tidak diubah pada revisi ini.
+13. config/view.php tetap ada.
+14. .env tetap disertakan.
+
+Catatan testing:
+- `php artisan route:list` berhasil.
+- PHP syntax check untuk app/database/routes/config/bootstrap berhasil.
+- Pada environment pengecekan ini `DOMDocument` PHP extension tidak aktif, sehingga `php artisan view:cache` dan `php artisan optimize:clear` berhenti di Termwind. Ini bukan error Blade/controller. Di Laragon aktifkan extension `dom`/`php-xml` jika muncul error Class "DOMDocument" not found.
