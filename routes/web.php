@@ -20,11 +20,7 @@ use App\Http\Controllers\StrukturLokasiController;
 use Illuminate\Support\Facades\Route;
 
 
-/*
-|--------------------------------------------------------------------------
-| Auth
-|--------------------------------------------------------------------------
-*/
+//auth
 
 Route::middleware('guest')->group(function () {
 
@@ -41,18 +37,7 @@ Route::middleware('auth')->post(
 )->name('logout');
 
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-|
-| Semua modul di-group pakai Route::prefix() + Route::name(), baik yang
-| lama maupun yang baru (Procurement & Approval), supaya rapi dan
-| konsisten. Path dan nama route TIDAK ada yang berubah dari sebelumnya
-| -- cuma dirapikan strukturnya, jadi link/redirect yang lama tetap
-| jalan seperti biasa.
-|--------------------------------------------------------------------------
-*/
+// authentikasi route
 
 Route::middleware('auth')->group(function () {
 
@@ -483,7 +468,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    // Antrean Persetujuan PO -- bertingkat: Kasubag -> Kabag -> Direktur
+    // Antrean Persetujuan PO Kasubag -> Kabag -> Direktur
     Route::prefix('approval')
         ->name('approval.')
         ->where(['level' => 'kasubag|kabag|direktur'])
@@ -510,5 +495,14 @@ Route::middleware('auth')->group(function () {
             )->name('reject');
 
         });
+
+        Route::get('/]penerimaan', function () {
+        return view('penerimaan.index');
+        })->name('penerimaan.index');
+
+        
+        Route::get('/]penerimaan/verifikasi', function () {
+        return view('penerimaan.verifikasi');
+        })->name('penerimaan.verifiaksi');
 
 });

@@ -12,18 +12,6 @@ class ApprovalController extends Controller
 {
     use HasPerPage;
 
-    /*
-    |--------------------------------------------------------------------------
-    | LEVEL CONFIG
-    |--------------------------------------------------------------------------
-    |
-    | Belum ada sistem role, jadi versi ini masih "versi basah": siapa
-    | saja yang login bisa buka ketiga antrean (Kasubag/Kabag/Direktur)
-    | lewat URL-nya masing-masing. Nanti kalau role sudah ada, tinggal
-    | tambahin middleware/gate di sini per level.
-    |--------------------------------------------------------------------------
-    */
-
     private function levelConfig(string $level): array
     {
         abort_unless(

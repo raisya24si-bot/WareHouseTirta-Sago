@@ -110,19 +110,6 @@ class ProcurementController extends Controller
         )->value('id_status_po');
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | INDEX
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | CRITICAL STOCK DATA (dipakai index() + AJAX draft actions)
-    |--------------------------------------------------------------------------
-    */
-
     private function criticalStockData(): array
     {
         $stokPerBarang = $this->stokPerBarang();
@@ -132,18 +119,6 @@ class ProcurementController extends Controller
             'AKTIF'
         )->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | BARANG YANG SUDAH MASUK PO
-        |--------------------------------------------------------------------------
-        |
-        | Ambil PO terbaru untuk setiap barang.
-        |
-        | PO dengan status REJECTED tidak dihitung sebagai PO aktif,
-        | sehingga barang masih bisa dimasukkan ke PO baru.
-        |
-        */
 
         $poPerBarang = PoDetail::query()
             ->with([
@@ -280,22 +255,6 @@ class ProcurementController extends Controller
 
         return compact('cart', 'cartSupplier', 'cartItems', 'suppliers');
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DRAFT WORKSPACE RESPONSE
-    |--------------------------------------------------------------------------
-    |
-    | Dipanggil dari addToDraft/setDraftSupplier/updateDraftQty/removeDraftItem.
-    |
-    | Kalau request-nya AJAX (fetch dari JS, lihat resources/js/app.js),
-    | balikin HTML hasil render ulang "Critical Stock" + "Current PO Draft"
-    | doang dalam bentuk JSON, TANPA redirect -- jadi browser nggak
-    | ngerefresh/reload halaman sama sekali. Kalau bukan AJAX (misal JS
-    | user lagi mati), tetep jalan seperti biasa (redirect back).
-    |--------------------------------------------------------------------------
-    */
 
     private function draftWorkspaceResponse(
         Request $request,
