@@ -7,29 +7,29 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Po extends Model
+class PenerimaanBarang extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'tbl_po';
-    protected $primaryKey = 'id_po';
+    protected $table = 'tbl_penerimaan_barang';
+    protected $primaryKey = 'id_penerimaan';
 
     protected $fillable = [
-        'kd_po', 'fk_supplier', 'desc_po', 'fk_status_po',
+        'kd_penerimaan', 'tgl_penerimaan_barang', 'fk_po',
+        'no_sjinv_supplier', 'desc_penerimaan_barang', 'fk_status_penerimaan_barang',
         'submit_by', 'submit_at',
         'approve_kasubag_by', 'approve_kasubag_at',
-        'approve_kabag_by', 'apporve_kabag_at',
+        'approve_kabag_by', 'approve_kabag_at',
         'approve_direktur_by', 'approve_direktur_at',
-        'reject_by', 'reject_at', 'reject_level', 'reject_note',
         'created_by', 'updated_by', 'deleted_by',
     ];
 
     protected $casts = [
+        'tgl_penerimaan_barang' => 'date',
         'submit_at' => 'datetime',
         'approve_kasubag_at' => 'datetime',
-        'apporve_kabag_at' => 'datetime',
+        'approve_kabag_at' => 'datetime',
         'approve_direktur_at' => 'datetime',
-        'reject_at' => 'datetime',
     ];
 
     public const LEVELS = [
@@ -47,7 +47,7 @@ class Po extends Model
             'status' => 'PENDING_KABAG',
             'next_status' => 'PENDING_DIREKTUR',
             'by_field' => 'approve_kabag_by',
-            'at_field' => 'apporve_kabag_at',
+            'at_field' => 'approve_kabag_at',
         ],
         'direktur' => [
             'order' => 3,
@@ -60,24 +60,24 @@ class Po extends Model
     ];
 
 
-    public function statusPo(): BelongsTo
+    public function statusPenerimaan(): BelongsTo
     {
-        return $this->belongsTo(MasterStatusPo::class, 'fk_status_po', 'id_status_po');
+        return $this->belongsTo(MasterStatusPenerimaanBarang::class, 'fk_status_penerimaan_barang', 'id_status_penerimaan_barang');
     }
 
-    public function supplier(): BelongsTo
+    public function po(): BelongsTo
     {
-        return $this->belongsTo(MasterSupplier::class, 'fk_supplier', 'id_master_supplier');
+        return $this->belongsTo(Po::class, 'fk_po', 'id_po');
     }
 
     public function details(): HasMany
     {
-        return $this->hasMany(PoDetail::class, 'fk_po', 'id_po');
+        return $this->hasMany(PenerimaanBarangDetail::class, 'fk_penerimaan_barang', 'id_penerimaan');
     }
 
-    public function penerimaanBarangs(): HasMany
+    public function buktiDukungs(): HasMany
     {
-        return $this->hasMany(PenerimaanBarang::class, 'fk_po', 'id_po');
+        return $this->hasMany(PenerimaanBarangBuktiDukung::class, 'fk_penerimaan_barang', 'id_penerimaan');
     }
 
     public function submittedBy(): BelongsTo
@@ -100,15 +100,11 @@ class Po extends Model
         return $this->belongsTo(User::class, 'approve_direktur_by');
     }
 
-    public function rejectedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'reject_by');
-    }
-
     public function getKodeStatusAttribute(): ?string
     {
-        return $this->statusPo?->kd_status_po;
+        return $this->statusPenerimaan?->kd_status_penerimaan_barang;
     }
+
 
     public function canBeEdited(): bool
     {
@@ -152,17 +148,14 @@ class Po extends Model
         return null;
     }
 
-    public function canBeReceived(): bool
+
+    public function totalSku(): int
     {
-        if (! $this->isApproved()) {
-            return false;
-        }
+        return $this->details->count();
+    }
 
-        return ! $this->penerimaanBarangs()
-            ->whereHas('statusPenerimaan', function ($query) {
-
-                $query->where('kd_status_penerimaan_barang', '!=', 'REJECTED');
-            })
-            ->exists();
+    public function totalQtyRequest(): int
+    {
+        return (int) $this->details->sum('qty_request');
     }
 }

@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             MasterBarangSeeder::class,
             MasterStatusGudangSeeder::class,
             MasterStatusPoSeeder::class,
+            MasterStatusPenerimaanBarangSeeder::class,
+
 
             // Tambahan cara membuat Seeder melalui factory
             MasterGudangSeeder::class,

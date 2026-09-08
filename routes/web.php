@@ -497,24 +497,31 @@ Route::middleware('auth')->group(function () {
 
         });
 
-        // Penerimaan Barang PO (sementara memakai dummy data; belum terhubung DB)
-        Route::get('/penerimaan', function () {
-            return view('penerimaan.index');
-        })->name('penerimaan.index');
+        // Penerimaan Barang PO
+        Route::prefix('penerimaan')
+            ->name('penerimaan.')
+            ->group(function () {
 
-        Route::get('/penerimaan/{grn}/verifikasi', function (string $grn) {
-            $dummyGrn = [
-                'GRN-2023-0891',
-                'GRN-2023-0880',
-                'GRN-2023-0879',
-                'GRN-2023-0882',
-            ];
+                Route::get(
+                    '/',
+                    [PenerimaanController::class, 'index']
+                )->name('index');
 
-            if (! in_array($grn, $dummyGrn, true)) {
-                abort(404);
-            }
+                Route::get(
+                    '/{penerimaan}/verifikasi',
+                    [PenerimaanController::class, 'verifikasi']
+                )->name('verifikasi');
 
-            return view('penerimaan.verifikasi', compact('grn'));
-        })->name('penerimaan.verifikasi');
+                Route::post(
+                    '/{penerimaan}/draft',
+                    [PenerimaanController::class, 'saveDraft']
+                )->name('save-draft');
+
+                Route::post(
+                    '/{penerimaan}/submit',
+                    [PenerimaanController::class, 'submit']
+                )->name('submit');
+
+            });
 
 });
