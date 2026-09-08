@@ -80,25 +80,6 @@ class OpnameDetail extends Model
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | JUMLAH BARANG BAIK
-    |--------------------------------------------------------------------------
-    |
-    | Actual = total barang fisik yang ditemukan
-    |
-    | Baik = Actual - Rusak
-    |
-    | Contoh:
-    |
-    | Sistem = 5
-    | Actual = 5
-    | Rusak  = 2
-    |
-    | Baik = 5 - 2 = 3
-    |
-    */
-
     public function getStokBaikAttribute(): ?int
     {
         if ($this->stok_aktual === null) {
@@ -112,20 +93,6 @@ class OpnameDetail extends Model
             (int) ($this->stok_rusak ?? 0)
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | HITUNG SELISIH
-    |--------------------------------------------------------------------------
-    |
-    | Selisih membandingkan TOTAL FISIK dengan STOK SISTEM.
-    |
-    | Actual = 5
-    | Sistem = 5
-    |
-    | Selisih = 0
-    |
-    */
 
     public function recalculate(): void
     {

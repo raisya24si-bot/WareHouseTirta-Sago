@@ -497,7 +497,7 @@ Route::middleware('auth')->group(function () {
 
         });
 
-        // Penerimaan Barang PO
+      // Penerimaan Barang PO
         Route::prefix('penerimaan')
             ->name('penerimaan.')
             ->group(function () {
@@ -506,6 +506,21 @@ Route::middleware('auth')->group(function () {
                     '/',
                     [PenerimaanController::class, 'index']
                 )->name('index');
+
+                Route::get(
+                    '/export',
+                    [PenerimaanController::class, 'export']
+                )->name('export');
+
+                Route::get(
+                    '/laporan-akurasi',
+                    [PenerimaanController::class, 'laporanAkurasiPdf']
+                )->name('laporan-akurasi');
+
+                Route::post(
+                    '/',
+                    [PenerimaanController::class, 'store']
+                )->name('store');
 
                 Route::get(
                     '/{penerimaan}/verifikasi',

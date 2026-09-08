@@ -83,7 +83,10 @@ return new class extends Migration
                 $table->timestamps();
                 $table->softDeletes();
 
-                $table->unique(['fk_penerimaan_barang', 'fk_barang']);
+                $table->unique(
+                    ['fk_penerimaan_barang', 'fk_barang'],
+                    'uk_detail_penerimaan_barang'
+                );
             });
         }
 

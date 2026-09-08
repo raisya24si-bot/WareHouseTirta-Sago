@@ -16,7 +16,12 @@ return new class extends Migration
 
             $table->id('id_status_penerimaan_barang');
 
-            $table->string('kd_status_penerimaan_barang', 30)->unique();
+           $table->string('kd_status_penerimaan_barang');
+
+            $table->unique(
+                'kd_status_penerimaan_barang',
+                'uk_status_penerimaan_kd'
+            );
             $table->string('nm_status_penerimaan_barang', 50);
             $table->unsignedTinyInteger('urutan')->nullable();
 
