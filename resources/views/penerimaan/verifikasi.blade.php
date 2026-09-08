@@ -1,148 +1,9 @@
-<!DOCTYPE html><html lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&amp;family=Work+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      "colors": {
-        "on-secondary-fixed": "#161c22",
-        "tertiary": "#9e3d00",
-        "on-surface-variant": "#414754",
-        "surface-dim": "#d7d9e5",
-        "tertiary-container": "#c64f00",
-        "primary-fixed-dim": "#adc7ff",
-        "on-primary-fixed-variant": "#004493",
-        "tertiary-fixed-dim": "#ffb695",
-        "inverse-primary": "#adc7ff",
-        "surface-container-highest": "#e0e2ed",
-        "surface-tint": "#005bc0",
-        "surface-container-lowest": "#ffffff",
-        "on-primary-fixed": "#001a41",
-        "on-tertiary-fixed": "#351000",
-        "on-secondary-fixed-variant": "#41474e",
-        "surface-variant": "#e0e2ed",
-        "on-tertiary-container": "#fffbff",
-        "error": "#ba1a1a",
-        "on-background": "#181c23",
-        "inverse-surface": "#2d3039",
-        "on-tertiary": "#ffffff",
-        "secondary-fixed": "#dde3eb",
-        "surface-container-low": "#f1f3fe",
-        "inverse-on-surface": "#eef0fb",
-        "on-primary": "#ffffff",
-        "surface-bright": "#f9f9ff",
-        "primary-container": "#0070ea",
-        "on-secondary-container": "#5f656c",
-        "surface": "#f9f9ff",
-        "background": "#f9f9ff",
-        "outline": "#717786",
-        "on-tertiary-fixed-variant": "#7c2e00",
-        "on-error-container": "#93000a",
-        "on-secondary": "#ffffff",
-        "primary-fixed": "#d8e2ff",
-        "secondary": "#595f65",
-        "on-surface": "#181c23",
-        "tertiary-fixed": "#ffdbcc",
-        "secondary-container": "#dde3eb",
-        "outline-variant": "#c1c6d7",
-        "surface-container": "#ebedf9",
-        "on-primary-container": "#fefcff",
-        "surface-container-high": "#e6e8f3",
-        "error-container": "#ffdad6",
-        "on-error": "#ffffff",
-        "primary": "#0059bb",
-        "secondary-fixed-dim": "#c1c7ce"
-      },
-      "borderRadius": {
-        "DEFAULT": "0.125rem",
-        "lg": "0.25rem",
-        "xl": "0.5rem",
-        "full": "0.75rem"
-      },
-      "spacing": {
-        "base": "4px",
-        "sidebar-width": "250px",
-        "gutter": "16px",
-        "stack-sm": "8px",
-        "container-padding": "24px",
-        "stack-md": "16px"
-      },
-      "fontFamily": {
-        "sidebar-nav": [
-          "Work Sans"
-        ],
-        "headline-md": [
-          "Manrope"
-        ],
-        "stat-number": [
-          "Work Sans"
-        ],
-        "body-lg": [
-          "Work Sans"
-        ],
-        "label-bold": [
-          "Work Sans"
-        ],
-        "display-lg": [
-          "Manrope"
-        ],
-        "body-sm": [
-          "Work Sans"
-        ]
-      },
-      "fontSize": {
-        "sidebar-nav": [
-          "13px",
-          {
-            "lineHeight": "18px",
-            "fontWeight": "500"
-          }
-        ],
-        "headline-md": [
-          "24px",
-          {
-            "lineHeight": "32px",
-            "fontWeight": "600"
-          }
-        ],
-        "stat-number": [
-          "38px",
-          {
-            "lineHeight": "1",
-            "fontWeight": "700"
-          }
-        ],
-        "body-lg": [
-          "16px",
-          {
-            "lineHeight": "24px",
-            "fontWeight": "400"
-          }
-        ],
-        "label-bold": [
-          "14px",
-          {
-            "lineHeight": "20px",
-            "fontWeight": "700"
-          }
-        ],
-        "display-lg": [
-          "32px",
-          {
-            "lineHeight": "40px",
-            "fontWeight": "700"
-          }
-        ],
-        "body-sm": [
-          "14px",
-          {
-            "lineHeight": "20px",
-            "fontWeight": "400"
-          }
-        ]
-      }
-    }
-  }
-};</script></head><body class="bg-background font-body-sm text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-sidebar-width bg-inverse-surface text-inverse-on-surface z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-container-padding flex items-center gap-stack-sm"><div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[20px]">warehouse</span></div><div class="flex flex-col"><span class="font-display-lg text-[18px] leading-tight font-bold tracking-tight text-inverse-on-surface">PAMTIGO</span><span class="font-sidebar-nav text-[10px] leading-tight uppercase tracking-wider text-outline-variant">WMS Core v2.4</span></div></div><div class="px-container-padding py-stack-sm"><span class="font-sidebar-nav text-[11px] uppercase tracking-wider text-outline-variant font-bold">Main Operations</span></div><nav class="flex flex-col gap-base px-stack-sm" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded-lg"><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span>Dashboard</a><a aria-current="page" class="flex items-center gap-stack-sm px-stack-md py-stack-sm transition-colors bg-primary-container text-on-primary-container font-bold rounded-lg" data-path="inventory" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span>Inventory</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="logistics" href="#"><span class="material-symbols-outlined text-[18px]">local_shipping</span>Logistics</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="material-requests" href="#"><span class="material-symbols-outlined text-[18px]">assignment_return</span>Material Requests</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="master-data" href="#"><span class="material-symbols-outlined text-[18px]">database</span>Master Data</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[18px]">bar_chart</span>Reports</a></nav></div><div class="flex flex-col gap-base p-stack-sm pb-container-padding"><nav class="flex flex-col gap-base" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded-lg"><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span>Settings</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-error-container hover:bg-error hover:text-on-error transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span>Logout</a></nav></div></aside><div class="pl-sidebar-width"><header class="fixed top-0 left-sidebar-width right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-container-padding"><div class="flex items-center gap-gutter"><nav class="flex items-center gap-gutter" data-active-classes="text-primary font-bold after:w-full after:bg-primary"><a class="font-label-bold text-label-bold text-on-surface-variant hover:text-on-surface transition-colors py-2" data-path="dashboard" href="#">Dashboard</a><a aria-current="page" class="transition-colors py-2 text-primary font-bold after:w-full after:bg-primary" data-path="inventory" href="#">Inventory</a><a class="font-label-bold text-label-bold text-on-surface-variant hover:text-on-surface transition-colors py-2" data-path="logistics" href="#">Logistics</a></nav><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px]">search</span><input class="bg-surface-container-low pl-8 pr-stack-md py-1.5 rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Search SKU, bin location, PO..." type="text"></div></div><div class="flex items-center gap-stack-md"><button class="relative p-stack-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><div class="flex items-center gap-stack-sm pl-stack-sm"><div class="flex flex-col items-end"><span class="font-label-bold text-label-bold text-on-surface leading-tight">Wahyu Hidayat</span><span class="font-body-sm text-[12px] text-on-surface-variant leading-tight">Supervisor Inbound</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 w-full px-container-padding bg-background"><div class="flex flex-col w-full">
+@extends('layouts.app')
+
+@section('title', 'Verifikasi Penerimaan - Warehouse Tirta Sago')
+@section('breadcrumb', 'Penerimaan Barang PO / Verifikasi')
+
+@section('content')
 <div class="py-stack-md flex flex-col gap-stack-md">
 <!-- Top Breadcrumb & Metadata Navigation -->
 <div class="flex items-center justify-between">
@@ -163,7 +24,7 @@
 <div class="flex flex-col gap-base">
 <div class="flex flex-wrap items-center gap-stack-sm">
 <span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-bold text-[12px] uppercase tracking-wide">
-            GRN-2023-0891
+            {{ $grn }}
           </span>
 <span class="px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-bold text-[12px] flex items-center gap-1">
 <span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
@@ -357,9 +218,30 @@
 </div>
 </div>
 <!-- Right: Action Buttons -->
-<div class="flex flex-wrap items-center gap-stack-sm w-full md:w-auto justify-end"><button class="px-stack-md py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-bold text-body-sm border border-outline-variant transition-colors" type="button">Batal / Reset</button><button class="px-stack-md py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-bold text-body-sm flex items-center gap-1.5 border border-outline-variant transition-colors" type="button"><span class="material-symbols-outlined text-[18px] text-outline">print</span><span class="">Cetak Bukti Sementara</span></button><button class="px-stack-md py-2 rounded-lg bg-surface-container-highest hover:bg-secondary-fixed text-on-surface font-label-bold text-body-sm flex flex-col items-start border border-outline-variant transition-colors" title="Simpan progres sementara tanpa update stok gudang" type="button"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[18px]">bookmark</span><span class="">Simpan Draf (Save)</span><span class="px-1.5 py-0.2 rounded bg-surface-container text-outline font-sidebar-nav text-[9px] uppercase font-bold">Draft</span></div><span class="font-sidebar-nav text-[10px] text-outline font-normal leading-none mt-0.5">Tanpa update stok gudang</span></button><button class="px-container-padding py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-bold text-body-sm flex items-center gap-stack-sm shadow-md transition-all" type="button"><span class="material-symbols-outlined text-[20px]">verified</span><div class="flex flex-col items-start leading-tight"><span class="">Submit Penerimaan (Update Stok)</span><span class="text-[10px] font-normal text-on-primary/80">Finalisasi &amp; Kunci GRN</span></div></button></div>
+<div class="flex flex-wrap items-center gap-stack-sm w-full md:w-auto justify-end"><a href="{{ route('penerimaan.index') }}" class="px-stack-md py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-bold text-body-sm border border-outline-variant transition-colors">Batal / Reset</a><button onclick="window.print()" class="px-stack-md py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-bold text-body-sm flex items-center gap-1.5 border border-outline-variant transition-colors" type="button"><span class="material-symbols-outlined text-[18px] text-outline">print</span><span class="">Cetak Bukti Sementara</span></button><button onclick="saveDraft()" class="px-stack-md py-2 rounded-lg bg-surface-container-highest hover:bg-secondary-fixed text-on-surface font-label-bold text-body-sm flex flex-col items-start border border-outline-variant transition-colors" title="Simpan progres sementara tanpa update stok gudang" type="button"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[18px]">bookmark</span><span class="">Simpan Draf (Save)</span><span class="px-1.5 py-0.2 rounded bg-surface-container text-outline font-sidebar-nav text-[9px] uppercase font-bold">Draft</span></div><span class="font-sidebar-nav text-[10px] text-outline font-normal leading-none mt-0.5">Tanpa update stok gudang</span></button><button onclick="submitReception()" class="px-container-padding py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-bold text-body-sm flex items-center gap-stack-sm shadow-md transition-all" type="button"><span class="material-symbols-outlined text-[20px]">verified</span><div class="flex flex-col items-start leading-tight"><span class="">Submit Penerimaan (Update Stok)</span><span class="text-[10px] font-normal text-on-primary/80">Finalisasi &amp; Kunci GRN</span></div></button></div>
 </div>
 </div>
-</div></main></div>
+</div>
+<script>
+function saveDraft() {
+    alert('Draft {{ $grn }} berhasil disimpan sementara. (Dummy)');
+}
 
-</body></html>
+function submitReception() {
+    if (!confirm('Submit penerimaan {{ $grn }} dan mengunci dokumen?')) return;
+    alert('Penerimaan {{ $grn }} berhasil difinalisasi. (Dummy, stok belum terhubung database)');
+    window.location.href = @json(route('penerimaan.index'));
+}
+</script>
+
+@push('head')
+<style>
+@media print {
+    #page-loading-overlay, header, aside, button, a[href], .no-print { display: none !important; }
+    main { margin: 0 !important; width: 100% !important; }
+    body { overflow: visible !important; background: #fff !important; }
+}
+</style>
+@endpush
+
+@endsection

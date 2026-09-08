@@ -17,6 +17,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StrukturLokasiController;
+use App\Http\Controllers\PenerimaanController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -496,13 +497,24 @@ Route::middleware('auth')->group(function () {
 
         });
 
-        Route::get('/]penerimaan', function () {
-        return view('penerimaan.index');
+        // Penerimaan Barang PO (sementara memakai dummy data; belum terhubung DB)
+        Route::get('/penerimaan', function () {
+            return view('penerimaan.index');
         })->name('penerimaan.index');
 
-        
-        Route::get('/]penerimaan/verifikasi', function () {
-        return view('penerimaan.verifikasi');
-        })->name('penerimaan.verifiaksi');
+        Route::get('/penerimaan/{grn}/verifikasi', function (string $grn) {
+            $dummyGrn = [
+                'GRN-2023-0891',
+                'GRN-2023-0880',
+                'GRN-2023-0879',
+                'GRN-2023-0882',
+            ];
+
+            if (! in_array($grn, $dummyGrn, true)) {
+                abort(404);
+            }
+
+            return view('penerimaan.verifikasi', compact('grn'));
+        })->name('penerimaan.verifikasi');
 
 });

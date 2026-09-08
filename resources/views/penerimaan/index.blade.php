@@ -1,148 +1,9 @@
-<!DOCTYPE html><html lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&amp;family=Work+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      "colors": {
-        "on-secondary-fixed": "#161c22",
-        "tertiary": "#9e3d00",
-        "on-surface-variant": "#414754",
-        "surface-dim": "#d7d9e5",
-        "tertiary-container": "#c64f00",
-        "primary-fixed-dim": "#adc7ff",
-        "on-primary-fixed-variant": "#004493",
-        "tertiary-fixed-dim": "#ffb695",
-        "inverse-primary": "#adc7ff",
-        "surface-container-highest": "#e0e2ed",
-        "surface-tint": "#005bc0",
-        "surface-container-lowest": "#ffffff",
-        "on-primary-fixed": "#001a41",
-        "on-tertiary-fixed": "#351000",
-        "on-secondary-fixed-variant": "#41474e",
-        "surface-variant": "#e0e2ed",
-        "on-tertiary-container": "#fffbff",
-        "error": "#ba1a1a",
-        "on-background": "#181c23",
-        "inverse-surface": "#2d3039",
-        "on-tertiary": "#ffffff",
-        "secondary-fixed": "#dde3eb",
-        "surface-container-low": "#f1f3fe",
-        "inverse-on-surface": "#eef0fb",
-        "on-primary": "#ffffff",
-        "surface-bright": "#f9f9ff",
-        "primary-container": "#0070ea",
-        "on-secondary-container": "#5f656c",
-        "surface": "#f9f9ff",
-        "background": "#f9f9ff",
-        "outline": "#717786",
-        "on-tertiary-fixed-variant": "#7c2e00",
-        "on-error-container": "#93000a",
-        "on-secondary": "#ffffff",
-        "primary-fixed": "#d8e2ff",
-        "secondary": "#595f65",
-        "on-surface": "#181c23",
-        "tertiary-fixed": "#ffdbcc",
-        "secondary-container": "#dde3eb",
-        "outline-variant": "#c1c6d7",
-        "surface-container": "#ebedf9",
-        "on-primary-container": "#fefcff",
-        "surface-container-high": "#e6e8f3",
-        "error-container": "#ffdad6",
-        "on-error": "#ffffff",
-        "primary": "#0059bb",
-        "secondary-fixed-dim": "#c1c7ce"
-      },
-      "borderRadius": {
-        "DEFAULT": "0.125rem",
-        "lg": "0.25rem",
-        "xl": "0.5rem",
-        "full": "0.75rem"
-      },
-      "spacing": {
-        "base": "4px",
-        "sidebar-width": "250px",
-        "gutter": "16px",
-        "stack-sm": "8px",
-        "container-padding": "24px",
-        "stack-md": "16px"
-      },
-      "fontFamily": {
-        "sidebar-nav": [
-          "Work Sans"
-        ],
-        "headline-md": [
-          "Manrope"
-        ],
-        "stat-number": [
-          "Work Sans"
-        ],
-        "body-lg": [
-          "Work Sans"
-        ],
-        "label-bold": [
-          "Work Sans"
-        ],
-        "display-lg": [
-          "Manrope"
-        ],
-        "body-sm": [
-          "Work Sans"
-        ]
-      },
-      "fontSize": {
-        "sidebar-nav": [
-          "13px",
-          {
-            "lineHeight": "18px",
-            "fontWeight": "500"
-          }
-        ],
-        "headline-md": [
-          "24px",
-          {
-            "lineHeight": "32px",
-            "fontWeight": "600"
-          }
-        ],
-        "stat-number": [
-          "38px",
-          {
-            "lineHeight": "1",
-            "fontWeight": "700"
-          }
-        ],
-        "body-lg": [
-          "16px",
-          {
-            "lineHeight": "24px",
-            "fontWeight": "400"
-          }
-        ],
-        "label-bold": [
-          "14px",
-          {
-            "lineHeight": "20px",
-            "fontWeight": "700"
-          }
-        ],
-        "display-lg": [
-          "32px",
-          {
-            "lineHeight": "40px",
-            "fontWeight": "700"
-          }
-        ],
-        "body-sm": [
-          "14px",
-          {
-            "lineHeight": "20px",
-            "fontWeight": "400"
-          }
-        ]
-      }
-    }
-  }
-};</script></head><body class="bg-background font-body-sm text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-sidebar-width bg-inverse-surface text-inverse-on-surface z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-container-padding flex items-center gap-stack-sm"><div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[20px]">warehouse</span></div><div class="flex flex-col"><span class="font-display-lg text-[18px] leading-tight font-bold tracking-tight text-inverse-on-surface">PAMTIGO</span><span class="font-sidebar-nav text-[10px] leading-tight uppercase tracking-wider text-outline-variant">WMS Core v2.4</span></div></div><div class="px-container-padding py-stack-sm"><span class="font-sidebar-nav text-[11px] uppercase tracking-wider text-outline-variant font-bold">Main Operations</span></div><nav class="flex flex-col gap-base px-stack-sm" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded-lg"><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span>Dashboard</a><a aria-current="page" class="flex items-center gap-stack-sm px-stack-md py-stack-sm transition-colors bg-primary-container text-on-primary-container font-bold rounded-lg" data-path="inventory" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span>Inventory</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="logistics" href="#"><span class="material-symbols-outlined text-[18px]">local_shipping</span>Logistics</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="material-requests" href="#"><span class="material-symbols-outlined text-[18px]">assignment_return</span>Material Requests</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="master-data" href="#"><span class="material-symbols-outlined text-[18px]">database</span>Master Data</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[18px]">bar_chart</span>Reports</a></nav></div><div class="flex flex-col gap-base p-stack-sm pb-container-padding"><nav class="flex flex-col gap-base" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded-lg"><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-inverse-on-surface/80 hover:bg-surface-container-highest/20 hover:text-inverse-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span>Settings</a><a class="flex items-center gap-stack-sm px-stack-md py-stack-sm rounded-lg font-sidebar-nav text-sidebar-nav text-error-container hover:bg-error hover:text-on-error transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span>Logout</a></nav></div></aside><div class="pl-sidebar-width"><header class="fixed top-0 left-sidebar-width right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-container-padding"><div class="flex items-center gap-gutter"><nav class="flex items-center gap-gutter" data-active-classes="text-primary font-bold after:w-full after:bg-primary"><a class="font-label-bold text-label-bold text-on-surface-variant hover:text-on-surface transition-colors py-2" data-path="dashboard" href="#">Dashboard</a><a aria-current="page" class="transition-colors py-2 text-primary font-bold after:w-full after:bg-primary" data-path="inventory" href="#">Inventory</a><a class="font-label-bold text-label-bold text-on-surface-variant hover:text-on-surface transition-colors py-2" data-path="logistics" href="#">Logistics</a></nav><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px]">search</span><input class="bg-surface-container-low pl-8 pr-stack-md py-1.5 rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Search SKU, bin location, PO..." type="text"></div></div><div class="flex items-center gap-stack-md"><button class="relative p-stack-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><div class="flex items-center gap-stack-sm pl-stack-sm"><div class="flex flex-col items-end"><span class="font-label-bold text-label-bold text-on-surface leading-tight">Wahyu Hidayat</span><span class="font-body-sm text-[12px] text-on-surface-variant leading-tight">Supervisor Inbound</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 w-full px-container-padding bg-background"><div class="flex flex-col w-full pb-16">
+@extends('layouts.app')
+
+@section('title', 'Penerimaan Barang PO - Warehouse Tirta Sago')
+@section('breadcrumb', 'Penerimaan Barang PO')
+
+@section('content')
 <!-- Top Ambient Glow -->
 <div class="relative w-full">
 <div class="absolute -top-10 left-1/4 w-96 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -319,7 +180,7 @@
 <th class="py-3 px-stack-md text-center">Aksi</th>
 </tr>
 </thead>
-<tbody class="divide-none"><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0891</td><td class="py-3.5 px-stack-md text-on-surface-variant">24 Okt 2023 <span class="text-[11px] text-outline block">09:15 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0891</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-2023-PMN-8812</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Pipa Mas Nusantara</div><div class="text-[11px] text-on-surface-variant">Pipa HDPE &amp; Valve Distribusi</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">3 SKU</span><span class="text-[11px] text-on-surface-variant block">65 Unit (Pipa HDPE, Valve)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">WH</div><span class="text-[13px] text-on-surface">Wahyu H.</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> Menunggu Verifikasi</span></td><td class="py-3.5 px-stack-md text-center"><button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all" type="button"><span class="material-symbols-outlined text-[14px]">fact_check</span> Verifikasi &amp; Alokasi</button></td></tr><tr class="bg-surface-container-lowest hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0880</td><td class="py-3.5 px-stack-md text-on-surface-variant">24 Okt 2023 <span class="text-[11px] text-outline block">08:30 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0875</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-BAI-7719</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Barindo Anggun Industri</div><div class="text-[11px] text-on-surface-variant">Meter Air Kuningan &amp; Aksesoris SR</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">4 SKU</span><span class="text-[11px] text-on-surface-variant block">350 Unit (Water Meter 1/2" SNI)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">BS</div><span class="text-[13px] text-on-surface">Budi Santoso</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> Menunggu Verifikasi</span></td><td class="py-3.5 px-stack-md text-center"><button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all" type="button"><span class="material-symbols-outlined text-[14px]">fact_check</span> Verifikasi &amp; Alokasi</button></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0879</td><td class="py-3.5 px-stack-md text-on-surface-variant">23 Okt 2023 <span class="text-[11px] text-outline block">16:40 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0862</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-VJM-0941</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Vinilon Jaya Mandiri</div><div class="text-[11px] text-on-surface-variant">Pipa uPVC Limbah &amp; Air Bersih SNI</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">2 SKU</span><span class="text-[11px] text-on-surface-variant block">80 Batang (RRJ 4" &amp; 6")</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">WH</div><span class="text-[13px] text-on-surface">Wahyu H.</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Dalam Alokasi (Rak B4)</span></td><td class="py-3.5 px-stack-md text-center"><button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container-high text-on-surface font-label-bold text-[12px] hover:bg-surface-container-highest transition-all" type="button"><span class="material-symbols-outlined text-[14px]">forklift</span> Proses Putaway</button></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0878</td><td class="py-3.5 px-stack-md text-on-surface-variant">23 Okt 2023 <span class="text-[11px] text-outline block">14:10 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0850</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-TKE-5520</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">CV. Tirta Kencana Engineering</div><div class="text-[11px] text-on-surface-variant">Clamp Saddle, Flange &amp; Gibault</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">12 SKU</span><span class="text-[11px] text-on-surface-variant block">450 Pcs (Clamp, Flange)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">DA</div><span class="text-[13px] text-on-surface">Deni Anggara</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Disetujui / Selesai</span></td><td class="py-3.5 px-stack-md text-center"><div class="flex items-center justify-center gap-1"><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Lihat Detail" type="button"><span class="material-symbols-outlined text-[18px]">visibility</span></button><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Cetak Surat GRN" type="button"><span class="material-symbols-outlined text-[18px]">print</span></button></div></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0877</td><td class="py-3.5 px-stack-md text-on-surface-variant">22 Okt 2023 <span class="text-[11px] text-outline block">11:20 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0844</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-ALT-3310</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Adhi Karya Logistik Tirta</div><div class="text-[11px] text-on-surface-variant">Pompa Submersible &amp; Panel Inverter</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">2 SKU</span><span class="text-[11px] text-on-surface-variant block">4 Unit (Pompa &amp; Panel)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">WH</div><span class="text-[13px] text-on-surface">Wahyu H.</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Disetujui / Selesai</span></td><td class="py-3.5 px-stack-md text-center"><div class="flex items-center justify-center gap-1"><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Lihat Detail" type="button"><span class="material-symbols-outlined text-[18px]">visibility</span></button><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Cetak Surat GRN" type="button"><span class="material-symbols-outlined text-[18px]">print</span></button></div></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-secondary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">draft</span> GRN-2023-0876</td><td class="py-3.5 px-stack-md text-on-surface-variant">22 Okt 2023 <span class="text-[11px] text-outline block">09:05 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0839</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-outline-variant">SJ-BPI-11</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Bakrie Pipe Industries</div><div class="text-[11px] text-on-surface-variant">Pipa Baja GI &amp; Fitting Spesial</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">3 SKU</span><span class="text-[11px] text-on-surface-variant block">24 Batang (Medium A 6")</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">BS</div><span class="text-[13px] text-on-surface">Budi Santoso</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Draft</span></td><td class="py-3.5 px-stack-md text-center"><button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container text-on-surface font-label-bold text-[12px] hover:bg-surface-container-high transition-all" type="button"><span class="material-symbols-outlined text-[14px]">edit_note</span> Lanjutkan Draft</button></td></tr></tbody>
+<tbody class="divide-none"><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0891</td><td class="py-3.5 px-stack-md text-on-surface-variant">24 Okt 2023 <span class="text-[11px] text-outline block">09:15 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0891</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-2023-PMN-8812</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Pipa Mas Nusantara</div><div class="text-[11px] text-on-surface-variant">Pipa HDPE &amp; Valve Distribusi</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">3 SKU</span><span class="text-[11px] text-on-surface-variant block">65 Unit (Pipa HDPE, Valve)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">WH</div><span class="text-[13px] text-on-surface">Wahyu H.</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> Menunggu Verifikasi</span></td><td class="py-3.5 px-stack-md text-center"><a href="{{ route('penerimaan.verifikasi', 'GRN-2023-0891') }}" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all"><span class="material-symbols-outlined text-[14px]">fact_check</span> Verifikasi &amp; Alokasi</a></td></tr><tr class="bg-surface-container-lowest hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0880</td><td class="py-3.5 px-stack-md text-on-surface-variant">24 Okt 2023 <span class="text-[11px] text-outline block">08:30 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0875</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-BAI-7719</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Barindo Anggun Industri</div><div class="text-[11px] text-on-surface-variant">Meter Air Kuningan &amp; Aksesoris SR</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">4 SKU</span><span class="text-[11px] text-on-surface-variant block">350 Unit (Water Meter 1/2" SNI)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">BS</div><span class="text-[13px] text-on-surface">Budi Santoso</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> Menunggu Verifikasi</span></td><td class="py-3.5 px-stack-md text-center"><a href="{{ route('penerimaan.verifikasi', 'GRN-2023-0880') }}" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all"><span class="material-symbols-outlined text-[14px]">fact_check</span> Verifikasi &amp; Alokasi</a></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0879</td><td class="py-3.5 px-stack-md text-on-surface-variant">23 Okt 2023 <span class="text-[11px] text-outline block">16:40 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0862</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-VJM-0941</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Vinilon Jaya Mandiri</div><div class="text-[11px] text-on-surface-variant">Pipa uPVC Limbah &amp; Air Bersih SNI</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">2 SKU</span><span class="text-[11px] text-on-surface-variant block">80 Batang (RRJ 4" &amp; 6")</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">WH</div><span class="text-[13px] text-on-surface">Wahyu H.</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Dalam Alokasi (Rak B4)</span></td><td class="py-3.5 px-stack-md text-center"><a href="{{ route('penerimaan.verifikasi', 'GRN-2023-0879') }}" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container-high text-on-surface font-label-bold text-[12px] hover:bg-surface-container-highest transition-all"><span class="material-symbols-outlined text-[14px]">forklift</span> Proses Putaway</a></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0878</td><td class="py-3.5 px-stack-md text-on-surface-variant">23 Okt 2023 <span class="text-[11px] text-outline block">14:10 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0850</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-TKE-5520</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">CV. Tirta Kencana Engineering</div><div class="text-[11px] text-on-surface-variant">Clamp Saddle, Flange &amp; Gibault</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">12 SKU</span><span class="text-[11px] text-on-surface-variant block">450 Pcs (Clamp, Flange)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">DA</div><span class="text-[13px] text-on-surface">Deni Anggara</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Disetujui / Selesai</span></td><td class="py-3.5 px-stack-md text-center"><div class="flex items-center justify-center gap-1"><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Lihat Detail" type="button"><span class="material-symbols-outlined text-[18px]">visibility</span></button><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Cetak Surat GRN" type="button"><span class="material-symbols-outlined text-[18px]">print</span></button></div></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">description</span> GRN-2023-0877</td><td class="py-3.5 px-stack-md text-on-surface-variant">22 Okt 2023 <span class="text-[11px] text-outline block">11:20 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0844</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-on-surface-variant">INV-ALT-3310</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Adhi Karya Logistik Tirta</div><div class="text-[11px] text-on-surface-variant">Pompa Submersible &amp; Panel Inverter</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">2 SKU</span><span class="text-[11px] text-on-surface-variant block">4 Unit (Pompa &amp; Panel)</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">WH</div><span class="text-[13px] text-on-surface">Wahyu H.</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Disetujui / Selesai</span></td><td class="py-3.5 px-stack-md text-center"><div class="flex items-center justify-center gap-1"><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Lihat Detail" type="button"><span class="material-symbols-outlined text-[18px]">visibility</span></button><button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Cetak Surat GRN" type="button"><span class="material-symbols-outlined text-[18px]">print</span></button></div></td></tr><tr class="hover:bg-surface-container-low/60 transition-colors"><td class="py-3.5 px-stack-md font-label-bold text-secondary flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-outline">draft</span> GRN-2023-0876</td><td class="py-3.5 px-stack-md text-on-surface-variant">22 Okt 2023 <span class="text-[11px] text-outline block">09:05 WIB</span></td><td class="py-3.5 px-stack-md font-medium text-on-surface">PO-2023-0839</td><td class="py-3.5 px-stack-md font-sidebar-nav text-[12px] text-outline-variant">SJ-BPI-11</td><td class="py-3.5 px-stack-md"><div class="font-label-bold text-on-surface">PT. Bakrie Pipe Industries</div><div class="text-[11px] text-on-surface-variant">Pipa Baja GI &amp; Fitting Spesial</div></td><td class="py-3.5 px-stack-md text-right"><span class="font-label-bold text-on-surface">3 SKU</span><span class="text-[11px] text-on-surface-variant block">24 Batang (Medium A 6")</span></td><td class="py-3.5 px-stack-md"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-[10px] font-bold">BS</div><span class="text-[13px] text-on-surface">Budi Santoso</span></div></td><td class="py-3.5 px-stack-md"><span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-label-bold"><span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Draft</span></td><td class="py-3.5 px-stack-md text-center"><button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container text-on-surface font-label-bold text-[12px] hover:bg-surface-container-high transition-all" type="button"><span class="material-symbols-outlined text-[14px]">edit_note</span> Lanjutkan Draft</button></td></tr></tbody>
 </table>
 </div>
 <!-- Table Pagination & Counter -->
@@ -631,21 +492,12 @@
       });
     }
 
-    // Submit handler with toast feedback
+    // Submit modal -> lanjut ke halaman verifikasi dummy.
     if (submitBtn) {
       submitBtn.addEventListener('click', function() {
-        closeModal();
-        if (toast) {
-          toast.classList.remove('translate-y-20', 'opacity-0');
-          toast.classList.add('translate-y-0', 'opacity-100');
-          setTimeout(function() {
-            toast.classList.remove('translate-y-0', 'opacity-100');
-            toast.classList.add('translate-y-20', 'opacity-0');
-          }, 4000);
-        }
+        window.location.href = @json(route('penerimaan.verifikasi', 'GRN-2023-0882'));
       });
     }
   })();
-</script></main></div>
-
-</body></html>
+</script>
+@endsection
