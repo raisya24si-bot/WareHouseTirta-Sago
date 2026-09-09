@@ -533,6 +533,11 @@ Route::middleware('auth')->group(function () {
                 )->name('save-draft');
 
                 Route::post(
+                    '/{penerimaan}/bukti-dukung',
+                    [PenerimaanController::class, 'uploadBuktiDukung']
+                )->name('bukti-dukung.upload');
+
+                Route::post(
                     '/{penerimaan}/submit',
                     [PenerimaanController::class, 'submit']
                 )->name('submit');
