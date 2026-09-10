@@ -683,6 +683,8 @@ class PenerimaanController extends Controller
 
             'details.lokasi.row.rak.gudang',
 
+            'details.lokasiKarantina.row.rak.gudang',
+
             'buktiDukungs.creator',
         ]);
 
@@ -973,6 +975,9 @@ class PenerimaanController extends Controller
                 'fk_lokasi_barang' =>
                     $input['fk_lokasi_barang'] ?? $detail->fk_lokasi_barang,
 
+                'fk_lokasi_karantina' =>
+                    $input['fk_lokasi_karantina'] ?? $detail->fk_lokasi_karantina,
+
                 'harga_satuan' =>
                     isset($input['harga_satuan'])
                         ? (int) $input['harga_satuan']
@@ -1039,6 +1044,12 @@ class PenerimaanController extends Controller
             ],
 
             'details.*.fk_lokasi_barang' => [
+                'nullable',
+                'integer',
+                'exists:tbl_master_lokasi,id_lokasi',
+            ],
+
+            'details.*.fk_lokasi_karantina' => [
                 'nullable',
                 'integer',
                 'exists:tbl_master_lokasi,id_lokasi',
@@ -1158,17 +1169,25 @@ class PenerimaanController extends Controller
             'details.*.fk_lokasi_barang' => [
                 'nullable', 'integer', 'exists:tbl_master_lokasi,id_lokasi',
             ],
+            'details.*.fk_lokasi_karantina' => [
+                'nullable', 'integer', 'exists:tbl_master_lokasi,id_lokasi',
+            ],
             'details.*.harga_satuan' => [
                 'nullable', 'integer', 'min:0',
             ],
         ]);
 
 
+        // Catatan: idealnya alur ini lewat Kasubag -> Kabag dulu sebelum
+        // Direktur (lihat PenerimaanBarang::LEVELS). Karena halaman approval
+        // Kasubag & Kabag belum dibuat, submit langsung mengarah ke antrian
+        // Direktur supaya alur tetap jalan. Kalau nanti halaman Kasubag/Kabag
+        // dibuat, cukup ganti baris di bawah ini ke 'PENDING_KASUBAG'.
         $nextStatus =
             MasterStatusPenerimaanBarang::query()
                 ->where(
                     'kd_status_penerimaan_barang',
-                    'PENDING_KASUBAG'
+                    'PENDING_DIREKTUR'
                 )
                 ->firstOrFail();
 

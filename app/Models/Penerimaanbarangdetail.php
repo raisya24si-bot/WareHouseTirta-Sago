@@ -14,7 +14,7 @@ class PenerimaanBarangDetail extends Model
     protected $primaryKey = 'id_penerimaan_barang_detail';
 
     protected $fillable = [
-        'fk_penerimaan_barang', 'fk_barang', 'fk_lokasi_barang',
+        'fk_penerimaan_barang', 'fk_barang', 'fk_lokasi_barang', 'fk_lokasi_karantina',
         'qty_request', 'qty_baik', 'qty_rusak', 'harga_satuan',
         'created_by', 'updated_by', 'deleted_by',
     ];
@@ -39,6 +39,11 @@ class PenerimaanBarangDetail extends Model
     public function lokasi(): BelongsTo
     {
         return $this->belongsTo(StrukturLokasi::class, 'fk_lokasi_barang', 'id_lokasi');
+    }
+
+    public function lokasiKarantina(): BelongsTo
+    {
+        return $this->belongsTo(StrukturLokasi::class, 'fk_lokasi_karantina', 'id_lokasi');
     }
 
     public function getSelisihAttribute(): int

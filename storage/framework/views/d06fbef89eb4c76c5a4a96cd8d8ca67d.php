@@ -236,7 +236,7 @@
                         check_circle
                     </span>
 
-                    Siap masuk stok setelah approval Direktur
+                    Siap alokasi ke Rak Aktif
 
                 </span>
 
@@ -284,7 +284,7 @@
                         report_problem
                     </span>
 
-                    Dipisahkan sebagai barang rusak
+                    Wajib Karantina & BAP Retur
 
                 </span>
 
@@ -321,7 +321,8 @@
                     </span>
 
                     <span class="text-[12px] text-outline-variant font-sidebar-nav">
-                        Unit
+                        Unit <?php echo e($totalSelisih < 0 ? 'Kurang Terima' : ($totalSelisih > 0 ? 'Lebih Terima' : '')); ?>
+
                     </span>
 
                 </div>
@@ -329,10 +330,10 @@
                 <span class="text-[12px] text-on-surface-variant mt-0.5 flex items-center gap-1">
 
                     <span class="material-symbols-outlined text-[14px] text-tertiary">
-                        difference
+                        schedule
                     </span>
 
-                    Selisih tetap dapat disubmit
+                    Menunggu Batch 2 (Surat Pernyataan)
 
                 </span>
 
@@ -491,7 +492,7 @@
                 <div class="flex flex-col">
 
                     <span class="font-label-bold text-label-bold text-on-tertiary-fixed">
-                        Perhatian:
+                        Perhatian: Terdapat
                         <?php if($itemBelumLokasi > 0): ?>
                             <?php echo e($itemBelumLokasi); ?> item belum berlokasi rak
                         <?php endif; ?>
@@ -506,8 +507,8 @@
                     <span class="font-body-sm text-[13px] text-on-tertiary-fixed-variant">
                         <?php if($totalRusak > 0): ?>
                             Barang berstatus rusak otomatis dipisahkan ke Gudang Karantina (Bin Retur)
-                            dan sistem menerbitkan draf Berita Acara Kerusakan (BAP Retur)
-                            untuk supplier <?php echo e($penerimaan->po?->supplier?->nm_master_supplier ?? '-'); ?>.
+                            dan sistem menerbitkan draf Berita Acara Kerusakan (BAP Retur) resmi
+                            ke supplier <?php echo e($penerimaan->po?->supplier?->nm_master_supplier ?? '-'); ?>.
                         <?php else: ?>
                             Pastikan seluruh item baik sudah dipetakan ke bin sebelum dokumen disubmit.
                         <?php endif; ?>
@@ -706,6 +707,7 @@
                                 $selisih = ($qtyBaik + $qtyRusak) - $qtyPo;
 
                                 $selectedLokasi = $detail->lokasi;
+                                $selectedLokasiKarantina = $detail->lokasiKarantina;
 
                                 // Harga satuan sekarang diinput manual per detail penerimaan
                                 // (kolom harga_satuan) — bisa diedit langsung di tabel.
@@ -892,7 +894,7 @@
                                     </div>
 
                                     <div class="text-[10px] text-outline mt-1">
-                                        per <?php echo e($barang?->satuan?->nm_satuan ?? $barang?->satuan?->nama_satuan ?? 'unit'); ?>
+                                        per <?php echo e($barang?->satuan?->nm_master_satuan ?? 'unit'); ?>
 
                                     </div>
 
@@ -1015,16 +1017,65 @@
 
                                         <?php if($qtyRusak > 0): ?>
 
-                                            <div class="rounded-lg bg-error-container/40 border border-error-container p-2 flex items-start gap-1.5">
+                                            <div class="rounded-lg bg-error-container/40 border border-error-container p-2 flex flex-col gap-1">
 
-                                                <span class="material-symbols-outlined text-[15px] text-error mt-0.5">
-                                                    inventory_2
-                                                </span>
+                                                <div class="flex items-start gap-1.5">
 
-                                                <span class="text-[11px] text-on-error-container">
-                                                    Wajib Karantina &amp; BAP Retur
-                                                    (<?php echo e($qtyRusak); ?> Unit)
-                                                </span>
+                                                    <span class="material-symbols-outlined text-[15px] text-error mt-0.5">
+                                                        inventory_2
+                                                    </span>
+
+                                                    <span class="text-[11px] text-on-error-container">
+                                                        Wajib Karantina &amp; BAP Retur
+                                                        (<?php echo e($qtyRusak); ?> Unit)
+                                                    </span>
+
+                                                </div>
+
+                                                <div
+                                                    class="lokasi-karantina-chip flex items-center gap-1.5 text-[11px] <?php echo e($selectedLokasiKarantina ? 'text-error font-label-bold' : 'text-error/70 italic'); ?>"
+                                                    id="lokasi-karantina-label-<?php echo e($detail->id_penerimaan_barang_detail); ?>"
+                                                >
+                                                    <span class="material-symbols-outlined text-[14px]">
+                                                        <?php echo e($selectedLokasiKarantina ? 'location_on' : 'location_off'); ?>
+
+                                                    </span>
+
+                                                    <span class="lokasi-chip-text">
+                                                        <?php echo e($selectedLokasiKarantina
+                                                            ? ($selectedLokasiKarantina->kd_lokasi ?? $selectedLokasiKarantina->bin)
+                                                            : 'Bin karantina belum diatur'); ?>
+
+                                                    </span>
+                                                </div>
+
+                                                
+                                                <select
+                                                    name="details[<?php echo e($detail->id_penerimaan_barang_detail); ?>][fk_lokasi_karantina]"
+                                                    <?php echo e($canEdit ? '' : 'disabled'); ?>
+
+                                                    class="hidden lokasi-karantina-select"
+                                                >
+
+                                                    <option value="">-- Pilih Bin Karantina --</option>
+
+                                                    <?php $__currentLoopData = $lokasiOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lokasiOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                                                        <option
+                                                            value="<?php echo e($lokasiOption['id']); ?>"
+                                                            data-label="<?php echo e($lokasiOption['label']); ?>"
+                                                            <?php if((string) old(
+                                                                "details.{$detail->id_penerimaan_barang_detail}.fk_lokasi_karantina",
+                                                                $detail->fk_lokasi_karantina
+                                                            ) === (string) $lokasiOption['id']): echo 'selected'; endif; ?>
+                                                        >
+                                                            <?php echo e($lokasiOption['label']); ?>
+
+                                                        </option>
+
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                                                </select>
 
                                             </div>
 
@@ -1046,7 +1097,7 @@
                                                 type="button"
                                                 <?php echo e($canEdit ? '' : 'disabled'); ?>
 
-                                                onclick="openLokasiDrawer(this)"
+                                                onclick="openLokasiDrawer(this, 'baik')"
                                                 data-detail-id="<?php echo e($detail->id_penerimaan_barang_detail); ?>"
                                                 data-nama-barang="<?php echo e($barang?->nm_master_barang ?? 'Barang'); ?>"
                                                 class="btn-alokasi w-full px-3 py-2 rounded-lg font-label-bold text-[12px] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50
@@ -1059,7 +1110,9 @@
 
                                                 </span>
 
-                                                <?php echo e($selectedLokasi ? 'Ubah Bin' : 'Pilih Lokasi Bin'); ?>
+                                                <?php echo e($selectedLokasi
+                                                    ? ($qtyRusak > 0 ? 'Ubah Rak Baik' : 'Ubah Bin')
+                                                    : '+ Pilih / Setting Lokasi Bin'); ?>
 
                                             </button>
 
@@ -1067,12 +1120,25 @@
 
                                         <?php if($qtyRusak > 0): ?>
 
-                                            <span class="w-full px-3 py-2 rounded-lg font-label-bold text-[11px] bg-error-container text-on-error-container flex items-center justify-center gap-1.5">
+                                            <button
+                                                type="button"
+                                                <?php echo e($canEdit ? '' : 'disabled'); ?>
+
+                                                onclick="openLokasiDrawer(this, 'karantina')"
+                                                data-detail-id="<?php echo e($detail->id_penerimaan_barang_detail); ?>"
+                                                data-nama-barang="<?php echo e($barang?->nm_master_barang ?? 'Barang'); ?>"
+                                                class="btn-alokasi-karantina w-full px-3 py-2 rounded-lg font-label-bold text-[12px] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50
+                                                <?php echo e($selectedLokasiKarantina
+                                                    ? 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant'
+                                                    : 'bg-error hover:bg-error-container text-on-error'); ?>"
+                                            >
                                                 <span class="material-symbols-outlined text-[15px]">
-                                                    inventory
+                                                    <?php echo e($selectedLokasiKarantina ? 'edit_location_alt' : 'inventory'); ?>
+
                                                 </span>
-                                                Karantina Bin
-                                            </span>
+                                                <?php echo e($selectedLokasiKarantina ? 'Ubah Bin Karantina' : 'Karantina Bin'); ?>
+
+                                            </button>
 
                                         <?php endif; ?>
 
@@ -1249,6 +1315,31 @@
             <?php endif; ?>
 
 
+            
+            <div class="mt-4 rounded-lg bg-surface-container-low border border-outline-variant p-3">
+
+                <div class="flex items-start gap-2">
+
+                    <span class="material-symbols-outlined text-[18px] text-primary shrink-0">
+                        info
+                    </span>
+
+                    <div class="text-[12px] text-on-surface-variant">
+
+                        <span class="font-label-bold text-on-surface">
+                            Dokumentasi penerimaan
+                        </span>
+
+                        <p class="mt-0.5">
+                            Maksimal 5 foto. Format JPG, PNG atau WEBP.
+                            Foto digunakan sebagai bukti kondisi fisik saat penerimaan.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
 
 
             
@@ -1366,14 +1457,64 @@
                 <div class="flex flex-col">
 
                     <span class="font-label-bold text-[13px] text-on-surface">
-                        Panduan Aksi Dokumen: Perbedaan Simpan (Draft) vs Submit (Final)
+                        Alur stok gudang
                     </span>
 
                     <span class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">
-                       Panduan Aksi Dokumen: Perbedaan Simpan (Draft) vs Submit (Final) 
-                       Pahami perbedaan dampak aksi verifikasi sebelum melanjutkan transaksi inbound perpipaan.
+                        Simpan Draf dan Submit Penerimaan <strong>tidak langsung menambah stok</strong>.
+                        Setelah dokumen melewati approval sampai Direktur dan berstatus APPROVED,
+                        barulah stok fisik diproses ke lokasi gudang.
                     </span>
 
+                </div>
+
+            </div>
+
+        </div>
+
+
+        
+        <div class="rounded-xl border border-outline-variant bg-surface-container-low p-container-padding flex flex-col gap-stack-sm">
+
+            <div class="flex items-start gap-2">
+
+                <div class="w-7 h-7 rounded-full bg-primary-fixed text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[16px]">info</span>
+                </div>
+
+                <div class="flex flex-col">
+                    <span class="font-label-bold text-[13px] text-on-surface">
+                        Panduan Aksi Dokumen: Perbedaan Simpan (Draft) vs Submit (Final)
+                    </span>
+                    <span class="text-[12px] text-on-surface-variant">
+                        Pahami perbedaan dampak aksi verifikasi sebelum melanjutkan transaksi inbound perpipaan.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-sm">
+
+                <div class="rounded-lg bg-surface-container-lowest border border-outline-variant p-stack-sm flex items-start gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">bookmark</span>
+                    <div class="flex flex-col text-[12px]">
+                        <span class="font-label-bold text-on-surface">Simpan (Save Draft):</span>
+                        <span class="text-on-surface-variant">
+                            Menyimpan progres fisik &amp; slot sementara. Data tidak hilang namun
+                            <span class="font-label-bold text-on-surface">belum menambah stok master inventaris gudang</span>.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="rounded-lg bg-primary-fixed/40 border border-primary/20 p-stack-sm flex items-start gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-primary mt-0.5">task_alt</span>
+                    <div class="flex flex-col text-[12px]">
+                        <span class="font-label-bold text-primary">Submit (Finalisasi):</span>
+                        <span class="text-on-surface-variant">
+                            Mengunci dokumen GRN &amp; <span class="font-label-bold text-on-surface">mengirim ke antrian approval Direktur</span>.
+                            Stok gudang baru diperbarui otomatis setelah Direktur menyetujui.
+                        </span>
+                    </div>
                 </div>
 
             </div>
@@ -1492,11 +1633,37 @@
                             </span>
 
                             <span class="text-[10px] font-normal text-on-primary/80">
-                                Kirim ke Approval Kasubag
+                                Kirim ke Antrian Approval Direktur
                             </span>
 
                         </div>
 
+                    </button>
+
+                <?php elseif($status === 'PENDING_DIREKTUR'): ?>
+
+                    <button
+                        type="button"
+                        onclick="openRejectModal()"
+                        class="px-stack-md py-2.5 rounded-lg bg-error-container hover:bg-error text-on-error-container hover:text-on-error font-label-bold text-body-sm flex items-center gap-1.5 transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[18px]">cancel</span>
+                        Tolak
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="approveReception()"
+                        class="px-container-padding py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-bold text-body-sm flex items-center gap-stack-sm shadow-md transition-all"
+                    >
+                        <span class="material-symbols-outlined text-[20px]">task_alt</span>
+
+                        <div class="flex flex-col items-start leading-tight">
+                            <span>Setujui (Approve)</span>
+                            <span class="text-[10px] font-normal text-on-primary/80">
+                                Update stok gudang & kunci dokumen
+                            </span>
+                        </div>
                     </button>
 
                 <?php else: ?>
@@ -1536,7 +1703,7 @@
 
                     <div class="flex flex-col">
                         <span class="font-headline-md text-[16px] text-on-surface">
-                            Alokasi Penyimpanan: <span id="drawer-nama-barang">-</span>
+                            <span id="drawer-title-label">Alokasi Penyimpanan:</span> <span id="drawer-nama-barang">-</span>
                         </span>
                         <span class="text-[12px] text-on-surface-variant">
                             Tentukan hierarki penempatan fisik dari gudang, blok rak, tingkat rak, hingga spesifik bin code.
@@ -1626,28 +1793,97 @@
 
 
                 
-                <div id="drawer-occupancy-wrap" class="hidden rounded-xl bg-surface-container p-stack-md">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-stack-sm">
 
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-label-bold text-[12px] text-on-surface" id="drawer-occupancy-title">
-                            Okupansi Rak
-                        </span>
-                        <span class="font-label-bold text-[12px]" id="drawer-occupancy-percent">0%</span>
+                    
+                    <div class="rounded-xl bg-surface-container p-stack-sm flex flex-col gap-2">
+
+                        <div class="flex items-center justify-between">
+                            <span class="font-label-bold text-[12px] text-on-surface">
+                                Dokumentasi Foto Masuk Fisik
+                            </span>
+
+                            <?php if($canEdit): ?>
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('foto_penerimaan').click()"
+                                    class="text-[11px] font-label-bold text-primary hover:underline flex items-center gap-0.5"
+                                >
+                                    <span class="material-symbols-outlined text-[14px]">add_a_photo</span>
+                                    Unggah Foto
+                                </button>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if($penerimaan->buktiDukungs->count()): ?>
+
+                            <div class="grid grid-cols-3 gap-1.5">
+
+                                <?php $__currentLoopData = $penerimaan->buktiDukungs->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bukti): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                                    <?php if($bukti->path_file ?? false): ?>
+
+                                        <a
+                                            href="<?php echo e(asset('storage/' . $bukti->path_file)); ?>"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="block rounded-md overflow-hidden border border-outline-variant relative group"
+                                        >
+                                            <img
+                                                src="<?php echo e(asset('storage/' . $bukti->path_file)); ?>"
+                                                alt="<?php echo e($bukti->nama_file ?? 'Dokumentasi'); ?>"
+                                                class="w-full h-16 object-cover group-hover:opacity-90"
+                                            >
+                                        </a>
+
+                                    <?php endif; ?>
+
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                            </div>
+
+                            <span class="text-[10px] text-outline">
+                                Diunggah oleh <?php echo e($penerimaan->buktiDukungs->last()?->creator?->name ?? 'Petugas'); ?>
+
+                                &bull; Total <?php echo e($penerimaan->buktiDukungs->count()); ?> file terverifikasi
+                            </span>
+
+                        <?php else: ?>
+
+                            <span class="text-[11px] text-outline italic">
+                                Belum ada dokumentasi foto yang diunggah.
+                            </span>
+
+                        <?php endif; ?>
+
                     </div>
 
-                    <div class="w-full h-2.5 rounded-full bg-surface-container-high overflow-hidden flex">
-                        <div id="drawer-occupancy-bar" class="h-full bg-primary transition-all" style="width:0%"></div>
-                    </div>
 
-                    <div class="flex items-center gap-4 mt-2 text-[11px] text-on-surface-variant">
-                        <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-primary"></span>
-                            <span id="drawer-occupancy-terisi">0</span> Bin Terisi
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-surface-container-high border border-outline-variant"></span>
-                            <span id="drawer-occupancy-kosong">0</span> Bin Kosong
-                        </span>
+                    
+                    <div id="drawer-occupancy-wrap" class="hidden rounded-xl bg-surface-container p-stack-sm">
+
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-label-bold text-[12px] text-on-surface" id="drawer-occupancy-title">
+                                Okupansi Rak
+                            </span>
+                            <span class="font-label-bold text-[12px]" id="drawer-occupancy-percent">0%</span>
+                        </div>
+
+                        <div class="w-full h-2.5 rounded-full bg-surface-container-high overflow-hidden flex">
+                            <div id="drawer-occupancy-bar" class="h-full bg-primary transition-all" style="width:0%"></div>
+                        </div>
+
+                        <div class="flex items-center gap-4 mt-2 text-[11px] text-on-surface-variant">
+                            <span class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-primary"></span>
+                                <span id="drawer-occupancy-terisi">0</span> Bin Terisi
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-surface-container-high border border-outline-variant"></span>
+                                <span id="drawer-occupancy-kosong">0</span> Bin Kosong
+                            </span>
+                        </div>
+
                     </div>
 
                 </div>
@@ -1681,7 +1917,7 @@
                     class="px-stack-md py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-bold text-[13px] flex items-center gap-1.5 disabled:opacity-50 transition-colors"
                 >
                     <span class="material-symbols-outlined text-[16px]">check</span>
-                    Simpan Alokasi Bin
+                    <span id="drawer-btn-simpan-label">Simpan Alokasi Bin</span>
                 </button>
 
             </div>
@@ -1693,6 +1929,80 @@
 </div>
 
 
+    
+    <?php if($status === 'PENDING_DIREKTUR'): ?>
+
+        <div
+            id="reject-modal-overlay"
+            class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+        >
+
+            <div class="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-xl">
+
+                <div class="p-container-padding border-b border-outline-variant flex items-start justify-between gap-stack-sm">
+
+                    <div class="flex items-start gap-stack-sm">
+                        <div class="w-9 h-9 rounded-lg bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[20px]">cancel</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-headline-md text-[16px] text-on-surface">
+                                Tolak Penerimaan
+                            </span>
+                            <span class="text-[12px] text-on-surface-variant">
+                                Dokumen akan dikembalikan ke status Draft untuk diperbaiki petugas gudang.
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="closeRejectModal()" class="text-outline hover:text-on-surface shrink-0">
+                        <span class="material-symbols-outlined text-[22px]">close</span>
+                    </button>
+
+                </div>
+
+                <div class="p-container-padding flex flex-col gap-stack-sm">
+
+                    <div id="reject-error" class="hidden rounded-lg bg-error-container text-on-error-container px-3 py-2 text-[12px]"></div>
+
+                    <label class="text-[12px] font-label-bold text-on-surface">
+                        Alasan Penolakan <span class="text-error">*</span>
+                    </label>
+
+                    <textarea
+                        id="reject-reason"
+                        rows="4"
+                        class="w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2.5 text-sm focus:border-error focus:outline-none focus:ring-1 focus:ring-error"
+                        placeholder="Contoh: Bin lokasi belum sesuai, harga satuan perlu dicek ulang, dst."
+                    ></textarea>
+
+                </div>
+
+                <div class="p-container-padding border-t border-outline-variant flex items-center justify-end gap-stack-sm">
+                    <button
+                        type="button"
+                        onclick="closeRejectModal()"
+                        class="px-stack-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-bold text-[13px] transition-colors"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        onclick="submitReject()"
+                        class="px-stack-md py-2 rounded-lg bg-error hover:bg-error-container text-on-error font-label-bold text-[13px] flex items-center gap-1.5 transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[16px]">cancel</span>
+                        Tolak Penerimaan
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    <?php endif; ?>
+
+
 
 <script>
 
@@ -1702,8 +2012,102 @@
     const submitUrl = <?php echo json_encode(route('penerimaan.submit', $penerimaan), 512) ?>;
     const uploadBuktiUrl = <?php echo json_encode(route('penerimaan.bukti-dukung.upload', $penerimaan), 512) ?>;
     const indexUrl = <?php echo json_encode(route('penerimaan.index'), 15, 512) ?>;
+    const approveUrl = <?php echo json_encode(route('penerimaan.approval-direktur.approve', $penerimaan), 512) ?>;
+    const rejectUrl = <?php echo json_encode(route('penerimaan.approval-direktur.reject', $penerimaan), 512) ?>;
 
     const canEdit = <?php echo json_encode($canEdit, 15, 512) ?>;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | APPROVAL DIREKTUR (Setujui / Tolak)
+    |--------------------------------------------------------------------------
+    */
+
+    function approveReception() {
+
+        if (! confirm('Setujui penerimaan ini? Stok gudang akan otomatis diperbarui dan dokumen akan terkunci.')) {
+            return;
+        }
+
+        const btn = event?.currentTarget;
+        if (btn) btn.disabled = true;
+
+        fetch(approveUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')?.value || '',
+            },
+        })
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Gagal menyetujui penerimaan.');
+                }
+
+                alert(data.message || 'Penerimaan berhasil disetujui.');
+                window.location.href = indexUrl;
+            })
+            .catch(error => {
+                console.error(error);
+                alert(error.message || 'Terjadi kesalahan saat menyetujui penerimaan.');
+                if (btn) btn.disabled = false;
+            });
+    }
+
+
+    function openRejectModal() {
+        document.getElementById('reject-modal-overlay')?.classList.remove('hidden');
+    }
+
+    function closeRejectModal() {
+        document.getElementById('reject-modal-overlay')?.classList.add('hidden');
+    }
+
+    function submitReject() {
+
+        const reasonInput = document.getElementById('reject-reason');
+        const reason = reasonInput?.value?.trim() || '';
+        const errorBox = document.getElementById('reject-error');
+
+        if (!reason) {
+            if (errorBox) {
+                errorBox.textContent = 'Alasan penolakan wajib diisi.';
+                errorBox.classList.remove('hidden');
+            }
+            return;
+        }
+
+        fetch(rejectUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')?.value || '',
+            },
+            body: JSON.stringify({ catatan_approval: reason }),
+        })
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Gagal menolak penerimaan.');
+                }
+
+                alert(data.message || 'Penerimaan ditolak dan dikembalikan ke draft.');
+                window.location.href = indexUrl;
+            })
+            .catch(error => {
+                console.error(error);
+                if (errorBox) {
+                    errorBox.textContent = error.message || 'Terjadi kesalahan saat menolak penerimaan.';
+                    errorBox.classList.remove('hidden');
+                }
+            });
+    }
 
 
     /*
@@ -1735,6 +2139,7 @@
 
     let drawerState = {
         detailId: null,
+        mode: 'baik',
         rakCache: [],
         binCache: [],
     };
@@ -1783,18 +2188,31 @@
     }
 
 
-    async function openLokasiDrawer(button) {
+    async function openLokasiDrawer(button, mode = 'baik') {
 
         if (!canEdit) return;
 
         showDrawerError('');
 
         drawerState.detailId = button.dataset.detailId;
+        drawerState.mode = mode;
         drawerState.rakCache = [];
         drawerState.binCache = [];
 
-        document.getElementById('drawer-nama-barang').textContent =
-            button.dataset.namaBarang || '-';
+        const namaBarang = button.dataset.namaBarang || '-';
+
+        document.getElementById('drawer-nama-barang').textContent = namaBarang;
+
+        const titleLabel = document.getElementById('drawer-title-label');
+        const btnSimpanLabel = document.getElementById('drawer-btn-simpan-label');
+
+        if (mode === 'karantina') {
+            if (titleLabel) titleLabel.textContent = 'Alokasi Karantina:';
+            if (btnSimpanLabel) btnSimpanLabel.textContent = 'Simpan Bin Karantina';
+        } else {
+            if (titleLabel) titleLabel.textContent = 'Alokasi Penyimpanan:';
+            if (btnSimpanLabel) btnSimpanLabel.textContent = 'Simpan Alokasi Bin';
+        }
 
         document.getElementById('drawer-occupancy-wrap').classList.add('hidden');
         document.getElementById('drawer-bin-isi-wrap').classList.add('hidden');
@@ -1807,8 +2225,11 @@
         drawerOverlay.classList.remove('hidden');
 
         // Nilai bin yang sedang aktif untuk baris ini (kalau ada), untuk preselect.
+        const fieldName = mode === 'karantina' ? 'fk_lokasi_karantina' : 'fk_lokasi_barang';
+        const selectClass = mode === 'karantina' ? 'lokasi-karantina-select' : 'lokasi-select';
+
         const hiddenSelect = document.querySelector(
-            `select.lokasi-select[name="details[${drawerState.detailId}][fk_lokasi_barang]"]`
+            `select.${selectClass}[name="details[${drawerState.detailId}][${fieldName}]"]`
         );
         const currentLokasiId = hiddenSelect?.value || null;
         const currentPath = currentLokasiId ? lokasiIndex[currentLokasiId] : null;
@@ -2028,32 +2449,53 @@
 
         const bin = drawerState.binCache.find(b => String(b.id) === String(binId));
         const label = bin?.label || '';
+        const isKarantina = drawerState.mode === 'karantina';
+
+        const fieldName = isKarantina ? 'fk_lokasi_karantina' : 'fk_lokasi_barang';
+        const selectClass = isKarantina ? 'lokasi-karantina-select' : 'lokasi-select';
+        const chipId = isKarantina
+            ? `lokasi-karantina-label-${drawerState.detailId}`
+            : `lokasi-label-${drawerState.detailId}`;
+        const buttonSelector = isKarantina
+            ? `.btn-alokasi-karantina[data-detail-id="${drawerState.detailId}"]`
+            : `.btn-alokasi[data-detail-id="${drawerState.detailId}"]`;
 
         const hiddenSelect = document.querySelector(
-            `select.lokasi-select[name="details[${drawerState.detailId}][fk_lokasi_barang]"]`
+            `select.${selectClass}[name="details[${drawerState.detailId}][${fieldName}]"]`
         );
 
         if (hiddenSelect) {
             hiddenSelect.value = binId;
         }
 
-        const chip = document.getElementById(`lokasi-label-${drawerState.detailId}`);
+        const chip = document.getElementById(chipId);
         if (chip) {
-            chip.classList.remove('text-outline', 'italic');
-            chip.classList.add('text-primary');
+            chip.classList.remove('text-outline', 'italic', 'text-error/70');
+            chip.classList.add(isKarantina ? 'text-error' : 'text-primary');
+            if (isKarantina) chip.classList.add('font-label-bold');
             chip.querySelector('.material-symbols-outlined').textContent = 'location_on';
             chip.querySelector('.lokasi-chip-text').textContent = label;
         }
 
-        const button = document.querySelector(
-            `.btn-alokasi[data-detail-id="${drawerState.detailId}"]`
-        );
+        const button = document.querySelector(buttonSelector);
 
         if (button) {
-            button.classList.remove('bg-tertiary', 'hover:bg-tertiary-container', 'text-on-tertiary');
-            button.classList.add('bg-surface-container-high', 'hover:bg-surface-container-highest', 'text-on-surface', 'border', 'border-outline-variant');
-            button.querySelector('.material-symbols-outlined').textContent = 'edit_location_alt';
-            button.lastChild.textContent = ' Ubah Bin';
+
+            if (isKarantina) {
+                button.classList.remove('bg-error', 'hover:bg-error-container', 'text-on-error');
+                button.classList.add('bg-surface-container-high', 'hover:bg-surface-container-highest', 'text-on-surface', 'border', 'border-outline-variant');
+                button.querySelector('.material-symbols-outlined').textContent = 'edit_location_alt';
+                button.lastChild.textContent = ' Ubah Bin Karantina';
+            } else {
+                button.classList.remove('bg-tertiary', 'hover:bg-tertiary-container', 'text-on-tertiary');
+                button.classList.add('bg-surface-container-high', 'hover:bg-surface-container-highest', 'text-on-surface', 'border', 'border-outline-variant');
+                button.querySelector('.material-symbols-outlined').textContent = 'edit_location_alt';
+
+                const rejectBadge = document.querySelector(
+                    `.btn-alokasi-karantina[data-detail-id="${drawerState.detailId}"]`
+                );
+                button.lastChild.textContent = rejectBadge ? ' Ubah Rak Baik' : ' Ubah Bin';
+            }
         }
 
         closeLokasiDrawer();

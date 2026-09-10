@@ -243,7 +243,7 @@
 
                   <a
                     href="{{ route('penerimaan.index') }}"
-                    class="{{ request()->routeIs('penerimaan.*')
+                    class="{{ request()->routeIs('penerimaan.*') && ! request()->routeIs('penerimaan.approval-direktur.*')
                         ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
                         : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
                         mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan.*') ? '' : 'hover:pl-5' }}"
@@ -251,10 +251,26 @@
                     <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('penerimaan.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('penerimaan.*')) style="font-variation-settings: 'FILL' 1;" @endif>
                         move_to_inbox
                     </span>
-            
+
                     <span class="text-sidebar-nav font-sidebar-nav">
                         Penerimaan Barang PO
-                    </spn>
+                    </span>
+                </a>
+
+                <a
+                    href="{{ route('penerimaan.approval-direktur.index') }}"
+                    class="{{ request()->routeIs('penerimaan.approval-direktur.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan.approval-direktur.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('penerimaan.approval-direktur.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('penerimaan.approval-direktur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        task_alt
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Approval Direktur (GRN)
+                    </span>
                 </a>
 
 
