@@ -45,4 +45,13 @@ class PenerimaanBarangBuktiDukung extends Model
             'id_penerimaan'
         );
     }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'created_by',
+            'id'
+        );
+    }
 }

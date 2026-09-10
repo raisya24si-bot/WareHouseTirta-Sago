@@ -527,6 +527,33 @@ Route::middleware('auth')->group(function () {
                     [PenerimaanController::class, 'verifikasi']
                 )->name('verifikasi');
 
+                // dipakai oleh drawer "Alokasi Penyimpanan" di halaman verifikasi.
+                Route::prefix('lokasi')
+                    ->name('lokasi.')
+                    ->group(function () {
+
+                        Route::get(
+                            '/gudang',
+                            [PenerimaanController::class, 'lokasiGudangOptions']
+                        )->name('gudang');
+
+                        Route::get(
+                            '/rak',
+                            [PenerimaanController::class, 'lokasiRakOptions']
+                        )->name('rak');
+
+                        Route::get(
+                            '/row',
+                            [PenerimaanController::class, 'lokasiRowOptions']
+                        )->name('row');
+
+                        Route::get(
+                            '/bin',
+                            [PenerimaanController::class, 'lokasiBinOptions']
+                        )->name('bin');
+
+                    });
+
                 Route::post(
                     '/{penerimaan}/draft',
                     [PenerimaanController::class, 'saveDraft']

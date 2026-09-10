@@ -15,7 +15,7 @@ class PenerimaanBarangDetail extends Model
 
     protected $fillable = [
         'fk_penerimaan_barang', 'fk_barang', 'fk_lokasi_barang',
-        'qty_request', 'qty_baik', 'qty_rusak',
+        'qty_request', 'qty_baik', 'qty_rusak', 'harga_satuan',
         'created_by', 'updated_by', 'deleted_by',
     ];
 
@@ -23,6 +23,7 @@ class PenerimaanBarangDetail extends Model
         'qty_request' => 'integer',
         'qty_baik' => 'integer',
         'qty_rusak' => 'integer',
+        'harga_satuan' => 'integer',
     ];
 
     public function penerimaanBarang(): BelongsTo

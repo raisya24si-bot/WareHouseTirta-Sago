@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\MasterGudang;
+use App\Models\MasterRak;
+use App\Models\MasterRow;
 use App\Models\MasterStatusPenerimaanBarang;
 use App\Models\Po;
 use App\Models\PenerimaanBarang;
@@ -567,11 +569,14 @@ class PenerimaanController extends Controller
         PenerimaanBarang $penerimaan
     ) {
         if (! $penerimaan->canBeEdited()) {
-            return back()
-                ->withErrors([
-                    'bukti_dukung' =>
-                        'Penerimaan ini sudah diproses dan bukti pendukung tidak dapat diubah.',
-                ]);
+
+            $message = 'Penerimaan ini sudah diproses dan bukti pendukung tidak dapat diubah.';
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withErrors(['bukti_dukung' => $message]);
         }
 
         $validated = $request->validate([
@@ -604,6 +609,8 @@ class PenerimaanController extends Controller
 
         $userId = auth()->id() ?? 1;
 
+        $created = [];
+
         foreach ($validated['bukti_dukung'] as $file) {
 
             $originalName = $file->getClientOriginalName();
@@ -613,7 +620,7 @@ class PenerimaanController extends Controller
                 'public'
             );
 
-            PenerimaanBarangBuktiDukung::create([
+            $bukti = PenerimaanBarangBuktiDukung::create([
                 'fk_penerimaan_barang' =>
                     $penerimaan->id_penerimaan,
 
@@ -635,16 +642,29 @@ class PenerimaanController extends Controller
                 'updated_by' =>
                     $userId,
             ]);
+
+            $created[] = [
+                'id' => $bukti->id_penerimaan_barang_bukti_dukung ?? $bukti->id,
+                'nama_file' => $bukti->nama_file,
+                'url' => Storage::disk('public')->url($bukti->path_file),
+            ];
         }
 
         $penerimaan->update([
             'updated_by' => $userId,
         ]);
 
-        return back()->with(
-            'success',
-            'Bukti pendukung berhasil diupload.'
-        );
+        $message = 'Bukti pendukung berhasil diupload.';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => $message,
+                'files' => $created,
+                'total' => $penerimaan->buktiDukungs()->count(),
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
 
@@ -663,7 +683,7 @@ class PenerimaanController extends Controller
 
             'details.lokasi.row.rak.gudang',
 
-            'buktiDukungs',
+            'buktiDukungs.creator',
         ]);
 
 
@@ -693,6 +713,277 @@ class PenerimaanController extends Controller
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | LOKASI PICKER (Gudang > Rak > Row > Bin) — cascading, real dari DB.
+    |
+    | Okupansi dihitung dari data stok fisik (tbl_stok_lokasi) yang benar-benar
+    | ada, bukan angka statis: sebuah bin dianggap "terisi" bila punya baris
+    | stok dengan qty_stok > 0.
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Base query join lokasi > row > rak, dengan info stok per bin.
+     */
+    private function lokasiBinStatsQuery()
+    {
+        return DB::table('tbl_master_lokasi as l')
+            ->join('tbl_master_row as r', 'r.id_row', '=', 'l.fk_row')
+            ->join('tbl_master_rak as rak', 'rak.id_rak', '=', 'r.fk_rak')
+            ->leftJoin('tbl_stok_lokasi as sl', function ($join) {
+                $join->on('sl.fk_lokasi', '=', 'l.id_lokasi')
+                    ->where('sl.qty_stok', '>', 0);
+            })
+            ->whereNull('l.deleted_at')
+            ->whereNull('r.deleted_at')
+            ->whereNull('rak.deleted_at')
+            ->where('l.status_lokasi', 'AKTIF')
+            ->where('r.status_row', 'AKTIF')
+            ->where('rak.status_rak', 'AKTIF');
+    }
+
+    private function occupancyPercent(int $total, int $terisi): int
+    {
+        return $total > 0
+            ? (int) round($terisi / $total * 100)
+            : 0;
+    }
+
+    /**
+     * Level 1: daftar gudang + okupansi bin keseluruhan gudang.
+     */
+    public function lokasiGudangOptions()
+    {
+        $stats = $this->lokasiBinStatsQuery()
+            ->select(
+                'rak.fk_gudang',
+                DB::raw('COUNT(DISTINCT l.id_lokasi) as total_bin'),
+                DB::raw('COUNT(DISTINCT CASE WHEN sl.id_stok_lokasi IS NOT NULL THEN l.id_lokasi END) as bin_terisi')
+            )
+            ->groupBy('rak.fk_gudang')
+            ->get()
+            ->keyBy('fk_gudang');
+
+        $gudangs = MasterGudang::query()
+            ->orderBy('nm_gudang')
+            ->get(['id_gudang', 'kd_gudang', 'nm_gudang']);
+
+        $data = $gudangs->map(function ($gudang) use ($stats) {
+
+            $stat = $stats->get($gudang->id_gudang);
+            $total = (int) ($stat->total_bin ?? 0);
+            $terisi = (int) ($stat->bin_terisi ?? 0);
+
+            return [
+                'id' => $gudang->id_gudang,
+                'kode' => $gudang->kd_gudang,
+                'label' => $gudang->nm_gudang,
+                'total_bin' => $total,
+                'bin_terisi' => $terisi,
+                'bin_kosong' => max(0, $total - $terisi),
+                'occupancy_percent' => $this->occupancyPercent($total, $terisi),
+            ];
+        })->values();
+
+        return response()->json($data);
+    }
+
+    /**
+     * Level 2: daftar rak dalam satu gudang + okupansi per rak.
+     */
+    public function lokasiRakOptions(Request $request)
+    {
+        $validated = $request->validate([
+            'gudang_id' => ['required', 'integer', 'exists:tbl_master_gudang,id_gudang'],
+        ]);
+
+        $stats = $this->lokasiBinStatsQuery()
+            ->where('rak.fk_gudang', $validated['gudang_id'])
+            ->select(
+                'rak.id_rak',
+                DB::raw('COUNT(DISTINCT l.id_lokasi) as total_bin'),
+                DB::raw('COUNT(DISTINCT CASE WHEN sl.id_stok_lokasi IS NOT NULL THEN l.id_lokasi END) as bin_terisi')
+            )
+            ->groupBy('rak.id_rak')
+            ->get()
+            ->keyBy('id_rak');
+
+        $raks = MasterRak::query()
+            ->where('fk_gudang', $validated['gudang_id'])
+            ->where('status_rak', 'AKTIF')
+            ->orderBy('kd_rak')
+            ->get(['id_rak', 'kd_rak']);
+
+        $data = $raks->map(function ($rak) use ($stats) {
+
+            $stat = $stats->get($rak->id_rak);
+            $total = (int) ($stat->total_bin ?? 0);
+            $terisi = (int) ($stat->bin_terisi ?? 0);
+
+            return [
+                'id' => $rak->id_rak,
+                'label' => $rak->kd_rak,
+                'total_bin' => $total,
+                'bin_terisi' => $terisi,
+                'bin_kosong' => max(0, $total - $terisi),
+                'occupancy_percent' => $this->occupancyPercent($total, $terisi),
+            ];
+        })->values();
+
+        return response()->json($data);
+    }
+
+    /**
+     * Level 3: daftar row/tingkat dalam satu rak + jumlah bin.
+     */
+    public function lokasiRowOptions(Request $request)
+    {
+        $validated = $request->validate([
+            'rak_id' => ['required', 'integer', 'exists:tbl_master_rak,id_rak'],
+        ]);
+
+        $stats = $this->lokasiBinStatsQuery()
+            ->where('rak.id_rak', $validated['rak_id'])
+            ->select(
+                'r.id_row',
+                DB::raw('COUNT(DISTINCT l.id_lokasi) as total_bin'),
+                DB::raw('COUNT(DISTINCT CASE WHEN sl.id_stok_lokasi IS NOT NULL THEN l.id_lokasi END) as bin_terisi')
+            )
+            ->groupBy('r.id_row')
+            ->get()
+            ->keyBy('id_row');
+
+        $rows = MasterRow::query()
+            ->where('fk_rak', $validated['rak_id'])
+            ->where('status_row', 'AKTIF')
+            ->orderBy('kd_row')
+            ->get(['id_row', 'kd_row']);
+
+        $data = $rows->map(function ($row) use ($stats) {
+
+            $stat = $stats->get($row->id_row);
+            $total = (int) ($stat->total_bin ?? 0);
+            $terisi = (int) ($stat->bin_terisi ?? 0);
+
+            return [
+                'id' => $row->id_row,
+                'label' => $row->kd_row,
+                'total_bin' => $total,
+                'bin_terisi' => $terisi,
+                'bin_kosong' => max(0, $total - $terisi),
+                'occupancy_percent' => $this->occupancyPercent($total, $terisi),
+            ];
+        })->values();
+
+        return response()->json($data);
+    }
+
+    /**
+     * Level 4: daftar bin dalam satu row, dengan status terisi/kosong.
+     */
+    public function lokasiBinOptions(Request $request)
+    {
+        $validated = $request->validate([
+            'row_id' => ['required', 'integer', 'exists:tbl_master_row,id_row'],
+        ]);
+
+        $bins = StrukturLokasi::query()
+            ->where('fk_row', $validated['row_id'])
+            ->where('status_lokasi', 'AKTIF')
+            ->orderBy('bin')
+            ->get(['id_lokasi', 'kd_lokasi', 'bin']);
+
+        $binIds = $bins->pluck('id_lokasi');
+
+        $terisiMap = DB::table('tbl_stok_lokasi')
+            ->join('tbl_master_barang', 'tbl_master_barang.id_master_barang', '=', 'tbl_stok_lokasi.fk_barang')
+            ->whereIn('tbl_stok_lokasi.fk_lokasi', $binIds)
+            ->where('tbl_stok_lokasi.qty_stok', '>', 0)
+            ->select(
+                'tbl_stok_lokasi.fk_lokasi',
+                'tbl_master_barang.nm_master_barang',
+                'tbl_stok_lokasi.qty_stok'
+            )
+            ->get()
+            ->groupBy('fk_lokasi');
+
+        $data = $bins->map(function ($bin) use ($terisiMap) {
+
+            $isiBin = $terisiMap->get($bin->id_lokasi);
+
+            return [
+                'id' => $bin->id_lokasi,
+                'label' => $bin->kd_lokasi ?: $bin->bin,
+                'bin' => $bin->bin,
+                'terisi' => (bool) $isiBin,
+                'isi' => $isiBin
+                    ? $isiBin->map(fn ($stok) => [
+                        'nama_barang' => $stok->nm_master_barang,
+                        'qty' => (int) $stok->qty_stok,
+                    ])->values()
+                    : [],
+            ];
+        })->values();
+
+        return response()->json($data);
+    }
+
+
+    /**
+     * Terapkan input qty/harga/lokasi per detail (dipakai bareng oleh
+     * saveDraft() dan submit(), supaya submit juga menyimpan perubahan
+     * yang baru diketik user meskipun belum sempat klik "Simpan Draf").
+     */
+    private function applyDetailInputs(
+        PenerimaanBarang $penerimaan,
+        array $detailsInput,
+        int $userId
+    ): void {
+
+        if (empty($detailsInput)) {
+            return;
+        }
+
+        $details = $penerimaan->details()->get();
+
+        foreach ($details as $detail) {
+
+            $input = $detailsInput[$detail->id_penerimaan_barang_detail] ?? null;
+
+            if (! $input) {
+                continue;
+            }
+
+            $qtyRequest = (int) $detail->qty_request;
+            $qtyBaik = (int) ($input['qty_baik'] ?? $detail->qty_baik);
+            $qtyRusak = (int) ($input['qty_rusak'] ?? $detail->qty_rusak);
+
+            if (($qtyBaik + $qtyRusak) > $qtyRequest) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    "details.{$detail->id_penerimaan_barang_detail}.qty_baik" =>
+                        'Qty baik + qty rusak tidak boleh melebihi qty request.',
+                ]);
+            }
+
+            $detail->update([
+                'qty_baik' => $qtyBaik,
+                'qty_rusak' => $qtyRusak,
+
+                'fk_lokasi_barang' =>
+                    $input['fk_lokasi_barang'] ?? $detail->fk_lokasi_barang,
+
+                'harga_satuan' =>
+                    isset($input['harga_satuan'])
+                        ? (int) $input['harga_satuan']
+                        : $detail->harga_satuan,
+
+                'updated_by' => $userId,
+            ]);
+        }
+    }
+
+
     public function saveDraft(
         Request $request,
         PenerimaanBarang $penerimaan
@@ -700,11 +991,14 @@ class PenerimaanController extends Controller
 
 
         if (! $penerimaan->canBeEdited()) {
-            return back()
-                ->withErrors([
-                    'penerimaan' =>
-                        'Penerimaan ini tidak dapat diubah karena statusnya sudah diproses.',
-                ]);
+
+            $message = 'Penerimaan ini tidak dapat diubah karena statusnya sudah diproses.';
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withErrors(['penerimaan' => $message]);
         }
 
 
@@ -749,20 +1043,19 @@ class PenerimaanController extends Controller
                 'integer',
                 'exists:tbl_master_lokasi,id_lokasi',
             ],
+
+            'details.*.harga_satuan' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
         ]);
-
-
-        $details =
-            $penerimaan
-                ->details()
-                ->get();
 
 
         DB::transaction(
             function () use (
                 $penerimaan,
-                $validated,
-                $details
+                $validated
             ) {
 
                 $userId =
@@ -791,78 +1084,21 @@ class PenerimaanController extends Controller
                         $userId,
                 ]);
 
-
-                foreach (
-                    $details as $detail
-                ) {
-
-
-                    $input =
-                        $validated[
-                            'details'
-                        ][
-                            $detail
-                                ->id_penerimaan_barang_detail
-                        ]
-                        ?? null;
-
-                    if (! $input) {
-                        continue;
-                    }
-
-                    $qtyRequest =
-                        (int) $detail
-                            ->qty_request;
-
-                    $qtyBaik =
-                        (int) (
-                            $input['qty_baik']
-                            ?? 0
-                        );
-
-                    $qtyRusak =
-                        (int) (
-                            $input['qty_rusak']
-                            ?? 0
-                        );
-
-                    if (
-                        ($qtyBaik + $qtyRusak)
-                        > $qtyRequest
-                    ) {
-
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            "details.{$detail->id_penerimaan_barang_detail}.qty_baik" =>
-                                'Qty baik + qty rusak tidak boleh melebihi qty request.',
-                        ]);
-                    }
-
-
-                    $detail->update([
-                        'qty_baik' =>
-                            $qtyBaik,
-
-                        'qty_rusak' =>
-                            $qtyRusak,
-
-                        'fk_lokasi_barang' =>
-                            $input[
-                                'fk_lokasi_barang'
-                            ]
-                            ?? null,
-
-                        'updated_by' =>
-                            $userId,
-                    ]);
-                }
+                $this->applyDetailInputs(
+                    $penerimaan,
+                    $validated['details'] ?? [],
+                    $userId
+                );
             }
         );
 
-        return back()
-            ->with(
-                'success',
-                'Verifikasi penerimaan berhasil disimpan sebagai draft.'
-            );
+        $message = 'Verifikasi penerimaan berhasil disimpan sebagai draft.';
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return back()->with('success', $message);
     }
 
 
@@ -900,50 +1136,32 @@ class PenerimaanController extends Controller
         }
 
 
-        foreach (
-            $penerimaan->details
-            as $detail
-        ) {
-
-            $qtyRequest =
-                (int) $detail
-                    ->qty_request;
-
-            $qtyBaik =
-                (int) $detail
-                    ->qty_baik;
-
-            $qtyRusak =
-                (int) $detail
-                    ->qty_rusak;
-
-
-            if (
-                $qtyBaik < 0
-                ||
-                $qtyRusak < 0
-            ) {
-
-                return back()
-                    ->withErrors([
-                        'submit' =>
-                            'Qty baik dan qty rusak tidak boleh bernilai negatif.',
-                    ]);
-            }
-
-
-            if (
-                ($qtyBaik + $qtyRusak)
-                > $qtyRequest
-            ) {
-
-                return back()
-                    ->withErrors([
-                        'submit' =>
-                            'Total qty baik + qty rusak tidak boleh melebihi qty request.',
-                    ]);
-            }
-        }
+        // Validasi input details[] yang dikirim bareng submit — ini
+        // memastikan perubahan qty/harga/lokasi yang baru diketik user
+        // (belum sempat "Simpan Draf") tetap ikut tersimpan saat submit.
+        $validated = $request->validate([
+            'no_sjinv_supplier' => [
+                'nullable', 'string', 'max:50',
+            ],
+            'tgl_penerimaan_barang' => [
+                'nullable', 'date',
+            ],
+            'desc_penerimaan_barang' => [
+                'nullable', 'string', 'max:100',
+            ],
+            'details.*.qty_baik' => [
+                'nullable', 'integer', 'min:0',
+            ],
+            'details.*.qty_rusak' => [
+                'nullable', 'integer', 'min:0',
+            ],
+            'details.*.fk_lokasi_barang' => [
+                'nullable', 'integer', 'exists:tbl_master_lokasi,id_lokasi',
+            ],
+            'details.*.harga_satuan' => [
+                'nullable', 'integer', 'min:0',
+            ],
+        ]);
 
 
         $nextStatus =
@@ -958,12 +1176,70 @@ class PenerimaanController extends Controller
         DB::transaction(
             function () use (
                 $penerimaan,
-                $nextStatus
+                $nextStatus,
+                $validated
             ) {
 
                 $userId =
                     auth()->id()
                     ?? 1;
+
+                // Simpan dulu perubahan header + detail (kalau ada dikirim),
+                // baru validasi konsistensi qty pakai nilai yang paling baru.
+                $penerimaan->update([
+                    'no_sjinv_supplier' => $validated['no_sjinv_supplier'] ?? $penerimaan->no_sjinv_supplier,
+                    'tgl_penerimaan_barang' => $validated['tgl_penerimaan_barang'] ?? $penerimaan->tgl_penerimaan_barang,
+                    'desc_penerimaan_barang' => $validated['desc_penerimaan_barang'] ?? $penerimaan->desc_penerimaan_barang,
+                ]);
+
+                $this->applyDetailInputs(
+                    $penerimaan,
+                    $validated['details'] ?? [],
+                    $userId
+                );
+
+                foreach (
+                    $penerimaan->details()->get()
+                    as $detail
+                ) {
+
+                    $qtyRequest =
+                        (int) $detail
+                            ->qty_request;
+
+                    $qtyBaik =
+                        (int) $detail
+                            ->qty_baik;
+
+                    $qtyRusak =
+                        (int) $detail
+                            ->qty_rusak;
+
+
+                    if (
+                        $qtyBaik < 0
+                        ||
+                        $qtyRusak < 0
+                    ) {
+
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'submit' =>
+                                'Qty baik dan qty rusak tidak boleh bernilai negatif.',
+                        ]);
+                    }
+
+
+                    if (
+                        ($qtyBaik + $qtyRusak)
+                        > $qtyRequest
+                    ) {
+
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'submit' =>
+                                'Total qty baik + qty rusak tidak boleh melebihi qty request.',
+                        ]);
+                    }
+                }
 
                 $penerimaan->update([
                     'fk_status_penerimaan_barang' =>

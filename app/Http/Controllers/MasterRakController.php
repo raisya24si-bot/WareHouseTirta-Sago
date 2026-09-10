@@ -9,12 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class MasterRakController extends Controller
 {
-    /**
-     * Buat rak sampai TOTAL jumlahnya sesuai input (bukan menambah
-     * sejumlah itu). Contoh: sudah ada 6 rak, isi 9 -> sistem cuma
-     * buat 3 rak baru (nomor 7,8,9) supaya totalnya jadi 9.
-     * Kode dibuat otomatis: {kd_gudang}.{urutan 2 digit}.
-     */
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
