@@ -475,7 +475,7 @@
 
 
     
-    <?php if($itemBelumLokasi > 0 || $totalRusak > 0): ?>
+    <?php if($totalRusak > 0): ?>
 
         <div class="bg-tertiary-fixed text-on-tertiary-fixed p-stack-md rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-stack-md shadow-sm">
 
@@ -492,26 +492,16 @@
                 <div class="flex flex-col">
 
                     <span class="font-label-bold text-label-bold text-on-tertiary-fixed">
-                        Perhatian: Terdapat
+                        Perhatian: Terdapat <?php echo e($totalRusak); ?> unit cacat/rusak fisik terdeteksi!
                         <?php if($itemBelumLokasi > 0): ?>
-                            <?php echo e($itemBelumLokasi); ?> item belum berlokasi rak
-                        <?php endif; ?>
-                        <?php if($itemBelumLokasi > 0 && $totalRusak > 0): ?>
-                            dan
-                        <?php endif; ?>
-                        <?php if($totalRusak > 0): ?>
-                            <?php echo e($totalRusak); ?> unit cacat/rusak fisik terdeteksi!
+                            (<?php echo e($itemBelumLokasi); ?> item baik lain juga masih belum berlokasi rak)
                         <?php endif; ?>
                     </span>
 
                     <span class="font-body-sm text-[13px] text-on-tertiary-fixed-variant">
-                        <?php if($totalRusak > 0): ?>
-                            Barang berstatus rusak otomatis dipisahkan ke Gudang Karantina (Bin Retur)
-                            dan sistem menerbitkan draf Berita Acara Kerusakan (BAP Retur) resmi
-                            ke supplier <?php echo e($penerimaan->po?->supplier?->nm_master_supplier ?? '-'); ?>.
-                        <?php else: ?>
-                            Pastikan seluruh item baik sudah dipetakan ke bin sebelum dokumen disubmit.
-                        <?php endif; ?>
+                        Barang berstatus rusak otomatis dipisahkan ke Gudang Karantina (Bin Retur)
+                        dan sistem menerbitkan draf Berita Acara Kerusakan (BAP Retur) resmi
+                        ke supplier <?php echo e($penerimaan->po?->supplier?->nm_master_supplier ?? '-'); ?>.
                     </span>
 
                 </div>
@@ -520,18 +510,14 @@
 
             <div class="flex items-center gap-stack-sm shrink-0">
 
-                <?php if($totalRusak > 0): ?>
-
-                    <button
-                        type="button"
-                        onclick="window.print()"
-                        class="px-3 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-bold text-[12px] flex items-center gap-1.5 border border-outline-variant transition-colors"
-                    >
-                        <span class="material-symbols-outlined text-[16px]">description</span>
-                        Draf BAP Retur
-                    </button>
-
-                <?php endif; ?>
+                <button
+                    type="button"
+                    onclick="window.print()"
+                    class="px-3 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-bold text-[12px] flex items-center gap-1.5 border border-outline-variant transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[16px]">description</span>
+                    Draf BAP Retur
+                </button>
 
                 <span class="px-2.5 py-1.5 rounded bg-tertiary text-on-tertiary font-label-bold text-[11px] uppercase tracking-wider">
                     Tindakan Diperlukan
@@ -1249,8 +1235,177 @@
 
         </div>
 
+        
+        <div id="lokasi-drawer-section" class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+
+            
+            <div class="p-container-padding border-b border-outline-variant flex items-start justify-between gap-stack-sm bg-surface-container-low">
+
+                <div class="flex items-start gap-stack-sm">
+
+                    <div class="w-9 h-9 rounded-lg bg-primary-fixed text-primary flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">
+                            inventory
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <span class="font-headline-md text-[16px] text-on-surface">
+                            <span id="drawer-title-label">Alokasi Penyimpanan:</span> <span id="drawer-nama-barang">Belum ada item dipilih</span>
+                        </span>
+                        <span class="text-[12px] text-on-surface-variant">
+                            Tentukan hierarki penempatan fisik dari gudang, blok rak, tingkat rak, hingga spesifik bin code.
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            
+            <div class="p-container-padding flex flex-col gap-stack-md">
+
+                <div id="drawer-hint" class="rounded-lg bg-surface-container-low border border-outline-variant px-3 py-2.5 text-[12px] text-on-surface-variant flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-outline">touch_app</span>
+                    Klik tombol <span class="font-label-bold text-on-surface">"Pilih Lokasi Bin"</span>, <span class="font-label-bold text-on-surface">"Ubah Bin"</span>, atau <span class="font-label-bold text-on-surface">"Karantina Bin"</span> pada tabel item di atas untuk mengatur lokasi di sini.
+                </div>
+
+                <div id="drawer-error" class="hidden rounded-lg bg-error-container text-on-error-container px-3 py-2 text-[12px]"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-sm">
+
+                    
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
+                            1. Gudang Penyimpanan
+                        </label>
+                        <select
+                            id="drawer-select-gudang"
+                            disabled
+                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                        >
+                            <option value="">-- Pilih item dahulu --</option>
+                        </select>
+                        <p id="drawer-gudang-info" class="mt-1 text-[11px] text-outline"></p>
+                    </div>
+
+                    
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
+                            2. Blok Rak
+                        </label>
+                        <select
+                            id="drawer-select-rak"
+                            disabled
+                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                        >
+                            <option value="">-- Pilih Gudang Dahulu --</option>
+                        </select>
+                        <p id="drawer-rak-info" class="mt-1 text-[11px] text-outline"></p>
+                    </div>
+
+                    
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
+                            3. Tingkat / Row Level
+                        </label>
+                        <select
+                            id="drawer-select-row"
+                            disabled
+                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                        >
+                            <option value="">-- Pilih Rak Dahulu --</option>
+                        </select>
+                        <p id="drawer-row-info" class="mt-1 text-[11px] text-outline"></p>
+                    </div>
+
+                    
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
+                            4. Bin Box Slot
+                        </label>
+                        <select
+                            id="drawer-select-bin"
+                            disabled
+                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                        >
+                            <option value="">-- Pilih Row Dahulu --</option>
+                        </select>
+                        <p id="drawer-bin-info" class="mt-1 text-[11px] text-outline"></p>
+                    </div>
+
+                </div>
+
+
+                
+                <div id="drawer-occupancy-wrap" class="hidden rounded-xl bg-surface-container p-stack-sm">
+
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-label-bold text-[12px] text-on-surface" id="drawer-occupancy-title">
+                            Okupansi Rak
+                        </span>
+                        <span class="font-label-bold text-[12px]" id="drawer-occupancy-percent">0%</span>
+                    </div>
+
+                    <div class="w-full h-2.5 rounded-full bg-surface-container-high overflow-hidden flex">
+                        <div id="drawer-occupancy-bar" class="h-full bg-primary transition-all" style="width:0%"></div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mt-2 text-[11px] text-on-surface-variant">
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-primary"></span>
+                            <span id="drawer-occupancy-terisi">0</span> Bin Terisi
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-surface-container-high border border-outline-variant"></span>
+                            <span id="drawer-occupancy-kosong">0</span> Bin Kosong
+                        </span>
+                    </div>
+
+                </div>
+
+
+                
+                <div id="drawer-bin-isi-wrap" class="hidden rounded-lg bg-tertiary-fixed/60 border border-tertiary/20 p-stack-sm text-[12px] text-on-tertiary-fixed-variant">
+                    <span class="font-label-bold">Perhatian:</span>
+                    <span id="drawer-bin-isi-text"></span>
+                </div>
+
+            </div>
+
+
+            
+            <div class="p-container-padding border-t border-outline-variant flex items-center justify-end gap-stack-sm bg-surface-container-low">
+
+                <button
+                    type="button"
+                    onclick="closeLokasiDrawer()"
+                    class="px-stack-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-bold text-[13px] transition-colors"
+                >
+                    Reset
+                </button>
+
+                <button
+                    type="button"
+                    id="drawer-btn-simpan"
+                    onclick="simpanAlokasiBin()"
+                    disabled
+                    class="px-stack-md py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-bold text-[13px] flex items-center gap-1.5 disabled:opacity-50 transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[16px]">check</span>
+                    <span id="drawer-btn-simpan-label">Simpan Alokasi Bin</span>
+                </button>
+
+            </div>
+
+        </div>
+
+
 
         
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+
         <div class="bg-surface-container-lowest p-container-padding rounded-xl shadow-sm">
 
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-stack-md">
@@ -1437,6 +1592,66 @@
                 ></div>
 
             </div>
+
+        </div>
+
+
+        
+        <div class="bg-surface-container-lowest p-container-padding rounded-xl shadow-sm flex flex-col gap-stack-sm">
+
+            <div class="flex items-start gap-stack-sm">
+
+                <div class="w-9 h-9 rounded-lg bg-tertiary-container text-on-tertiary-container flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">warehouse</span>
+                </div>
+
+                <div class="flex flex-col">
+                    <h2 class="font-headline-md text-[18px] text-on-surface font-bold">
+                        Estimasi Kapasitas Gudang
+                    </h2>
+                    <span class="text-[12px] text-on-surface-variant">
+                        Okupansi bin gudang aktif secara keseluruhan, dihitung dari data stok saat ini.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="rounded-xl bg-surface-container p-stack-md mt-1">
+
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-label-bold text-[13px] text-on-surface">
+                        Okupansi Seluruh Gudang
+                    </span>
+                    <span class="font-label-bold text-[14px] text-primary">
+                        <?php echo e($capacitySummary['occupancy_percent']); ?>%
+                    </span>
+                </div>
+
+                <div class="w-full h-3 rounded-full bg-surface-container-high overflow-hidden flex">
+                    <div class="h-full bg-primary transition-all" style="width: <?php echo e($capacitySummary['occupancy_percent']); ?>%"></div>
+                </div>
+
+                <div class="flex items-center gap-4 mt-3 text-[12px] text-on-surface-variant">
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        <?php echo e(number_format($capacitySummary['bin_terisi'])); ?> Bin Terisi
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-surface-container-high border border-outline-variant"></span>
+                        <?php echo e(number_format($capacitySummary['bin_kosong'])); ?> Bin Kosong
+                    </span>
+                    <span class="text-outline">
+                        dari <?php echo e(number_format($capacitySummary['total_bin'])); ?> total slot bin
+                    </span>
+                </div>
+
+            </div>
+
+            <p class="text-[11px] text-outline">
+                Detail okupansi per rak spesifik dapat dilihat pada panel "Alokasi Penyimpanan" saat memilih Blok Rak.
+            </p>
+
+        </div>
 
         </div>
 
@@ -1681,251 +1896,6 @@
 
     </form>
 
-
-    
-    <div
-        id="lokasi-drawer-overlay"
-        class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-    >
-
-        <div class="bg-surface-container-lowest w-full max-w-3xl rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
-
-            
-            <div class="p-container-padding border-b border-outline-variant flex items-start justify-between gap-stack-sm sticky top-0 bg-surface-container-lowest z-10">
-
-                <div class="flex items-start gap-stack-sm">
-
-                    <div class="w-9 h-9 rounded-lg bg-primary-fixed text-primary flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">
-                            inventory
-                        </span>
-                    </div>
-
-                    <div class="flex flex-col">
-                        <span class="font-headline-md text-[16px] text-on-surface">
-                            <span id="drawer-title-label">Alokasi Penyimpanan:</span> <span id="drawer-nama-barang">-</span>
-                        </span>
-                        <span class="text-[12px] text-on-surface-variant">
-                            Tentukan hierarki penempatan fisik dari gudang, blok rak, tingkat rak, hingga spesifik bin code.
-                        </span>
-                    </div>
-
-                </div>
-
-                <button
-                    type="button"
-                    onclick="closeLokasiDrawer()"
-                    class="text-outline hover:text-on-surface shrink-0"
-                >
-                    <span class="material-symbols-outlined text-[22px]">close</span>
-                </button>
-
-            </div>
-
-
-            
-            <div class="p-container-padding flex flex-col gap-stack-md">
-
-                <div id="drawer-error" class="hidden rounded-lg bg-error-container text-on-error-container px-3 py-2 text-[12px]"></div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-sm">
-
-                    
-                    <div>
-                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
-                            1. Gudang Penyimpanan
-                        </label>
-                        <select
-                            id="drawer-select-gudang"
-                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                        >
-                            <option value="">Memuat...</option>
-                        </select>
-                        <p id="drawer-gudang-info" class="mt-1 text-[11px] text-outline"></p>
-                    </div>
-
-                    
-                    <div>
-                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
-                            2. Blok Rak
-                        </label>
-                        <select
-                            id="drawer-select-rak"
-                            disabled
-                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-                        >
-                            <option value="">-- Pilih Gudang Dahulu --</option>
-                        </select>
-                        <p id="drawer-rak-info" class="mt-1 text-[11px] text-outline"></p>
-                    </div>
-
-                    
-                    <div>
-                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
-                            3. Tingkat / Row Level
-                        </label>
-                        <select
-                            id="drawer-select-row"
-                            disabled
-                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-                        >
-                            <option value="">-- Pilih Rak Dahulu --</option>
-                        </select>
-                        <p id="drawer-row-info" class="mt-1 text-[11px] text-outline"></p>
-                    </div>
-
-                    
-                    <div>
-                        <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
-                            4. Bin Box Slot
-                        </label>
-                        <select
-                            id="drawer-select-bin"
-                            disabled
-                            class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-[13px] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-                        >
-                            <option value="">-- Pilih Row Dahulu --</option>
-                        </select>
-                        <p id="drawer-bin-info" class="mt-1 text-[11px] text-outline"></p>
-                    </div>
-
-                </div>
-
-
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-stack-sm">
-
-                    
-                    <div class="rounded-xl bg-surface-container p-stack-sm flex flex-col gap-2">
-
-                        <div class="flex items-center justify-between">
-                            <span class="font-label-bold text-[12px] text-on-surface">
-                                Dokumentasi Foto Masuk Fisik
-                            </span>
-
-                            <?php if($canEdit): ?>
-                                <button
-                                    type="button"
-                                    onclick="document.getElementById('foto_penerimaan').click()"
-                                    class="text-[11px] font-label-bold text-primary hover:underline flex items-center gap-0.5"
-                                >
-                                    <span class="material-symbols-outlined text-[14px]">add_a_photo</span>
-                                    Unggah Foto
-                                </button>
-                            <?php endif; ?>
-                        </div>
-
-                        <?php if($penerimaan->buktiDukungs->count()): ?>
-
-                            <div class="grid grid-cols-3 gap-1.5">
-
-                                <?php $__currentLoopData = $penerimaan->buktiDukungs->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bukti): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-
-                                    <?php if($bukti->path_file ?? false): ?>
-
-                                        <a
-                                            href="<?php echo e(asset('storage/' . $bukti->path_file)); ?>"
-                                            target="_blank"
-                                            rel="noopener"
-                                            class="block rounded-md overflow-hidden border border-outline-variant relative group"
-                                        >
-                                            <img
-                                                src="<?php echo e(asset('storage/' . $bukti->path_file)); ?>"
-                                                alt="<?php echo e($bukti->nama_file ?? 'Dokumentasi'); ?>"
-                                                class="w-full h-16 object-cover group-hover:opacity-90"
-                                            >
-                                        </a>
-
-                                    <?php endif; ?>
-
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-                            </div>
-
-                            <span class="text-[10px] text-outline">
-                                Diunggah oleh <?php echo e($penerimaan->buktiDukungs->last()?->creator?->name ?? 'Petugas'); ?>
-
-                                &bull; Total <?php echo e($penerimaan->buktiDukungs->count()); ?> file terverifikasi
-                            </span>
-
-                        <?php else: ?>
-
-                            <span class="text-[11px] text-outline italic">
-                                Belum ada dokumentasi foto yang diunggah.
-                            </span>
-
-                        <?php endif; ?>
-
-                    </div>
-
-
-                    
-                    <div id="drawer-occupancy-wrap" class="hidden rounded-xl bg-surface-container p-stack-sm">
-
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="font-label-bold text-[12px] text-on-surface" id="drawer-occupancy-title">
-                                Okupansi Rak
-                            </span>
-                            <span class="font-label-bold text-[12px]" id="drawer-occupancy-percent">0%</span>
-                        </div>
-
-                        <div class="w-full h-2.5 rounded-full bg-surface-container-high overflow-hidden flex">
-                            <div id="drawer-occupancy-bar" class="h-full bg-primary transition-all" style="width:0%"></div>
-                        </div>
-
-                        <div class="flex items-center gap-4 mt-2 text-[11px] text-on-surface-variant">
-                            <span class="flex items-center gap-1">
-                                <span class="w-2 h-2 rounded-full bg-primary"></span>
-                                <span id="drawer-occupancy-terisi">0</span> Bin Terisi
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <span class="w-2 h-2 rounded-full bg-surface-container-high border border-outline-variant"></span>
-                                <span id="drawer-occupancy-kosong">0</span> Bin Kosong
-                            </span>
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                
-                <div id="drawer-bin-isi-wrap" class="hidden rounded-lg bg-tertiary-fixed/60 border border-tertiary/20 p-stack-sm text-[12px] text-on-tertiary-fixed-variant">
-                    <span class="font-label-bold">Perhatian:</span>
-                    <span id="drawer-bin-isi-text"></span>
-                </div>
-
-            </div>
-
-
-            
-            <div class="p-container-padding border-t border-outline-variant flex items-center justify-end gap-stack-sm sticky bottom-0 bg-surface-container-lowest">
-
-                <button
-                    type="button"
-                    onclick="closeLokasiDrawer()"
-                    class="px-stack-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-bold text-[13px] transition-colors"
-                >
-                    Batalkan
-                </button>
-
-                <button
-                    type="button"
-                    id="drawer-btn-simpan"
-                    onclick="simpanAlokasiBin()"
-                    disabled
-                    class="px-stack-md py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-bold text-[13px] flex items-center gap-1.5 disabled:opacity-50 transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[16px]">check</span>
-                    <span id="drawer-btn-simpan-label">Simpan Alokasi Bin</span>
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
 </div>
 
 
@@ -2025,10 +1995,6 @@
     */
 
     function approveReception() {
-
-        if (! confirm('Setujui penerimaan ini? Stok gudang akan otomatis diperbarui dan dokumen akan terkunci.')) {
-            return;
-        }
 
         const btn = event?.currentTarget;
         if (btn) btn.disabled = true;
@@ -2144,7 +2110,7 @@
         binCache: [],
     };
 
-    const drawerOverlay = document.getElementById('lokasi-drawer-overlay');
+    const drawerSection = document.getElementById('lokasi-drawer-section');
     const selectGudang = document.getElementById('drawer-select-gudang');
     const selectRak = document.getElementById('drawer-select-rak');
     const selectRow = document.getElementById('drawer-select-row');
@@ -2222,7 +2188,10 @@
         resetSelect(selectRow, '-- Pilih Rak Dahulu --');
         resetSelect(selectBin, '-- Pilih Row Dahulu --');
 
-        drawerOverlay.classList.remove('hidden');
+        // Section sudah selalu tampil di halaman — cukup sembunyikan hint
+        // dan scroll ke panel supaya user langsung lihat perubahannya.
+        document.getElementById('drawer-hint')?.classList.add('hidden');
+        drawerSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         // Nilai bin yang sedang aktif untuk baris ini (kalau ada), untuk preselect.
         const fieldName = mode === 'karantina' ? 'fk_lokasi_karantina' : 'fk_lokasi_barang';
@@ -2258,7 +2227,27 @@
 
 
     function closeLokasiDrawer() {
-        drawerOverlay.classList.add('hidden');
+
+        drawerState.detailId = null;
+        drawerState.rakCache = [];
+        drawerState.binCache = [];
+
+        document.getElementById('drawer-nama-barang').textContent = 'Belum ada item dipilih';
+
+        const titleLabel = document.getElementById('drawer-title-label');
+        if (titleLabel) titleLabel.textContent = 'Alokasi Penyimpanan:';
+
+        resetSelect(selectGudang, '-- Pilih item dahulu --');
+        resetSelect(selectRak, '-- Pilih Gudang Dahulu --');
+        resetSelect(selectRow, '-- Pilih Rak Dahulu --');
+        resetSelect(selectBin, '-- Pilih Row Dahulu --');
+
+        document.getElementById('drawer-occupancy-wrap')?.classList.add('hidden');
+        document.getElementById('drawer-bin-isi-wrap')?.classList.add('hidden');
+        document.getElementById('drawer-hint')?.classList.remove('hidden');
+
+        showDrawerError('');
+        btnSimpan.disabled = true;
     }
 
 
@@ -3050,16 +3039,6 @@
         }
 
 
-        if (!confirm(
-            'Submit penerimaan ini ke proses approval Kasubag?\n\n' +
-            'Catatan: stok gudang BELUM akan bertambah pada tahap ini. ' +
-            'Stok baru diproses setelah approval Direktur.'
-        )) {
-
-            return;
-        }
-
-
         const submitForm =
             document.createElement('form');
 
@@ -3142,7 +3121,6 @@
         aside,
         button,
         a[href],
-        #lokasi-drawer-overlay,
         .no-print {
             display: none !important;
         }

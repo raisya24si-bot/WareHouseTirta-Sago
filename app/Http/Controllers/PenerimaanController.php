@@ -702,6 +702,23 @@ class PenerimaanController extends Controller
             )
             ->get();
 
+        // Estimasi kapasitas gudang keseluruhan (agregat semua gudang aktif),
+        // dipakai di card "Estimasi Kapasitas" di sebelah Dokumentasi Foto.
+        $capacityStat = $this->lokasiBinStatsQuery()
+            ->selectRaw('COUNT(DISTINCT l.id_lokasi) as total_bin')
+            ->selectRaw('COUNT(DISTINCT CASE WHEN sl.id_stok_lokasi IS NOT NULL THEN l.id_lokasi END) as bin_terisi')
+            ->first();
+
+        $capacityTotal = (int) ($capacityStat->total_bin ?? 0);
+        $capacityTerisi = (int) ($capacityStat->bin_terisi ?? 0);
+
+        $capacitySummary = [
+            'total_bin' => $capacityTotal,
+            'bin_terisi' => $capacityTerisi,
+            'bin_kosong' => max(0, $capacityTotal - $capacityTerisi),
+            'occupancy_percent' => $this->occupancyPercent($capacityTotal, $capacityTerisi),
+        ];
+
         return view(
             'penerimaan.verifikasi',
             [
@@ -710,6 +727,9 @@ class PenerimaanController extends Controller
 
                 'lokasis' =>
                     $lokasis,
+
+                'capacitySummary' =>
+                    $capacitySummary,
             ]
         );
     }
