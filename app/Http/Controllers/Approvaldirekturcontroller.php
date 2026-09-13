@@ -14,21 +14,34 @@ class ApprovalDirekturController extends Controller
     use HasPerPage;
 
     /**
-     * Antrian GRN yang menunggu keputusan akhir Direktur.
+     * Antrian GRN menunggu Direktur, plus tab riwayat (disetujui/ditolak).
      */
     public function index(Request $request)
     {
+        $tab = $request->string('tab')->toString() ?: 'menunggu';
+
+        $statusForTab = match ($tab) {
+            'disetujui' => 'APPROVED',
+            'ditolak' => 'REJECTED',
+            default => 'PENDING_DIREKTUR',
+        };
+
         $query = PenerimaanBarang::query()
             ->whereHas(
                 'statusPenerimaan',
-                fn ($q) => $q->where('kd_status_penerimaan_barang', 'PENDING_DIREKTUR')
+                fn ($q) => $q->where('kd_status_penerimaan_barang', $statusForTab)
             )
             ->with([
                 'po.supplier',
                 'details.barang.satuan',
                 'submittedBy',
+                'direkturBy',
             ])
-            ->orderBy('submit_at');
+            ->when(
+                $tab === 'menunggu',
+                fn ($q) => $q->orderBy('submit_at'),
+                fn ($q) => $q->orderByDesc('approve_direktur_at')
+            );
 
         if ($search = $request->string('search')->toString()) {
 
@@ -83,6 +96,7 @@ class ApprovalDirekturController extends Controller
         return view('approval.direktur.index', compact(
             'penerimaans',
             'perPage',
+            'tab',
             'totalMenunggu',
             'totalDisetujuiBulanIni',
             'totalDitolakBulanIni',

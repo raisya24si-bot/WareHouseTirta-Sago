@@ -95,9 +95,40 @@
 
 <div class="mt-stack-md rounded-xl bg-surface-container-lowest shadow-sm overflow-hidden">
 
+    
+    <div class="flex items-center gap-1 px-container-padding pt-3 border-b border-outline-variant">
+
+        <?php
+            $tabs = [
+                'menunggu' => ['label' => 'Menunggu', 'icon' => 'pending_actions'],
+                'disetujui' => ['label' => 'Riwayat Disetujui', 'icon' => 'check_circle'],
+                'ditolak' => ['label' => 'Riwayat Ditolak', 'icon' => 'cancel'],
+            ];
+        ?>
+
+        <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tabKey => $tabInfo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+            <a
+                href="<?php echo e(route('penerimaan.approval-direktur.index', ['tab' => $tabKey])); ?>"
+                class="px-4 py-2.5 text-[13px] font-label-bold flex items-center gap-1.5 border-b-2 -mb-px transition-colors
+                <?php echo e($tab === $tabKey
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'); ?>"
+            >
+                <span class="material-symbols-outlined text-[16px]"><?php echo e($tabInfo['icon']); ?></span>
+                <?php echo e($tabInfo['label']); ?>
+
+            </a>
+
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+    </div>
+
     <div class="p-container-padding border-b border-outline-variant">
 
         <form method="GET" action="<?php echo e(route('penerimaan.approval-direktur.index')); ?>" class="flex items-center gap-stack-sm">
+
+            <input type="hidden" name="tab" value="<?php echo e($tab); ?>">
 
             <div class="relative flex-1">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
@@ -116,7 +147,7 @@
             </button>
 
             <?php if(request()->hasAny(['search', 'per_page'])): ?>
-                <a href="<?php echo e(route('penerimaan.approval-direktur.index')); ?>" class="h-11 px-3 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-lowest flex items-center justify-center transition-colors" title="Reset">
+                <a href="<?php echo e(route('penerimaan.approval-direktur.index', ['tab' => $tab])); ?>" class="h-11 px-3 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-lowest flex items-center justify-center transition-colors" title="Reset">
                     <span class="material-symbols-outlined text-[18px]">restart_alt</span>
                 </a>
             <?php endif; ?>
@@ -138,7 +169,7 @@
                     <th class="py-3 px-stack-md">No. PO Ref</th>
                     <th class="py-3 px-stack-md">Supplier</th>
                     <th class="py-3 px-stack-md text-right">Item / Nilai</th>
-                    <th class="py-3 px-stack-md">Kondisi</th>
+                    <th class="py-3 px-stack-md"><?php echo e($tab === 'menunggu' ? 'Kondisi' : 'Keputusan Direktur'); ?></th>
                     <th class="py-3 px-stack-md">Disubmit Oleh</th>
                     <th class="py-3 px-stack-md text-center">Aksi</th>
                 </tr>
@@ -206,16 +237,49 @@
                         </td>
 
                         <td class="py-3.5 px-stack-md">
-                            <?php if($siapApprove): ?>
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-label-bold">
+                            <?php if($tab === 'menunggu'): ?>
+
+                                <?php if($siapApprove): ?>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-label-bold">
+                                        <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                                        Siap Disetujui
+                                    </span>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-label-bold">
+                                        <span class="material-symbols-outlined text-[13px]">warning</span>
+                                        Bin Belum Lengkap
+                                    </span>
+                                <?php endif; ?>
+
+                            <?php elseif($tab === 'disetujui'): ?>
+
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[11px] font-label-bold">
                                     <span class="material-symbols-outlined text-[13px]">check_circle</span>
-                                    Siap Disetujui
+                                    Disetujui
                                 </span>
+                                <div class="text-[11px] text-on-surface-variant mt-1">
+                                    <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?> &bull;
+                                    <?php echo e($penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-'); ?>
+
+                                </div>
+
                             <?php else: ?>
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-label-bold">
-                                    <span class="material-symbols-outlined text-[13px]">warning</span>
-                                    Bin Belum Lengkap
+
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[11px] font-label-bold">
+                                    <span class="material-symbols-outlined text-[13px]">cancel</span>
+                                    Ditolak
                                 </span>
+                                <div class="text-[11px] text-on-surface-variant mt-1">
+                                    <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?> &bull;
+                                    <?php echo e($penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-'); ?>
+
+                                </div>
+                                <?php if($penerimaan->catatan_approval): ?>
+                                    <div class="text-[11px] text-red-600 italic mt-0.5">
+                                        "<?php echo e(\Illuminate\Support\Str::limit($penerimaan->catatan_approval, 60)); ?>"
+                                    </div>
+                                <?php endif; ?>
+
                             <?php endif; ?>
                         </td>
 
@@ -233,10 +297,11 @@
                         <td class="py-3.5 px-stack-md text-center">
                             <a
                                 href="<?php echo e(route('penerimaan.verifikasi', $penerimaan)); ?>"
-                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg <?php echo e($tab === 'menunggu' ? 'bg-primary text-on-primary hover:bg-primary-container' : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest border border-outline-variant'); ?> font-label-bold text-[12px] shadow-sm transition-all"
                             >
-                                <span class="material-symbols-outlined text-[14px]">fact_check</span>
-                                Review &amp; Approve
+                                <span class="material-symbols-outlined text-[14px]"><?php echo e($tab === 'menunggu' ? 'fact_check' : 'visibility'); ?></span>
+                                <?php echo e($tab === 'menunggu' ? 'Review & Approve' : 'Lihat Detail'); ?>
+
                             </a>
                         </td>
 
@@ -247,9 +312,22 @@
                     <tr>
                         <td colspan="8" class="py-12 text-center">
                             <div class="flex flex-col items-center justify-center text-on-surface-variant">
-                                <span class="material-symbols-outlined text-4xl text-outline mb-2">task_alt</span>
-                                <span class="font-label-bold text-on-surface">Tidak ada dokumen menunggu approval</span>
-                                <span class="text-sm mt-1">Semua GRN sudah diputuskan. Kerja bagus!</span>
+                                <span class="material-symbols-outlined text-4xl text-outline mb-2">
+                                    <?php echo e($tab === 'menunggu' ? 'task_alt' : 'inbox'); ?>
+
+                                </span>
+                                <span class="font-label-bold text-on-surface">
+                                    <?php if($tab === 'menunggu'): ?>
+                                        Tidak ada dokumen menunggu approval
+                                    <?php elseif($tab === 'disetujui'): ?>
+                                        Belum ada dokumen yang disetujui
+                                    <?php else: ?>
+                                        Belum ada dokumen yang ditolak
+                                    <?php endif; ?>
+                                </span>
+                                <?php if($tab === 'menunggu'): ?>
+                                    <span class="text-sm mt-1">Semua GRN sudah diputuskan. Kerja bagus!</span>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>

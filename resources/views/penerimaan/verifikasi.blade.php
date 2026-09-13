@@ -19,11 +19,14 @@
     };
 
     $statusClass = match ($status) {
-        'DRAFT', 'REJECTED'
+        'DRAFT'
             => 'bg-surface-container text-on-surface-variant',
 
+        'REJECTED'
+            => 'bg-red-100 text-red-700',
+
         'APPROVED'
-            => 'bg-primary-fixed text-on-primary-fixed',
+            => 'bg-green-100 text-green-700',
 
         default
             => 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
@@ -202,6 +205,80 @@
         </div>
 
     </div>
+
+
+    {{-- =========================================================
+        RIWAYAT PROSES (hanya tampil kalau sudah ada aksi setelah draft)
+    ========================================================== --}}
+    @if($penerimaan->submit_at || $penerimaan->approve_direktur_at)
+
+        <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm">
+
+            <span class="font-label-bold text-[12px] uppercase tracking-wider text-outline">
+                Riwayat Proses
+            </span>
+
+            <div class="flex flex-col sm:flex-row sm:items-center gap-stack-sm sm:gap-stack-md mt-2">
+
+                {{-- DIBUAT --}}
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                    </span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[12px] font-label-bold text-on-surface">Dibuat</span>
+                        <span class="text-[11px] text-on-surface-variant">
+                            {{ $penerimaan->created_at?->translatedFormat('d M Y, H:i') ?? '-' }}
+                        </span>
+                    </div>
+                </div>
+
+                <span class="hidden sm:block w-8 h-0.5 bg-outline-variant"></span>
+
+                {{-- SUBMIT --}}
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full {{ $penerimaan->submit_at ? 'bg-green-100 text-green-600' : 'bg-surface-container-high text-outline' }} flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[15px]">{{ $penerimaan->submit_at ? 'check' : 'hourglass_empty' }}</span>
+                    </span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[12px] font-label-bold text-on-surface">Disubmit</span>
+                        <span class="text-[11px] text-on-surface-variant">
+                            @if($penerimaan->submit_at)
+                                {{ $penerimaan->submittedBy?->name ?? '-' }} &bull; {{ $penerimaan->submit_at->translatedFormat('d M Y, H:i') }}
+                            @else
+                                Belum disubmit
+                            @endif
+                        </span>
+                    </div>
+                </div>
+
+                <span class="hidden sm:block w-8 h-0.5 bg-outline-variant"></span>
+
+                {{-- DIREKTUR --}}
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full {{ $status === 'APPROVED' ? 'bg-green-100 text-green-600' : ($status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-surface-container-high text-outline') }} flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[15px]">
+                            {{ $status === 'APPROVED' ? 'check' : ($status === 'REJECTED' ? 'close' : 'hourglass_empty') }}
+                        </span>
+                    </span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[12px] font-label-bold text-on-surface">Direktur</span>
+                        <span class="text-[11px] {{ $status === 'REJECTED' ? 'text-red-600' : 'text-on-surface-variant' }}">
+                            @if($penerimaan->approve_direktur_at)
+                                {{ $penerimaan->direkturBy?->name ?? '-' }} &bull; {{ $penerimaan->approve_direktur_at->translatedFormat('d M Y, H:i') }}
+                                — {{ $status === 'APPROVED' ? 'Disetujui' : 'Ditolak' }}
+                            @else
+                                Menunggu keputusan
+                            @endif
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
 
 
     {{-- =========================================================
@@ -1863,6 +1940,53 @@
                             </span>
                         </div>
                     </button>
+
+                @elseif($status === 'APPROVED')
+
+                    <div class="px-container-padding py-2.5 rounded-lg bg-green-50 border border-green-200 flex items-center gap-stack-sm">
+
+                        <span class="material-symbols-outlined text-[22px] text-green-600">
+                            check_circle
+                        </span>
+
+                        <div class="flex flex-col leading-tight">
+                            <span class="font-label-bold text-body-sm text-green-700">
+                                Disetujui &amp; Stok Sudah Diperbarui
+                            </span>
+                            <span class="text-[11px] text-green-600">
+                                Oleh {{ $penerimaan->direkturBy?->name ?? '-' }}
+                                &bull;
+                                {{ $penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-' }} WIB
+                            </span>
+                        </div>
+
+                    </div>
+
+                @elseif($status === 'REJECTED')
+
+                    <div class="px-container-padding py-2.5 rounded-lg bg-red-50 border border-red-200 flex items-center gap-stack-sm">
+
+                        <span class="material-symbols-outlined text-[22px] text-red-600">
+                            cancel
+                        </span>
+
+                        <div class="flex flex-col leading-tight">
+                            <span class="font-label-bold text-body-sm text-red-700">
+                                Ditolak Direktur — Perlu Direvisi
+                            </span>
+                            <span class="text-[11px] text-red-600">
+                                Oleh {{ $penerimaan->direkturBy?->name ?? '-' }}
+                                &bull;
+                                {{ $penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-' }} WIB
+                            </span>
+                            @if($penerimaan->catatan_approval)
+                                <span class="text-[11px] text-red-700 mt-1 italic">
+                                    "{{ $penerimaan->catatan_approval }}"
+                                </span>
+                            @endif
+                        </div>
+
+                    </div>
 
                 @else
 

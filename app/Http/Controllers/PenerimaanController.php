@@ -686,6 +686,9 @@ class PenerimaanController extends Controller
             'details.lokasiKarantina.row.rak.gudang',
 
             'buktiDukungs.creator',
+
+            'submittedBy',
+            'direkturBy',
         ]);
 
 
