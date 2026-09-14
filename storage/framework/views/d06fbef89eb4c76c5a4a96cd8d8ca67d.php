@@ -1,11 +1,11 @@
-@extends('layouts.app')
 
-@section('title', 'Verifikasi Penerimaan - Warehouse Tirta Sago')
-@section('breadcrumb', 'Penerimaan Barang PO / Verifikasi')
 
-@section('content')
+<?php $__env->startSection('title', 'Verifikasi Penerimaan - Warehouse Tirta Sago'); ?>
+<?php $__env->startSection('breadcrumb', 'Penerimaan Barang PO / Verifikasi'); ?>
 
-@php
+<?php $__env->startSection('content'); ?>
+
+<?php
     $status = $penerimaan->statusPenerimaan?->kd_status_penerimaan_barang ?? 'DRAFT';
 
     $statusLabel = match ($status) {
@@ -95,18 +95,16 @@
         $harga = (float) ($detail->harga_satuan ?? $detail->barang?->harga ?? 0);
         return ((int) $detail->qty_baik) * $harga;
     });
-@endphp
+?>
 
 <div class="py-stack-md flex flex-col gap-stack-md">
 
-    {{-- =========================================================
-        BREADCRUMB / META
-    ========================================================== --}}
+    
     <div class="flex flex-wrap items-center justify-between gap-3">
 
         <div class="flex items-center gap-stack-sm font-sidebar-nav text-sidebar-nav text-on-surface-variant">
             <a
-                href="{{ route('penerimaan.index') }}"
+                href="<?php echo e(route('penerimaan.index')); ?>"
                 class="hover:text-primary transition-colors"
             >
                 Penerimaan Barang Masuk
@@ -127,16 +125,14 @@
             </span>
 
             <span>
-                {{ $penerimaan->updated_at?->format('d M Y H:i') ?? '-' }} WIB
+                <?php echo e($penerimaan->updated_at?->format('d M Y H:i') ?? '-'); ?> WIB
             </span>
         </div>
 
     </div>
 
 
-    {{-- =========================================================
-        PAGE HEADER
-    ========================================================== --}}
+    
     <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-stack-md bg-surface-container-lowest p-container-padding rounded-xl shadow-sm">
 
         <div class="flex flex-col gap-base">
@@ -144,19 +140,21 @@
             <div class="flex flex-wrap items-center gap-stack-sm">
 
                 <span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-bold text-[12px] uppercase tracking-wide">
-                    {{ $penerimaan->kd_penerimaan }}
+                    <?php echo e($penerimaan->kd_penerimaan); ?>
+
                 </span>
 
-                <span class="px-2.5 py-1 rounded-full {{ $statusClass }} font-label-bold text-[12px] flex items-center gap-1">
+                <span class="px-2.5 py-1 rounded-full <?php echo e($statusClass); ?> font-label-bold text-[12px] flex items-center gap-1">
 
                     <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
 
-                    Status: {{ $statusLabel }}
+                    Status: <?php echo e($statusLabel); ?>
+
 
                 </span>
 
                 <span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-sidebar-nav text-[12px]">
-                    {{ $totalSku }} Item
+                    <?php echo e($totalSku); ?> Item
                 </span>
 
             </div>
@@ -176,7 +174,7 @@
         <div class="flex flex-wrap items-center gap-stack-sm shrink-0">
 
             <a
-                href="{{ route('penerimaan.index') }}"
+                href="<?php echo e(route('penerimaan.index')); ?>"
                 class="px-stack-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-label-bold flex items-center gap-stack-sm transition-colors"
             >
                 <span class="material-symbols-outlined text-[18px]">
@@ -186,7 +184,7 @@
                 Daftar Penerimaan
             </a>
 
-            @if($canEdit)
+            <?php if($canEdit): ?>
 
                 <button
                     type="button"
@@ -200,17 +198,15 @@
                     Simpan Draf
                 </button>
 
-            @endif
+            <?php endif; ?>
 
         </div>
 
     </div>
 
 
-    {{-- =========================================================
-        RIWAYAT PROSES (hanya tampil kalau sudah ada aksi setelah draft)
-    ========================================================== --}}
-    @if($penerimaan->submit_at || $penerimaan->approve_direktur_at)
+    
+    <?php if($penerimaan->submit_at || $penerimaan->approve_direktur_at): ?>
 
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm">
 
@@ -220,7 +216,7 @@
 
             <div class="flex flex-col sm:flex-row sm:items-center gap-stack-sm sm:gap-stack-md mt-2">
 
-                {{-- DIBUAT --}}
+                
                 <div class="flex items-center gap-2">
                     <span class="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[15px]">edit_note</span>
@@ -228,48 +224,53 @@
                     <div class="flex flex-col leading-tight">
                         <span class="text-[12px] font-label-bold text-on-surface">Dibuat</span>
                         <span class="text-[11px] text-on-surface-variant">
-                            {{ $penerimaan->created_at?->translatedFormat('d M Y, H:i') ?? '-' }}
+                            <?php echo e($penerimaan->created_at?->translatedFormat('d M Y, H:i') ?? '-'); ?>
+
                         </span>
                     </div>
                 </div>
 
                 <span class="hidden sm:block w-8 h-0.5 bg-outline-variant"></span>
 
-                {{-- SUBMIT --}}
+                
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-full {{ $penerimaan->submit_at ? 'bg-green-100 text-green-600' : 'bg-surface-container-high text-outline' }} flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[15px]">{{ $penerimaan->submit_at ? 'check' : 'hourglass_empty' }}</span>
+                    <span class="w-7 h-7 rounded-full <?php echo e($penerimaan->submit_at ? 'bg-green-100 text-green-600' : 'bg-surface-container-high text-outline'); ?> flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[15px]"><?php echo e($penerimaan->submit_at ? 'check' : 'hourglass_empty'); ?></span>
                     </span>
                     <div class="flex flex-col leading-tight">
                         <span class="text-[12px] font-label-bold text-on-surface">Disubmit</span>
                         <span class="text-[11px] text-on-surface-variant">
-                            @if($penerimaan->submit_at)
-                                {{ $penerimaan->submittedBy?->name ?? '-' }} &bull; {{ $penerimaan->submit_at->translatedFormat('d M Y, H:i') }}
-                            @else
+                            <?php if($penerimaan->submit_at): ?>
+                                <?php echo e($penerimaan->submittedBy?->name ?? '-'); ?> &bull; <?php echo e($penerimaan->submit_at->translatedFormat('d M Y, H:i')); ?>
+
+                            <?php else: ?>
                                 Belum disubmit
-                            @endif
+                            <?php endif; ?>
                         </span>
                     </div>
                 </div>
 
                 <span class="hidden sm:block w-8 h-0.5 bg-outline-variant"></span>
 
-                {{-- DIREKTUR --}}
+                
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-full {{ $status === 'APPROVED' ? 'bg-green-100 text-green-600' : ($status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-surface-container-high text-outline') }} flex items-center justify-center shrink-0">
+                    <span class="w-7 h-7 rounded-full <?php echo e($status === 'APPROVED' ? 'bg-green-100 text-green-600' : ($status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-surface-container-high text-outline')); ?> flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[15px]">
-                            {{ $status === 'APPROVED' ? 'check' : ($status === 'REJECTED' ? 'close' : 'hourglass_empty') }}
+                            <?php echo e($status === 'APPROVED' ? 'check' : ($status === 'REJECTED' ? 'close' : 'hourglass_empty')); ?>
+
                         </span>
                     </span>
                     <div class="flex flex-col leading-tight">
                         <span class="text-[12px] font-label-bold text-on-surface">Direktur</span>
-                        <span class="text-[11px] {{ $status === 'REJECTED' ? 'text-red-600' : 'text-on-surface-variant' }}">
-                            @if($penerimaan->approve_direktur_at)
-                                {{ $penerimaan->direkturBy?->name ?? '-' }} &bull; {{ $penerimaan->approve_direktur_at->translatedFormat('d M Y, H:i') }}
-                                — {{ $status === 'APPROVED' ? 'Disetujui' : 'Ditolak' }}
-                            @else
+                        <span class="text-[11px] <?php echo e($status === 'REJECTED' ? 'text-red-600' : 'text-on-surface-variant'); ?>">
+                            <?php if($penerimaan->approve_direktur_at): ?>
+                                <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?> &bull; <?php echo e($penerimaan->approve_direktur_at->translatedFormat('d M Y, H:i')); ?>
+
+                                — <?php echo e($status === 'APPROVED' ? 'Disetujui' : 'Ditolak'); ?>
+
+                            <?php else: ?>
                                 Menunggu keputusan
-                            @endif
+                            <?php endif; ?>
                         </span>
                     </div>
                 </div>
@@ -278,15 +279,13 @@
 
         </div>
 
-    @endif
+    <?php endif; ?>
 
 
-    {{-- =========================================================
-        SUMMARY CARDS
-    ========================================================== --}}
+    
     <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
 
-        {{-- BAIK --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-center justify-between border-l-4 border-primary">
 
             <div class="flex flex-col">
@@ -301,7 +300,8 @@
                         id="summary-baik"
                         class="font-display-lg text-[24px] text-primary font-bold"
                     >
-                        {{ number_format($totalBaik) }}
+                        <?php echo e(number_format($totalBaik)); ?>
+
                     </span>
 
                     <span class="text-[12px] text-outline-variant font-sidebar-nav">
@@ -333,7 +333,7 @@
         </div>
 
 
-        {{-- RUSAK --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-center justify-between border-l-4 border-error">
 
             <div class="flex flex-col">
@@ -348,7 +348,8 @@
                         id="summary-rusak"
                         class="font-display-lg text-[24px] text-error font-bold"
                     >
-                        {{ number_format($totalRusak) }}
+                        <?php echo e(number_format($totalRusak)); ?>
+
                     </span>
 
                     <span class="text-[12px] text-outline-variant font-sidebar-nav">
@@ -380,7 +381,7 @@
         </div>
 
 
-        {{-- SELISIH --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-center justify-between border-l-4 border-tertiary">
 
             <div class="flex flex-col">
@@ -395,11 +396,13 @@
                         id="summary-selisih"
                         class="font-display-lg text-[24px] text-tertiary font-bold"
                     >
-                        {{ $totalSelisih > 0 ? '+' : '' }}{{ number_format($totalSelisih) }}
+                        <?php echo e($totalSelisih > 0 ? '+' : ''); ?><?php echo e(number_format($totalSelisih)); ?>
+
                     </span>
 
                     <span class="text-[12px] text-outline-variant font-sidebar-nav">
-                        Unit {{ $totalSelisih < 0 ? 'Kurang Terima' : ($totalSelisih > 0 ? 'Lebih Terima' : '') }}
+                        Unit <?php echo e($totalSelisih < 0 ? 'Kurang Terima' : ($totalSelisih > 0 ? 'Lebih Terima' : '')); ?>
+
                     </span>
 
                 </div>
@@ -429,12 +432,10 @@
     </div>
 
 
-    {{-- =========================================================
-        DOCUMENT INFO
-    ========================================================== --}}
+    
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
 
-        {{-- PO --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-start gap-stack-sm">
 
             <div class="p-2.5 rounded-lg bg-surface-container-low text-primary flex items-center justify-center shrink-0">
@@ -450,11 +451,13 @@
                 </span>
 
                 <span class="font-headline-md text-[18px] text-on-surface font-bold truncate">
-                    {{ $po?->kd_po ?? '-' }}
+                    <?php echo e($po?->kd_po ?? '-'); ?>
+
                 </span>
 
                 <span class="font-body-sm text-body-sm text-on-surface-variant truncate">
-                    {{ $supplier?->nm_master_supplier ?? 'Supplier belum tersedia' }}
+                    <?php echo e($supplier?->nm_master_supplier ?? 'Supplier belum tersedia'); ?>
+
                 </span>
 
             </div>
@@ -462,7 +465,7 @@
         </div>
 
 
-        {{-- INVOICE / SJ --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-start gap-stack-sm">
 
             <div class="p-2.5 rounded-lg bg-surface-container-low text-primary flex items-center justify-center shrink-0">
@@ -478,7 +481,8 @@
                 </span>
 
                 <span class="font-headline-md text-[18px] text-on-surface font-bold truncate">
-                    {{ $penerimaan->no_sjinv_supplier ?: '-' }}
+                    <?php echo e($penerimaan->no_sjinv_supplier ?: '-'); ?>
+
                 </span>
 
                 <span class="font-body-sm text-body-sm text-on-surface-variant truncate">
@@ -490,7 +494,7 @@
         </div>
 
 
-        {{-- TANGGAL --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-start gap-stack-sm">
 
             <div class="p-2.5 rounded-lg bg-surface-container-low text-primary flex items-center justify-center shrink-0">
@@ -506,11 +510,12 @@
                 </span>
 
                 <span class="font-headline-md text-[18px] text-on-surface font-bold truncate">
-                    {{ $penerimaan->tgl_penerimaan_barang?->format('d M Y') ?? '-' }}
+                    <?php echo e($penerimaan->tgl_penerimaan_barang?->format('d M Y') ?? '-'); ?>
+
                 </span>
 
                 <span class="font-body-sm text-body-sm text-on-surface-variant truncate">
-                    {{ $penerimaan->created_at?->format('H:i') ?? '-' }} WIB
+                    <?php echo e($penerimaan->created_at?->format('H:i') ?? '-'); ?> WIB
                 </span>
 
             </div>
@@ -518,7 +523,7 @@
         </div>
 
 
-        {{-- PETUGAS --}}
+        
         <div class="bg-surface-container-lowest p-stack-md rounded-xl shadow-sm flex items-start gap-stack-sm">
 
             <div class="p-2.5 rounded-lg bg-surface-container-low text-primary flex items-center justify-center shrink-0">
@@ -534,7 +539,8 @@
                 </span>
 
                 <span class="font-headline-md text-[18px] text-on-surface font-bold truncate">
-                    {{ $penerimaan->submittedBy?->name ?? auth()->user()?->name ?? '-' }}
+                    <?php echo e($penerimaan->submittedBy?->name ?? auth()->user()?->name ?? '-'); ?>
+
                 </span>
 
                 <span class="font-body-sm text-body-sm text-on-surface-variant truncate">
@@ -548,10 +554,8 @@
     </div>
 
 
-    {{-- =========================================================
-        WARNING
-    ========================================================== --}}
-    @if($totalRusak > 0)
+    
+    <?php if($totalRusak > 0): ?>
 
         <div class="bg-tertiary-fixed text-on-tertiary-fixed p-stack-md rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-stack-md shadow-sm">
 
@@ -568,16 +572,16 @@
                 <div class="flex flex-col">
 
                     <span class="font-label-bold text-label-bold text-on-tertiary-fixed">
-                        Perhatian: Terdapat {{ $totalRusak }} unit cacat/rusak fisik terdeteksi!
-                        @if($itemBelumLokasi > 0)
-                            ({{ $itemBelumLokasi }} item baik lain juga masih belum berlokasi rak)
-                        @endif
+                        Perhatian: Terdapat <?php echo e($totalRusak); ?> unit cacat/rusak fisik terdeteksi!
+                        <?php if($itemBelumLokasi > 0): ?>
+                            (<?php echo e($itemBelumLokasi); ?> item baik lain juga masih belum berlokasi rak)
+                        <?php endif; ?>
                     </span>
 
                     <span class="font-body-sm text-[13px] text-on-tertiary-fixed-variant">
                         Barang berstatus rusak otomatis dipisahkan ke Gudang Karantina (Bin Retur)
                         dan sistem menerbitkan draf Berita Acara Kerusakan (BAP Retur) resmi
-                        ke supplier {{ $penerimaan->po?->supplier?->nm_master_supplier ?? '-' }}.
+                        ke supplier <?php echo e($penerimaan->po?->supplier?->nm_master_supplier ?? '-'); ?>.
                     </span>
 
                 </div>
@@ -603,50 +607,41 @@
 
         </div>
 
-    @endif
+    <?php endif; ?>
 
 
-    {{-- =========================================================
-        FORM VERIFIKASI
-    ========================================================== --}}
+    
     <form
         id="verification-form"
         method="POST"
-        action="{{ route('penerimaan.save-draft', $penerimaan) }}"
+        action="<?php echo e(route('penerimaan.save-draft', $penerimaan)); ?>"
         enctype="multipart/form-data"
     >
 
-        @csrf
+        <?php echo csrf_field(); ?>
 
 
-        {{-- =====================================================
-            HEADER DATA (disembunyikan — sudah ditampilkan di kartu
-            info PO/Faktur/Waktu/Petugas di atas. Input tetap dikirim
-            sebagai hidden field karena backend saveDraft/submit
-            masih memvalidasinya).
-        ====================================================== --}}
+        
         <input
             type="hidden"
             name="no_sjinv_supplier"
-            value="{{ old('no_sjinv_supplier', $penerimaan->no_sjinv_supplier) }}"
+            value="<?php echo e(old('no_sjinv_supplier', $penerimaan->no_sjinv_supplier)); ?>"
         >
 
         <input
             type="hidden"
             name="tgl_penerimaan_barang"
-            value="{{ old('tgl_penerimaan_barang', $penerimaan->tgl_penerimaan_barang?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
+            value="<?php echo e(old('tgl_penerimaan_barang', $penerimaan->tgl_penerimaan_barang?->format('Y-m-d') ?? now()->format('Y-m-d'))); ?>"
         >
 
         <input
             type="hidden"
             name="desc_penerimaan_barang"
-            value="{{ old('desc_penerimaan_barang', $penerimaan->desc_penerimaan_barang) }}"
+            value="<?php echo e(old('desc_penerimaan_barang', $penerimaan->desc_penerimaan_barang)); ?>"
         >
 
 
-        {{-- =====================================================
-            ITEM TABLE
-        ====================================================== --}}
+        
         <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
 
             <div class="p-container-padding flex flex-col lg:flex-row lg:items-center justify-between gap-stack-sm bg-surface-container-low">
@@ -666,7 +661,7 @@
                             </h2>
 
                             <span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[12px] font-label-bold">
-                                {{ $totalSku }} Item
+                                <?php echo e($totalSku); ?> Item
                             </span>
 
                         </div>
@@ -685,17 +680,17 @@
 
                         <span class="flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-primary"></span>
-                            Terpetakan Baik: {{ $itemTerpetakan }} Item
+                            Terpetakan Baik: <?php echo e($itemTerpetakan); ?> Item
                         </span>
 
                         <span class="flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-error"></span>
-                            Ada Reject: {{ $itemDenganReject }} Item ({{ $totalRusak }} Unit)
+                            Ada Reject: <?php echo e($itemDenganReject); ?> Item (<?php echo e($totalRusak); ?> Unit)
                         </span>
 
                         <span class="flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-tertiary"></span>
-                            Pending Bin: {{ $itemBelumLokasi }} Item
+                            Pending Bin: <?php echo e($itemBelumLokasi); ?> Item
                         </span>
 
                     </div>
@@ -704,7 +699,7 @@
                         <span class="material-symbols-outlined text-[16px]">
                             payments
                         </span>
-                        <span id="header-total-nilai">Total Nilai Diterima: Rp {{ number_format($totalNilaiBaik, 0, ',', '.') }}</span>
+                        <span id="header-total-nilai">Total Nilai Diterima: Rp <?php echo e(number_format($totalNilaiBaik, 0, ',', '.')); ?></span>
                     </span>
 
                 </div>
@@ -767,9 +762,9 @@
 
                     <tbody class="text-on-surface divide-y divide-surface-container">
 
-                        @forelse($penerimaan->details as $detail)
+                        <?php $__empty_1 = true; $__currentLoopData = $penerimaan->details; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
-                            @php
+                            <?php
                                 $barang = $detail->barang;
 
                                 $qtyPo = (int) $detail->qty_request;
@@ -789,57 +784,62 @@
                                 $totalNilaiItem = $qtyBaik * $hargaSatuan;
 
                                 $sesuaiFisik = $selisih === 0 && $qtyRusak === 0;
-                            @endphp
+                            ?>
 
                             <tr
                                 class="
                                     transition-colors
-                                    {{ $qtyRusak > 0
+                                    <?php echo e($qtyRusak > 0
                                         ? 'bg-error-container/10 hover:bg-error-container/20'
-                                        : 'hover:bg-surface-container-low/60' }}
+                                        : 'hover:bg-surface-container-low/60'); ?>
+
                                 "
-                                data-detail-row="{{ $detail->id_penerimaan_barang_detail }}"
-                                data-qty-po="{{ $qtyPo }}"
+                                data-detail-row="<?php echo e($detail->id_penerimaan_barang_detail); ?>"
+                                data-qty-po="<?php echo e($qtyPo); ?>"
                             >
 
-                                {{-- KODE --}}
+                                
                                 <td class="py-stack-md px-container-padding align-top">
 
                                     <div class="flex flex-col">
 
                                         <span class="font-label-bold text-primary">
-                                            {{ $barang?->kd_master_barang ?? '-' }}
+                                            <?php echo e($barang?->kd_master_barang ?? '-'); ?>
+
                                         </span>
 
-                                        @if($barang?->satuan)
+                                        <?php if($barang?->satuan): ?>
                                             <span class="text-[11px] text-outline font-sidebar-nav">
-                                                {{ $barang->satuan->nm_satuan ?? $barang->satuan->nama_satuan ?? '' }}
+                                                <?php echo e($barang->satuan->nm_satuan ?? $barang->satuan->nama_satuan ?? ''); ?>
+
                                             </span>
-                                        @endif
+                                        <?php endif; ?>
 
                                     </div>
 
                                 </td>
 
 
-                                {{-- BARANG --}}
+                                
                                 <td class="py-stack-md px-stack-md align-top">
 
                                     <div class="flex flex-col max-w-md">
 
                                         <span class="font-label-bold text-on-surface">
-                                            {{ $barang?->nm_master_barang ?? 'Barang tidak ditemukan' }}
+                                            <?php echo e($barang?->nm_master_barang ?? 'Barang tidak ditemukan'); ?>
+
                                         </span>
 
-                                        @if($barang?->desc_master_barang)
+                                        <?php if($barang?->desc_master_barang): ?>
 
                                             <span class="text-on-surface-variant text-[13px] mt-0.5">
-                                                {{ $barang->desc_master_barang }}
+                                                <?php echo e($barang->desc_master_barang); ?>
+
                                             </span>
 
-                                        @endif
+                                        <?php endif; ?>
 
-                                        @if($qtyRusak > 0)
+                                        <?php if($qtyRusak > 0): ?>
 
                                             <div class="mt-2 inline-flex items-center gap-1.5 w-fit px-2 py-1 rounded-lg bg-error-container text-on-error-container text-[11px] font-label-bold">
 
@@ -847,28 +847,29 @@
                                                     report_problem
                                                 </span>
 
-                                                {{ $qtyRusak }} Unit Rusak
+                                                <?php echo e($qtyRusak); ?> Unit Rusak
 
                                             </div>
 
-                                        @endif
+                                        <?php endif; ?>
 
                                     </div>
 
                                 </td>
 
 
-                                {{-- QTY PO --}}
+                                
                                 <td class="py-stack-md px-stack-md text-center align-top">
 
                                     <span class="font-label-bold text-on-surface">
-                                        {{ number_format($qtyPo) }}
+                                        <?php echo e(number_format($qtyPo)); ?>
+
                                     </span>
 
                                 </td>
 
 
-                                {{-- QTY BAIK --}}
+                                
                                 <td class="py-stack-md px-stack-md align-top">
 
                                     <div class="flex flex-col items-center gap-1">
@@ -879,9 +880,10 @@
                                                 type="number"
                                                 min="0"
                                                 step="1"
-                                                name="details[{{ $detail->id_penerimaan_barang_detail }}][qty_baik]"
-                                                value="{{ old("details.{$detail->id_penerimaan_barang_detail}.qty_baik", $qtyBaik) }}"
-                                                {{ $canEdit ? '' : 'disabled' }}
+                                                name="details[<?php echo e($detail->id_penerimaan_barang_detail); ?>][qty_baik]"
+                                                value="<?php echo e(old("details.{$detail->id_penerimaan_barang_detail}.qty_baik", $qtyBaik)); ?>"
+                                                <?php echo e($canEdit ? '' : 'disabled'); ?>
+
                                                 class="qty-baik w-24 rounded-lg border border-outline-variant bg-surface-container-low text-center font-label-bold text-primary py-2 px-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
                                             >
 
@@ -900,7 +902,7 @@
                                 </td>
 
 
-                                {{-- QTY RUSAK --}}
+                                
                                 <td class="py-stack-md px-stack-md align-top">
 
                                     <div class="flex flex-col items-center gap-1">
@@ -911,10 +913,11 @@
                                                 type="number"
                                                 min="0"
                                                 step="1"
-                                                name="details[{{ $detail->id_penerimaan_barang_detail }}][qty_rusak]"
-                                                value="{{ old("details.{$detail->id_penerimaan_barang_detail}.qty_rusak", $qtyRusak) }}"
-                                                {{ $canEdit ? '' : 'disabled' }}
-                                                class="qty-rusak w-20 rounded-lg border {{ $qtyRusak > 0 ? 'border-error/30 bg-error-container text-on-error-container' : 'border-outline-variant bg-surface-container' }} text-center font-label-bold py-2 px-1 focus:outline-none focus:ring-1 focus:ring-error disabled:opacity-60"
+                                                name="details[<?php echo e($detail->id_penerimaan_barang_detail); ?>][qty_rusak]"
+                                                value="<?php echo e(old("details.{$detail->id_penerimaan_barang_detail}.qty_rusak", $qtyRusak)); ?>"
+                                                <?php echo e($canEdit ? '' : 'disabled'); ?>
+
+                                                class="qty-rusak w-20 rounded-lg border <?php echo e($qtyRusak > 0 ? 'border-error/30 bg-error-container text-on-error-container' : 'border-outline-variant bg-surface-container'); ?> text-center font-label-bold py-2 px-1 focus:outline-none focus:ring-1 focus:ring-error disabled:opacity-60"
                                             >
 
                                             <span class="text-[11px] text-outline">
@@ -923,8 +926,9 @@
 
                                         </div>
 
-                                        <span class="reject-label text-[11px] {{ $qtyRusak > 0 ? 'text-error font-label-bold' : 'text-outline-variant italic' }}">
-                                            {{ $qtyRusak > 0 ? 'Butuh BAP Retur' : 'Nihil' }}
+                                        <span class="reject-label text-[11px] <?php echo e($qtyRusak > 0 ? 'text-error font-label-bold' : 'text-outline-variant italic'); ?>">
+                                            <?php echo e($qtyRusak > 0 ? 'Butuh BAP Retur' : 'Nihil'); ?>
+
                                         </span>
 
                                     </div>
@@ -932,7 +936,7 @@
                                 </td>
 
 
-                                {{-- HARGA SATUAN (bisa diedit langsung) --}}
+                                
                                 <td class="py-stack-md px-stack-md text-right align-top">
 
                                     <div class="relative inline-block w-full max-w-[140px]">
@@ -946,128 +950,138 @@
                                             min="0"
                                             step="1"
                                             inputmode="numeric"
-                                            name="details[{{ $detail->id_penerimaan_barang_detail }}][harga_satuan]"
-                                            value="{{ (int) $hargaSatuan }}"
-                                            {{ $canEdit ? '' : 'disabled' }}
+                                            name="details[<?php echo e($detail->id_penerimaan_barang_detail); ?>][harga_satuan]"
+                                            value="<?php echo e((int) $hargaSatuan); ?>"
+                                            <?php echo e($canEdit ? '' : 'disabled'); ?>
+
                                             class="harga-input w-full rounded-lg border border-outline-variant bg-surface-container-lowest pl-8 pr-2 py-1.5 text-right text-[13px] font-label-bold text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
                                         >
 
                                     </div>
 
                                     <div class="text-[10px] text-outline mt-1">
-                                        per {{ $barang?->satuan?->nm_master_satuan ?? 'unit' }}
+                                        per <?php echo e($barang?->satuan?->nm_master_satuan ?? 'unit'); ?>
+
                                     </div>
 
                                 </td>
 
 
-                                {{-- TOTAL --}}
+                                
                                 <td class="py-stack-md px-stack-md text-right align-top">
 
                                     <span class="total-value font-label-bold text-primary">
-                                        Rp {{ number_format($totalNilaiItem, 0, ',', '.') }}
+                                        Rp <?php echo e(number_format($totalNilaiItem, 0, ',', '.')); ?>
+
                                     </span>
 
                                     <div class="total-sub text-[10px] text-outline">
-                                        {{ $qtyBaik }} × Rp {{ number_format($hargaSatuan, 0, ',', '.') }}
+                                        <?php echo e($qtyBaik); ?> × Rp <?php echo e(number_format($hargaSatuan, 0, ',', '.')); ?>
+
                                     </div>
 
                                 </td>
 
 
-                                {{-- STATUS KESESUAIAN --}}
+                                
                                 <td class="py-stack-md px-stack-md text-center align-top">
 
                                     <div class="status-kesesuaian flex flex-col items-center gap-1">
 
                                         <span
                                             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-bold text-[12px]
-                                            {{ $sesuaiFisik
+                                            <?php echo e($sesuaiFisik
                                                 ? 'bg-primary-fixed text-on-primary-fixed'
-                                                : 'bg-tertiary-fixed text-on-tertiary-fixed-variant' }}"
+                                                : 'bg-tertiary-fixed text-on-tertiary-fixed-variant'); ?>"
                                         >
                                             <span class="material-symbols-outlined text-[15px]">
-                                                {{ $sesuaiFisik ? 'check_circle' : 'difference' }}
+                                                <?php echo e($sesuaiFisik ? 'check_circle' : 'difference'); ?>
+
                                             </span>
 
-                                            {{ $sesuaiFisik
+                                            <?php echo e($sesuaiFisik
                                                 ? 'Sesuai Fisik'
-                                                : 'Selisih (' . ($selisih > 0 ? '+' : '') . $selisih . ' Unit)' }}
+                                                : 'Selisih (' . ($selisih > 0 ? '+' : '') . $selisih . ' Unit)'); ?>
+
                                         </span>
 
-                                        @if($qtyRusak > 0)
+                                        <?php if($qtyRusak > 0): ?>
                                             <span class="text-[10px] text-error">
-                                                {{ $qtyRusak }} cacat fisik terdeteksi
+                                                <?php echo e($qtyRusak); ?> cacat fisik terdeteksi
                                             </span>
-                                        @elseif(!$sesuaiFisik)
+                                        <?php elseif(!$sesuaiFisik): ?>
                                             <span class="text-[10px] text-outline">
                                                 Baik + Rusak − PO
                                             </span>
-                                        @endif
+                                        <?php endif; ?>
 
                                     </div>
 
                                 </td>
 
 
-                                {{-- LOKASI PENYIMPANAN / KARANTINA --}}
+                                
                                 <td class="py-stack-md px-stack-md align-top">
 
                                     <div class="flex flex-col gap-2 min-w-[220px]">
 
-                                        @if($qtyBaik > 0)
+                                        <?php if($qtyBaik > 0): ?>
 
                                             <div
-                                                class="lokasi-chip flex items-center gap-1.5 text-[12px] {{ $selectedLokasi ? 'text-primary' : 'text-outline italic' }}"
-                                                id="lokasi-label-{{ $detail->id_penerimaan_barang_detail }}"
+                                                class="lokasi-chip flex items-center gap-1.5 text-[12px] <?php echo e($selectedLokasi ? 'text-primary' : 'text-outline italic'); ?>"
+                                                id="lokasi-label-<?php echo e($detail->id_penerimaan_barang_detail); ?>"
                                             >
                                                 <span class="material-symbols-outlined text-[15px]">
-                                                    {{ $selectedLokasi ? 'location_on' : 'location_off' }}
+                                                    <?php echo e($selectedLokasi ? 'location_on' : 'location_off'); ?>
+
                                                 </span>
 
                                                 <span class="lokasi-chip-text">
-                                                    {{ $selectedLokasi
+                                                    <?php echo e($selectedLokasi
                                                         ? ($selectedLokasi->kd_lokasi ?? $selectedLokasi->bin)
-                                                        : 'Belum diatur' }}
+                                                        : 'Belum diatur'); ?>
+
                                                 </span>
                                             </div>
 
-                                            {{-- Value asli yang dikirim ke server; diisi oleh drawer alokasi (mode baik). --}}
+                                            
                                             <select
-                                                name="details[{{ $detail->id_penerimaan_barang_detail }}][fk_lokasi_barang]"
-                                                {{ $canEdit ? '' : 'disabled' }}
+                                                name="details[<?php echo e($detail->id_penerimaan_barang_detail); ?>][fk_lokasi_barang]"
+                                                <?php echo e($canEdit ? '' : 'disabled'); ?>
+
                                                 class="hidden lokasi-select"
                                             >
 
                                                 <option value="">-- Pilih Bin Penyimpanan --</option>
 
-                                                @foreach($lokasiOptions as $lokasiOption)
+                                                <?php $__currentLoopData = $lokasiOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lokasiOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                                                     <option
-                                                        value="{{ $lokasiOption['id'] }}"
-                                                        data-label="{{ $lokasiOption['label'] }}"
-                                                        @selected((string) old(
+                                                        value="<?php echo e($lokasiOption['id']); ?>"
+                                                        data-label="<?php echo e($lokasiOption['label']); ?>"
+                                                        <?php if((string) old(
                                                             "details.{$detail->id_penerimaan_barang_detail}.fk_lokasi_barang",
                                                             $detail->fk_lokasi_barang
-                                                        ) === (string) $lokasiOption['id'])
+                                                        ) === (string) $lokasiOption['id']): echo 'selected'; endif; ?>
                                                     >
-                                                        {{ $lokasiOption['label'] }}
+                                                        <?php echo e($lokasiOption['label']); ?>
+
                                                     </option>
 
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                             </select>
 
-                                        @else
+                                        <?php else: ?>
 
                                             <span class="text-[12px] text-outline italic">
                                                 Tidak ada barang baik.
                                             </span>
 
-                                        @endif
+                                        <?php endif; ?>
 
 
-                                        @if($qtyRusak > 0)
+                                        <?php if($qtyRusak > 0): ?>
 
                                             <div class="rounded-lg bg-error-container/40 border border-error-container p-2 flex flex-col gap-1">
 
@@ -1079,118 +1093,128 @@
 
                                                     <span class="text-[11px] text-on-error-container">
                                                         Wajib Karantina &amp; BAP Retur
-                                                        ({{ $qtyRusak }} Unit)
+                                                        (<?php echo e($qtyRusak); ?> Unit)
                                                     </span>
 
                                                 </div>
 
                                                 <div
-                                                    class="lokasi-karantina-chip flex items-center gap-1.5 text-[11px] {{ $selectedLokasiKarantina ? 'text-error font-label-bold' : 'text-error/70 italic' }}"
-                                                    id="lokasi-karantina-label-{{ $detail->id_penerimaan_barang_detail }}"
+                                                    class="lokasi-karantina-chip flex items-center gap-1.5 text-[11px] <?php echo e($selectedLokasiKarantina ? 'text-error font-label-bold' : 'text-error/70 italic'); ?>"
+                                                    id="lokasi-karantina-label-<?php echo e($detail->id_penerimaan_barang_detail); ?>"
                                                 >
                                                     <span class="material-symbols-outlined text-[14px]">
-                                                        {{ $selectedLokasiKarantina ? 'location_on' : 'location_off' }}
+                                                        <?php echo e($selectedLokasiKarantina ? 'location_on' : 'location_off'); ?>
+
                                                     </span>
 
                                                     <span class="lokasi-chip-text">
-                                                        {{ $selectedLokasiKarantina
+                                                        <?php echo e($selectedLokasiKarantina
                                                             ? ($selectedLokasiKarantina->kd_lokasi ?? $selectedLokasiKarantina->bin)
-                                                            : 'Bin karantina belum diatur' }}
+                                                            : 'Bin karantina belum diatur'); ?>
+
                                                     </span>
                                                 </div>
 
-                                                {{-- Value asli yang dikirim ke server; diisi oleh drawer alokasi (mode karantina). --}}
+                                                
                                                 <select
-                                                    name="details[{{ $detail->id_penerimaan_barang_detail }}][fk_lokasi_karantina]"
-                                                    {{ $canEdit ? '' : 'disabled' }}
+                                                    name="details[<?php echo e($detail->id_penerimaan_barang_detail); ?>][fk_lokasi_karantina]"
+                                                    <?php echo e($canEdit ? '' : 'disabled'); ?>
+
                                                     class="hidden lokasi-karantina-select"
                                                 >
 
                                                     <option value="">-- Pilih Bin Karantina --</option>
 
-                                                    @foreach($lokasiOptions as $lokasiOption)
+                                                    <?php $__currentLoopData = $lokasiOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lokasiOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                                                         <option
-                                                            value="{{ $lokasiOption['id'] }}"
-                                                            data-label="{{ $lokasiOption['label'] }}"
-                                                            @selected((string) old(
+                                                            value="<?php echo e($lokasiOption['id']); ?>"
+                                                            data-label="<?php echo e($lokasiOption['label']); ?>"
+                                                            <?php if((string) old(
                                                                 "details.{$detail->id_penerimaan_barang_detail}.fk_lokasi_karantina",
                                                                 $detail->fk_lokasi_karantina
-                                                            ) === (string) $lokasiOption['id'])
+                                                            ) === (string) $lokasiOption['id']): echo 'selected'; endif; ?>
                                                         >
-                                                            {{ $lokasiOption['label'] }}
+                                                            <?php echo e($lokasiOption['label']); ?>
+
                                                         </option>
 
-                                                    @endforeach
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                                 </select>
 
                                             </div>
 
-                                        @endif
+                                        <?php endif; ?>
 
                                     </div>
 
                                 </td>
 
 
-                                {{-- AKSI ALOKASI --}}
+                                
                                 <td class="py-stack-md px-stack-md text-center align-top">
 
                                     <div class="flex flex-col items-center gap-2">
 
-                                        @if($qtyBaik > 0)
+                                        <?php if($qtyBaik > 0): ?>
 
                                             <button
                                                 type="button"
-                                                {{ $canEdit ? '' : 'disabled' }}
+                                                <?php echo e($canEdit ? '' : 'disabled'); ?>
+
                                                 onclick="openLokasiDrawer(this, 'baik')"
-                                                data-detail-id="{{ $detail->id_penerimaan_barang_detail }}"
-                                                data-nama-barang="{{ $barang?->nm_master_barang ?? 'Barang' }}"
+                                                data-detail-id="<?php echo e($detail->id_penerimaan_barang_detail); ?>"
+                                                data-nama-barang="<?php echo e($barang?->nm_master_barang ?? 'Barang'); ?>"
                                                 class="btn-alokasi w-full px-3 py-2 rounded-lg font-label-bold text-[12px] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50
-                                                {{ $selectedLokasi
+                                                <?php echo e($selectedLokasi
                                                     ? 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant'
-                                                    : 'bg-tertiary hover:bg-tertiary-container text-on-tertiary' }}"
+                                                    : 'bg-tertiary hover:bg-tertiary-container text-on-tertiary'); ?>"
                                             >
                                                 <span class="material-symbols-outlined text-[16px]">
-                                                    {{ $selectedLokasi ? 'edit_location_alt' : 'add_location_alt' }}
+                                                    <?php echo e($selectedLokasi ? 'edit_location_alt' : 'add_location_alt'); ?>
+
                                                 </span>
 
-                                                {{ $selectedLokasi
+                                                <?php echo e($selectedLokasi
                                                     ? ($qtyRusak > 0 ? 'Ubah Rak Baik' : 'Ubah Bin')
-                                                    : '+ Pilih / Setting Lokasi Bin' }}
+                                                    : '+ Pilih / Setting Lokasi Bin'); ?>
+
                                             </button>
 
-                                        @endif
+                                        <?php endif; ?>
 
-                                        @if($qtyRusak > 0)
+                                        <?php if($qtyRusak > 0): ?>
 
                                             <button
                                                 type="button"
-                                                {{ $canEdit ? '' : 'disabled' }}
+                                                <?php echo e($canEdit ? '' : 'disabled'); ?>
+
                                                 onclick="openLokasiDrawer(this, 'karantina')"
-                                                data-detail-id="{{ $detail->id_penerimaan_barang_detail }}"
-                                                data-nama-barang="{{ $barang?->nm_master_barang ?? 'Barang' }}"
+                                                data-detail-id="<?php echo e($detail->id_penerimaan_barang_detail); ?>"
+                                                data-nama-barang="<?php echo e($barang?->nm_master_barang ?? 'Barang'); ?>"
                                                 class="btn-alokasi-karantina w-full px-3 py-2 rounded-lg font-label-bold text-[12px] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50
-                                                {{ $selectedLokasiKarantina
+                                                <?php echo e($selectedLokasiKarantina
                                                     ? 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant'
-                                                    : 'bg-error hover:bg-error-container text-on-error' }}"
+                                                    : 'bg-error hover:bg-error-container text-on-error'); ?>"
                                             >
                                                 <span class="material-symbols-outlined text-[15px]">
-                                                    {{ $selectedLokasiKarantina ? 'edit_location_alt' : 'inventory' }}
+                                                    <?php echo e($selectedLokasiKarantina ? 'edit_location_alt' : 'inventory'); ?>
+
                                                 </span>
-                                                {{ $selectedLokasiKarantina ? 'Ubah Bin Karantina' : 'Karantina Bin' }}
+                                                <?php echo e($selectedLokasiKarantina ? 'Ubah Bin Karantina' : 'Karantina Bin'); ?>
+
                                             </button>
 
-                                        @endif
+                                        <?php endif; ?>
 
-                                        @if($qtyBaik == 0 && $qtyRusak == 0)
+                                        <?php if($qtyBaik == 0 && $qtyRusak == 0): ?>
 
                                             <span class="text-[11px] text-outline italic">
                                                 Menunggu input qty
                                             </span>
 
-                                        @endif
+                                        <?php endif; ?>
 
                                     </div>
 
@@ -1198,7 +1222,7 @@
 
                             </tr>
 
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 
                             <tr>
 
@@ -1219,7 +1243,7 @@
 
                             </tr>
 
-                        @endforelse
+                        <?php endif; ?>
 
                     </tbody>
 
@@ -1240,21 +1264,24 @@
                             </td>
 
                             <td class="py-stack-md px-stack-md text-center font-label-bold">
-                                {{ number_format($totalQtyPo) }}
+                                <?php echo e(number_format($totalQtyPo)); ?>
+
                             </td>
 
                             <td
                                 id="footer-baik"
                                 class="py-stack-md px-stack-md text-center font-label-bold text-primary"
                             >
-                                {{ number_format($totalBaik) }}
+                                <?php echo e(number_format($totalBaik)); ?>
+
                             </td>
 
                             <td
                                 id="footer-rusak"
                                 class="py-stack-md px-stack-md text-center font-label-bold text-error"
                             >
-                                {{ number_format($totalRusak) }}
+                                <?php echo e(number_format($totalRusak)); ?>
+
                             </td>
 
                             <td class="py-stack-md px-stack-md text-outline text-center text-[11px]">
@@ -1265,7 +1292,8 @@
                                 id="footer-total-nilai"
                                 class="py-stack-md px-stack-md text-right font-label-bold text-primary"
                             >
-                                Rp {{ number_format($totalNilaiBaik, 0, ',', '.') }}
+                                Rp <?php echo e(number_format($totalNilaiBaik, 0, ',', '.')); ?>
+
                             </td>
 
                             <td class="py-stack-md px-stack-md text-center">
@@ -1287,15 +1315,10 @@
 
         </div>
 
-        {{-- =====================================================
-            ALOKASI PENYIMPANAN (Gudang > Rak > Row > Bin)
-            Selalu tampil di halaman (bukan popup). Klik tombol
-            "Pilih Lokasi Bin" / "Ubah Bin" / "Karantina Bin" pada
-            tabel di atas untuk mengaktifkan panel ini.
-        ====================================================== --}}
+        
         <div id="lokasi-drawer-section" class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
 
-            {{-- HEADER --}}
+            
             <div class="p-container-padding border-b border-outline-variant flex items-start justify-between gap-stack-sm bg-surface-container-low">
 
                 <div class="flex items-start gap-stack-sm">
@@ -1320,7 +1343,7 @@
             </div>
 
 
-            {{-- BODY --}}
+            
             <div class="p-container-padding flex flex-col gap-stack-md">
 
                 <div id="drawer-hint" class="rounded-lg bg-surface-container-low border border-outline-variant px-3 py-2.5 text-[12px] text-on-surface-variant flex items-center gap-2">
@@ -1332,7 +1355,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-sm">
 
-                    {{-- 1. GUDANG --}}
+                    
                     <div>
                         <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
                             1. Gudang Penyimpanan
@@ -1347,7 +1370,7 @@
                         <p id="drawer-gudang-info" class="mt-1 text-[11px] text-outline"></p>
                     </div>
 
-                    {{-- 2. RAK --}}
+                    
                     <div>
                         <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
                             2. Blok Rak
@@ -1362,7 +1385,7 @@
                         <p id="drawer-rak-info" class="mt-1 text-[11px] text-outline"></p>
                     </div>
 
-                    {{-- 3. ROW --}}
+                    
                     <div>
                         <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
                             3. Row Level
@@ -1377,7 +1400,7 @@
                         <p id="drawer-row-info" class="mt-1 text-[11px] text-outline"></p>
                     </div>
 
-                    {{-- 4. BIN --}}
+                    
                     <div>
                         <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
                             4. Bin Box Slot
@@ -1395,7 +1418,7 @@
                 </div>
 
 
-                {{-- OKUPANSI RAK TERPILIH --}}
+                
                 <div id="drawer-occupancy-wrap" class="hidden rounded-xl bg-surface-container p-stack-sm">
 
                     <div class="flex items-center justify-between mb-2">
@@ -1423,7 +1446,7 @@
                 </div>
 
 
-                {{-- ISI BIN TERPILIH (kalau sudah terisi barang lain) --}}
+                
                 <div id="drawer-bin-isi-wrap" class="hidden rounded-lg bg-tertiary-fixed/60 border border-tertiary/20 p-stack-sm text-[12px] text-on-tertiary-fixed-variant">
                     <span class="font-label-bold">Perhatian:</span>
                     <span id="drawer-bin-isi-text"></span>
@@ -1432,7 +1455,7 @@
             </div>
 
 
-            {{-- FOOTER --}}
+            
             <div class="p-container-padding border-t border-outline-variant flex items-center justify-end gap-stack-sm bg-surface-container-low">
 
                 <button
@@ -1460,9 +1483,7 @@
 
 
 
-        {{-- =====================================================
-            UPLOAD FOTO + ESTIMASI KAPASITAS GUDANG
-        ====================================================== --}}
+        
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
 
         <div class="bg-surface-container-lowest p-container-padding rounded-xl shadow-sm">
@@ -1494,7 +1515,7 @@
                 </div>
 
 
-                @if($canEdit)
+                <?php if($canEdit): ?>
 
                     <label
                         for="foto_penerimaan"
@@ -1509,13 +1530,13 @@
 
                     </label>
 
-                @endif
+                <?php endif; ?>
 
             </div>
 
 
-            {{-- INPUT FILE --}}
-            @if($canEdit)
+            
+            <?php if($canEdit): ?>
 
                 <input
                     id="foto_penerimaan"
@@ -1526,10 +1547,10 @@
                     class="hidden"
                 >
 
-            @endif
+            <?php endif; ?>
 
 
-            {{-- INFO --}}
+            
             <div class="mt-4 rounded-lg bg-surface-container-low border border-outline-variant p-3">
 
                 <div class="flex items-start gap-2">
@@ -1556,8 +1577,8 @@
             </div>
 
 
-            {{-- EXISTING FILES --}}
-            @if($penerimaan->buktiDukungs->count())
+            
+            <?php if($penerimaan->buktiDukungs->count()): ?>
 
                 <div class="mt-4">
 
@@ -1568,59 +1589,62 @@
                         </span>
 
                         <span class="px-2 py-0.5 rounded-full bg-surface-container text-[10px] font-label-bold text-on-surface-variant">
-                            {{ $penerimaan->buktiDukungs->count() }} File
+                            <?php echo e($penerimaan->buktiDukungs->count()); ?> File
                         </span>
 
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
 
-                        @foreach($penerimaan->buktiDukungs as $bukti)
+                        <?php $__currentLoopData = $penerimaan->buktiDukungs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bukti): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                            @if($bukti->path_file ?? false)
+                            <?php if($bukti->path_file ?? false): ?>
 
                                 <div class="relative rounded-lg overflow-hidden border border-outline-variant bg-surface-container group">
 
                                     <a
-                                        href="{{ asset('storage/' . $bukti->path_file) }}"
+                                        href="<?php echo e(asset('storage/' . $bukti->path_file)); ?>"
                                         target="_blank"
                                         rel="noopener"
                                     >
                                         <img
-                                            src="{{ asset('storage/' . $bukti->path_file) }}"
-                                            alt="{{ $bukti->nama_file ?? 'Dokumentasi penerimaan' }}"
+                                            src="<?php echo e(asset('storage/' . $bukti->path_file)); ?>"
+                                            alt="<?php echo e($bukti->nama_file ?? 'Dokumentasi penerimaan'); ?>"
                                             class="w-full h-28 object-cover group-hover:opacity-90 transition-opacity"
                                         >
                                     </a>
 
                                     <div class="px-2 py-1.5 bg-surface-container-lowest">
 
-                                        <p class="text-[10px] font-label-bold text-on-surface truncate" title="{{ $bukti->nama_file }}">
-                                            {{ $bukti->nama_file ?? 'foto.jpg' }}
+                                        <p class="text-[10px] font-label-bold text-on-surface truncate" title="<?php echo e($bukti->nama_file); ?>">
+                                            <?php echo e($bukti->nama_file ?? 'foto.jpg'); ?>
+
                                         </p>
 
                                         <p class="text-[9px] text-outline truncate">
-                                            {{ $bukti->creator?->name ?? 'Petugas' }}
+                                            <?php echo e($bukti->creator?->name ?? 'Petugas'); ?>
+
                                             &bull;
-                                            {{ $bukti->created_at?->format('d M Y H:i') }}
+                                            <?php echo e($bukti->created_at?->format('d M Y H:i')); ?>
+
                                         </p>
 
                                     </div>
 
                                 </div>
 
-                            @endif
+                            <?php endif; ?>
 
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                     </div>
 
                 </div>
 
-            @endif
+            <?php endif; ?>
 
 
-            {{-- PREVIEW BARU --}}
+            
             <div
                 id="photo-preview"
                 class="hidden mt-4"
@@ -1652,7 +1676,7 @@
         </div>
 
 
-        {{-- ESTIMASI KAPASITAS GUDANG --}}
+        
         <div class="bg-surface-container-lowest p-container-padding rounded-xl shadow-sm flex flex-col gap-stack-sm">
 
             <div class="flex items-start gap-stack-sm">
@@ -1679,25 +1703,25 @@
                         Okupansi Seluruh Gudang
                     </span>
                     <span class="font-label-bold text-[14px] text-primary">
-                        {{ $capacitySummary['occupancy_percent'] }}%
+                        <?php echo e($capacitySummary['occupancy_percent']); ?>%
                     </span>
                 </div>
 
                 <div class="w-full h-3 rounded-full bg-surface-container-high overflow-hidden flex">
-                    <div class="h-full bg-primary transition-all" style="width: {{ $capacitySummary['occupancy_percent'] }}%"></div>
+                    <div class="h-full bg-primary transition-all" style="width: <?php echo e($capacitySummary['occupancy_percent']); ?>%"></div>
                 </div>
 
                 <div class="flex items-center gap-4 mt-3 text-[12px] text-on-surface-variant">
                     <span class="flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-primary"></span>
-                        {{ number_format($capacitySummary['bin_terisi']) }} Bin Terisi
+                        <?php echo e(number_format($capacitySummary['bin_terisi'])); ?> Bin Terisi
                     </span>
                     <span class="flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-surface-container-high border border-outline-variant"></span>
-                        {{ number_format($capacitySummary['bin_kosong']) }} Bin Kosong
+                        <?php echo e(number_format($capacitySummary['bin_kosong'])); ?> Bin Kosong
                     </span>
                     <span class="text-outline">
-                        dari {{ number_format($capacitySummary['total_bin']) }} total slot bin
+                        dari <?php echo e(number_format($capacitySummary['total_bin'])); ?> total slot bin
                     </span>
                 </div>
 
@@ -1714,9 +1738,7 @@
 
       
 
-        {{-- =====================================================
-            PANDUAN AKSI DOKUMEN — beda dampak Simpan Draft vs Submit
-        ====================================================== --}}
+        
         <div class="rounded-xl border border-outline-variant bg-surface-container-low p-container-padding flex flex-col gap-stack-sm">
 
             <div class="flex items-start gap-2">
@@ -1765,9 +1787,7 @@
         </div>
 
 
-        {{-- =====================================================
-            BOTTOM ACTION BAR
-        ====================================================== --}}
+        
         <div class="sticky bottom-4 z-30 w-full bg-surface-container-lowest/95 backdrop-blur-xl p-container-padding rounded-xl shadow-xl border border-outline-variant flex flex-col xl:flex-row items-start xl:items-center justify-between gap-stack-md">
 
             <div class="flex items-start gap-stack-sm">
@@ -1792,23 +1812,25 @@
                             id="verification-counter"
                             class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-bold text-[11px]"
                         >
-                            {{ $totalSku }} Item
+                            <?php echo e($totalSku); ?> Item
                         </span>
 
                     </div>
 
                     <span
                         id="location-warning"
-                        class="font-body-sm text-[12px] {{ $itemBelumLokasi > 0 ? 'text-tertiary' : 'text-primary' }} font-label-bold flex items-center gap-1 mt-0.5"
+                        class="font-body-sm text-[12px] <?php echo e($itemBelumLokasi > 0 ? 'text-tertiary' : 'text-primary'); ?> font-label-bold flex items-center gap-1 mt-0.5"
                     >
 
                         <span class="material-symbols-outlined text-[15px]">
-                            {{ $itemBelumLokasi > 0 ? 'pending_actions' : 'check_circle' }}
+                            <?php echo e($itemBelumLokasi > 0 ? 'pending_actions' : 'check_circle'); ?>
+
                         </span>
 
-                        {{ $itemBelumLokasi > 0
+                        <?php echo e($itemBelumLokasi > 0
                             ? $itemBelumLokasi . ' item masih membutuhkan lokasi'
-                            : 'Seluruh item baik sudah memiliki lokasi' }}
+                            : 'Seluruh item baik sudah memiliki lokasi'); ?>
+
 
                     </span>
 
@@ -1820,7 +1842,7 @@
             <div class="flex flex-wrap items-center gap-stack-sm w-full xl:w-auto justify-end">
 
                 <a
-                    href="{{ route('penerimaan.index') }}"
+                    href="<?php echo e(route('penerimaan.index')); ?>"
                     class="px-stack-md py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-bold text-body-sm border border-outline-variant transition-colors"
                 >
                     Batal / Kembali
@@ -1842,7 +1864,7 @@
                 </button>
 
 
-                @if($canEdit)
+                <?php if($canEdit): ?>
 
                     <button
                         type="button"
@@ -1883,7 +1905,7 @@
 
                     </button>
 
-                @elseif($status === 'PENDING_DIREKTUR')
+                <?php elseif($status === 'PENDING_DIREKTUR'): ?>
 
                     <button
                         type="button"
@@ -1909,7 +1931,7 @@
                         </div>
                     </button>
 
-                @elseif($status === 'APPROVED')
+                <?php elseif($status === 'APPROVED'): ?>
 
                     <div class="px-container-padding py-2.5 rounded-lg bg-green-50 border border-green-200 flex items-center gap-stack-sm">
 
@@ -1922,15 +1944,16 @@
                                 Disetujui &amp; Stok Sudah Diperbarui
                             </span>
                             <span class="text-[11px] text-green-600">
-                                Oleh {{ $penerimaan->direkturBy?->name ?? '-' }}
+                                Oleh <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?>
+
                                 &bull;
-                                {{ $penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-' }} WIB
+                                <?php echo e($penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-'); ?> WIB
                             </span>
                         </div>
 
                     </div>
 
-                @elseif($status === 'REJECTED')
+                <?php elseif($status === 'REJECTED'): ?>
 
                     <div class="px-container-padding py-2.5 rounded-lg bg-red-50 border border-red-200 flex items-center gap-stack-sm">
 
@@ -1943,26 +1966,28 @@
                                 Ditolak Direktur — Perlu Direvisi
                             </span>
                             <span class="text-[11px] text-red-600">
-                                Oleh {{ $penerimaan->direkturBy?->name ?? '-' }}
+                                Oleh <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?>
+
                                 &bull;
-                                {{ $penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-' }} WIB
+                                <?php echo e($penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-'); ?> WIB
                             </span>
-                            @if($penerimaan->catatan_approval)
+                            <?php if($penerimaan->catatan_approval): ?>
                                 <span class="text-[11px] text-red-700 mt-1 italic">
-                                    "{{ $penerimaan->catatan_approval }}"
+                                    "<?php echo e($penerimaan->catatan_approval); ?>"
                                 </span>
-                            @endif
+                            <?php endif; ?>
                         </div>
 
                     </div>
 
-                @else
+                <?php else: ?>
 
                     <span class="px-4 py-2.5 rounded-lg bg-surface-container text-on-surface-variant font-label-bold text-sm">
-                        {{ $statusLabel }}
+                        <?php echo e($statusLabel); ?>
+
                     </span>
 
-                @endif
+                <?php endif; ?>
 
             </div>
 
@@ -1973,10 +1998,8 @@
 </div>
 
 
-    {{-- =============================================================
-        MODAL: TOLAK PENERIMAAN (alasan penolakan direktur)
-    ============================================================= --}}
-    @if($status === 'PENDING_DIREKTUR')
+    
+    <?php if($status === 'PENDING_DIREKTUR'): ?>
 
         <div
             id="reject-modal-overlay"
@@ -2046,24 +2069,22 @@
 
         </div>
 
-    @endif
+    <?php endif; ?>
 
 
-{{-- =============================================================
-    JAVASCRIPT
-============================================================= --}}
+
 <script>
 
     const form = document.getElementById('verification-form');
 
-    const saveDraftUrl = @json(route('penerimaan.save-draft', $penerimaan));
-    const submitUrl = @json(route('penerimaan.submit', $penerimaan));
-    const uploadBuktiUrl = @json(route('penerimaan.bukti-dukung.upload', $penerimaan));
-    const indexUrl = @json(route('penerimaan.index'));
-    const approveUrl = @json(route('penerimaan.approval-direktur.approve', $penerimaan));
-    const rejectUrl = @json(route('penerimaan.approval-direktur.reject', $penerimaan));
+    const saveDraftUrl = <?php echo json_encode(route('penerimaan.save-draft', $penerimaan), 512) ?>;
+    const submitUrl = <?php echo json_encode(route('penerimaan.submit', $penerimaan), 512) ?>;
+    const uploadBuktiUrl = <?php echo json_encode(route('penerimaan.bukti-dukung.upload', $penerimaan), 512) ?>;
+    const indexUrl = <?php echo json_encode(route('penerimaan.index'), 15, 512) ?>;
+    const approveUrl = <?php echo json_encode(route('penerimaan.approval-direktur.approve', $penerimaan), 512) ?>;
+    const rejectUrl = <?php echo json_encode(route('penerimaan.approval-direktur.reject', $penerimaan), 512) ?>;
 
-    const canEdit = @json($canEdit);
+    const canEdit = <?php echo json_encode($canEdit, 15, 512) ?>;
 
 
     /*
@@ -2162,24 +2183,24 @@
     */
 
     const lokasiUrls = {
-        gudang: @json(route('penerimaan.lokasi.gudang')),
-        rak: @json(route('penerimaan.lokasi.rak')),
-        row: @json(route('penerimaan.lokasi.row')),
-        bin: @json(route('penerimaan.lokasi.bin')),
+        gudang: <?php echo json_encode(route('penerimaan.lokasi.gudang'), 15, 512) ?>,
+        rak: <?php echo json_encode(route('penerimaan.lokasi.rak'), 15, 512) ?>,
+        row: <?php echo json_encode(route('penerimaan.lokasi.row'), 15, 512) ?>,
+        bin: <?php echo json_encode(route('penerimaan.lokasi.bin'), 15, 512) ?>,
     };
 
     // Peta id_lokasi -> {gudang_id, rak_id, row_id, label} dari data yang sudah
     // dirender server (dipakai untuk preselect cascading saat drawer dibuka
     // untuk baris yang sudah punya bin).
     const lokasiIndex = {};
-    @foreach($lokasiOptions as $lokasiOption)
-        lokasiIndex[{{ $lokasiOption['id'] }}] = {
-            gudangId: {{ $lokasiOption['gudang_id'] ?? 'null' }},
-            rakId: {{ $lokasiOption['rak_id'] ?? 'null' }},
-            rowId: {{ $lokasiOption['row_id'] ?? 'null' }},
-            label: @json($lokasiOption['label']),
+    <?php $__currentLoopData = $lokasiOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lokasiOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        lokasiIndex[<?php echo e($lokasiOption['id']); ?>] = {
+            gudangId: <?php echo e($lokasiOption['gudang_id'] ?? 'null'); ?>,
+            rakId: <?php echo e($lokasiOption['rak_id'] ?? 'null'); ?>,
+            rowId: <?php echo e($lokasiOption['row_id'] ?? 'null'); ?>,
+            label: <?php echo json_encode($lokasiOption['label'], 15, 512) ?>,
         };
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
     let drawerState = {
         detailId: null,
@@ -3188,7 +3209,7 @@
 </script>
 
 
-@push('head')
+<?php $__env->startPush('head'); ?>
 
 <style>
 
@@ -3226,6 +3247,7 @@
 
 </style>
 
-@endpush
+<?php $__env->stopPush(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\WareHouse\resources\views/penerimaan/verifikasi.blade.php ENDPATH**/ ?>

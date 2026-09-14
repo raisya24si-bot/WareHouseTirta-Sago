@@ -25,7 +25,6 @@
                 <span class="text-[12px] text-outline font-sidebar-nav">Shift Pagi • Bay A2-A4</span>
             </div>
             <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">Penerimaan Barang Masuk (Goods Receipt Note - GRN)</h1>
-            <p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl mt-1">Kelola pencatatan dan verifikasi material jaringan air minum, perpipaan, sambungan rumah (SR), meter air, serta aksesoris distribusi dari vendor terdaftar.</p>
         </div>
 
         <div class="flex items-center gap-stack-sm shrink-0">

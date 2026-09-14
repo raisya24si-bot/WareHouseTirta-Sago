@@ -27,11 +27,6 @@
                 <span class="text-[12px] text-outline font-sidebar-nav">Direktur Operasional</span>
             </div>
             <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">Persetujuan Akhir Penerimaan Barang (GRN)</h1>
-            <p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl mt-1">
-                Dokumen di halaman ini sudah lolos verifikasi fisik &amp; alokasi bin oleh petugas gudang.
-                Setujui untuk mengunci dokumen dan memperbarui stok gudang secara otomatis, atau tolak untuk
-                dikembalikan diperbaiki.
-            </p>
         </div>
     </div>
 
