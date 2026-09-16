@@ -251,7 +251,7 @@
 
                   <a
                     href="<?php echo e(route('penerimaan.index')); ?>"
-                    class="<?php echo e(request()->routeIs('penerimaan.*') && ! request()->routeIs('penerimaan.approval-direktur.*')
+                    class="<?php echo e(request()->routeIs('penerimaan.*') && ! request()->routeIs('penerimaan.approval.*')
                         ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
                         : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
 
@@ -266,27 +266,10 @@
                     </span>
                 </a>
 
-                <a
-                    href="<?php echo e(route('penerimaan.approval-direktur.index')); ?>"
-                    class="<?php echo e(request()->routeIs('penerimaan.approval-direktur.*')
-                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
-                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
 
-                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group <?php echo e(request()->routeIs('penerimaan.approval-direktur.*') ? '' : 'hover:pl-5'); ?>"
-                >
-                    <span class="material-symbols-outlined mr-3 text-[20px] <?php echo e(request()->routeIs('penerimaan.approval-direktur.*') ? '' : 'text-outline group-hover:text-primary transition-colors'); ?>" <?php if(request()->routeIs('penerimaan.approval-direktur.*')): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
-                        task_alt
-                    </span>
-
-                    <span class="text-sidebar-nav font-sidebar-nav">
-                        Approval Direktur (GRN)
-                    </span>
-                </a>
-
-
-                <!-- Antrean Persetujuan -->
+                
                 <?php
-                    $isApprovalActive = request()->routeIs('approval.*');
+                    $isApprovalActive = request()->routeIs('approval.*') || request()->routeIs('penerimaan.approval.*');
                 ?>
 
                 <button
@@ -298,8 +281,8 @@
                         pending_actions
                     </span>
 
-                    <span class="text-sidebar-nav font-sidebar-nav flex-1 text-left">
-                        Antrean Persetujuan
+                    <span class="text-sidebar-nav font-sidebar-nav font-bold flex-1 text-left">
+                        Approval
                     </span>
 
                     <span
@@ -311,28 +294,71 @@
 
                 <div
                     id="approval-menu"
-                    class="ml-4 mt-1 space-y-0.5 border-l-2 border-outline-variant pl-2 overflow-hidden transition-all duration-200 <?php echo e($isApprovalActive ? '' : 'hidden'); ?>">
+                    class="ml-4 mt-1 space-y-3 border-l-2 border-outline-variant pl-2 overflow-hidden transition-all duration-200 <?php echo e($isApprovalActive ? '' : 'hidden'); ?>">
 
-                    <?php $__currentLoopData = \App\Models\Po::LEVELS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug => $levelConfig): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval PO
+                        </p>
 
-                        <a href="<?php echo e(route('approval.index', $slug)); ?>"
-                        class="<?php echo e(request()->routeIs('approval.*') && request()->route('level') === $slug
-                                ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
-                                : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
+                        <div class="space-y-0.5">
 
-                                flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+                            <?php $__currentLoopData = \App\Models\Po::LEVELS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug => $levelConfig): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                            <span class="material-symbols-outlined mr-3 text-[19px]" <?php if(request()->route('level') === $slug): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
-                                fact_check
-                            </span>
+                                <a href="<?php echo e(route('approval.index', $slug)); ?>"
+                                class="<?php echo e(request()->routeIs('approval.*') && request()->route('level') === $slug
+                                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
 
-                            <span class="text-sidebar-nav font-sidebar-nav">
-                                <?php echo e($levelConfig['label']); ?>
+                                        flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
 
-                            </span>
-                        </a>
+                                    <span class="material-symbols-outlined mr-3 text-[19px]" <?php if(request()->routeIs('approval.*') && request()->route('level') === $slug): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
+                                        fact_check
+                                    </span>
 
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <span class="text-sidebar-nav font-sidebar-nav">
+                                        <?php echo e($levelConfig['label']); ?>
+
+                                    </span>
+                                </a>
+
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval Barang Masuk
+                        </p>
+
+                        <div class="space-y-0.5">
+
+                            <?php $__currentLoopData = \App\Models\PenerimaanBarang::LEVELS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug => $levelConfig): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                                <a href="<?php echo e(route('penerimaan.approval.index', $slug)); ?>"
+                                class="<?php echo e(request()->routeIs('penerimaan.approval.*') && request()->route('level') === $slug
+                                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
+
+                                        flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+
+                                    <span class="material-symbols-outlined mr-3 text-[19px]" <?php if(request()->routeIs('penerimaan.approval.*') && request()->route('level') === $slug): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
+                                        move_to_inbox
+                                    </span>
+
+                                    <span class="text-sidebar-nav font-sidebar-nav">
+                                        <?php echo e($levelConfig['label']); ?>
+
+                                    </span>
+                                </a>
+
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                        </div>
+                    </div>
 
                 </div>
 

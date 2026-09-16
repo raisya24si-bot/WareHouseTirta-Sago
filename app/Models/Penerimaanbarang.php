@@ -21,6 +21,7 @@ class PenerimaanBarang extends Model
         'approve_kasubag_by', 'approve_kasubag_at',
         'approve_kabag_by', 'approve_kabag_at',
         'approve_direktur_by', 'approve_direktur_at',
+        'reject_by', 'reject_at', 'reject_level', 'reject_note',
         'catatan_approval',
         'created_by', 'updated_by', 'deleted_by',
     ];
@@ -31,6 +32,7 @@ class PenerimaanBarang extends Model
         'approve_kasubag_at' => 'datetime',
         'approve_kabag_at' => 'datetime',
         'approve_direktur_at' => 'datetime',
+        'reject_at' => 'datetime',
     ];
 
     public const LEVELS = [
@@ -99,6 +101,11 @@ class PenerimaanBarang extends Model
     public function direkturBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approve_direktur_by');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reject_by');
     }
 
     public function getKodeStatusAttribute(): ?string

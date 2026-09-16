@@ -34,6 +34,15 @@
 
     $canEdit = $penerimaan->canBeEdited();
 
+    // Level approval mana yang sedang menunggu keputusan sekarang
+    // (kasubag / kabag / direktur), null kalau dokumen tidak sedang
+    // menunggu approval siapa pun (draft / rejected / approved).
+    $pendingLevel = collect(\App\Models\PenerimaanBarang::LEVELS)
+        ->search(fn ($cfg) => $cfg['status'] === $status);
+    $pendingLevel = $pendingLevel !== false ? $pendingLevel : null;
+    $pendingLevelConfig = $pendingLevel ? \App\Models\PenerimaanBarang::LEVELS[$pendingLevel] : null;
+    $isFinalPendingLevel = $pendingLevelConfig && $pendingLevelConfig['next_status'] === 'APPROVED';
+
     $totalQtyPo = $penerimaan->details->sum('qty_request');
     $totalBaik = $penerimaan->details->sum('qty_baik');
     $totalRusak = $penerimaan->details->sum('qty_rusak');
@@ -253,26 +262,27 @@
                 <span class="hidden sm:block w-8 h-0.5 bg-outline-variant"></span>
 
                 
-                <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-full <?php echo e($status === 'APPROVED' ? 'bg-green-100 text-green-600' : ($status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-surface-container-high text-outline')); ?> flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[15px]">
-                            <?php echo e($status === 'APPROVED' ? 'check' : ($status === 'REJECTED' ? 'close' : 'hourglass_empty')); ?>
-
-                        </span>
-                    </span>
-                    <div class="flex flex-col leading-tight">
-                        <span class="text-[12px] font-label-bold text-on-surface">Direktur</span>
-                        <span class="text-[11px] <?php echo e($status === 'REJECTED' ? 'text-red-600' : 'text-on-surface-variant'); ?>">
-                            <?php if($penerimaan->approve_direktur_at): ?>
-                                <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?> &bull; <?php echo e($penerimaan->approve_direktur_at->translatedFormat('d M Y, H:i')); ?>
-
-                                — <?php echo e($status === 'APPROVED' ? 'Disetujui' : 'Ditolak'); ?>
-
-                            <?php else: ?>
-                                Menunggu keputusan
-                            <?php endif; ?>
-                        </span>
-                    </div>
+                <div class="flex-1 min-w-[220px]">
+                    <?php if (isset($component)) { $__componentOriginal3f3597844b6fe73f5cd8d6daefd2379b = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal3f3597844b6fe73f5cd8d6daefd2379b = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.penerimaan.approval-status','data' => ['penerimaan' => $penerimaan,'compact' => true,'withDetails' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('penerimaan.approval-status'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['penerimaan' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($penerimaan),'compact' => true,'with-details' => true]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal3f3597844b6fe73f5cd8d6daefd2379b)): ?>
+<?php $attributes = $__attributesOriginal3f3597844b6fe73f5cd8d6daefd2379b; ?>
+<?php unset($__attributesOriginal3f3597844b6fe73f5cd8d6daefd2379b); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal3f3597844b6fe73f5cd8d6daefd2379b)): ?>
+<?php $component = $__componentOriginal3f3597844b6fe73f5cd8d6daefd2379b; ?>
+<?php unset($__componentOriginal3f3597844b6fe73f5cd8d6daefd2379b); ?>
+<?php endif; ?>
                 </div>
 
             </div>
@@ -1388,7 +1398,7 @@
                     
                     <div>
                         <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
-                            3. Row Level
+                            3. Tingkat / Row Level
                         </label>
                         <select
                             id="drawer-select-row"
@@ -1736,7 +1746,6 @@
         </div>
 
 
-      
 
         
         <div class="rounded-xl border border-outline-variant bg-surface-container-low p-container-padding flex flex-col gap-stack-sm">
@@ -1776,8 +1785,8 @@
                     <div class="flex flex-col text-[12px]">
                         <span class="font-label-bold text-primary">Submit (Finalisasi):</span>
                         <span class="text-on-surface-variant">
-                            Mengunci dokumen GRN &amp; <span class="font-label-bold text-on-surface">mengirim ke antrian approval Direktur</span>.
-                            Stok gudang baru diperbarui otomatis setelah Direktur menyetujui.
+                            Mengunci dokumen GRN &amp; <span class="font-label-bold text-on-surface">mengirim ke antrian approval <?php echo e(\App\Models\PenerimaanBarang::LEVELS['kasubag']['label']); ?></span>.
+                            Dokumen berjalan Kasubag &rarr; Kabag &rarr; Direktur; stok gudang baru diperbarui otomatis setelah Direktur menyetujui.
                         </span>
                     </div>
                 </div>
@@ -1898,14 +1907,15 @@
                             </span>
 
                             <span class="text-[10px] font-normal text-on-primary/80">
-                                Kirim ke Antrian Approval Direktur
+                                Kirim ke Antrian Approval <?php echo e(\App\Models\PenerimaanBarang::LEVELS['kasubag']['label']); ?>
+
                             </span>
 
                         </div>
 
                     </button>
 
-                <?php elseif($status === 'PENDING_DIREKTUR'): ?>
+                <?php elseif($pendingLevel): ?>
 
                     <button
                         type="button"
@@ -1924,9 +1934,10 @@
                         <span class="material-symbols-outlined text-[20px]">task_alt</span>
 
                         <div class="flex flex-col items-start leading-tight">
-                            <span>Setujui (Approve)</span>
+                            <span>Setujui (Approve) &mdash; <?php echo e($pendingLevelConfig['label']); ?></span>
                             <span class="text-[10px] font-normal text-on-primary/80">
-                                Update stok gudang & kunci dokumen
+                                <?php echo e($isFinalPendingLevel ? 'Update stok gudang & kunci dokumen' : 'Teruskan ke tingkat berikutnya'); ?>
+
                             </span>
                         </div>
                     </button>
@@ -1963,17 +1974,17 @@
 
                         <div class="flex flex-col leading-tight">
                             <span class="font-label-bold text-body-sm text-red-700">
-                                Ditolak Direktur — Perlu Direvisi
+                                Ditolak <?php echo e($penerimaan->reject_level ? \App\Models\PenerimaanBarang::LEVELS[strtolower($penerimaan->reject_level)]['label'] ?? $penerimaan->reject_level : ''); ?> — Perlu Direvisi
                             </span>
                             <span class="text-[11px] text-red-600">
-                                Oleh <?php echo e($penerimaan->direkturBy?->name ?? '-'); ?>
+                                Oleh <?php echo e($penerimaan->rejectedBy?->name ?? '-'); ?>
 
                                 &bull;
-                                <?php echo e($penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-'); ?> WIB
+                                <?php echo e($penerimaan->reject_at?->translatedFormat('d M Y, H:i') ?? '-'); ?> WIB
                             </span>
-                            <?php if($penerimaan->catatan_approval): ?>
+                            <?php if($penerimaan->reject_note ?? $penerimaan->catatan_approval): ?>
                                 <span class="text-[11px] text-red-700 mt-1 italic">
-                                    "<?php echo e($penerimaan->catatan_approval); ?>"
+                                    "<?php echo e($penerimaan->reject_note ?? $penerimaan->catatan_approval); ?>"
                                 </span>
                             <?php endif; ?>
                         </div>
@@ -1999,7 +2010,7 @@
 
 
     
-    <?php if($status === 'PENDING_DIREKTUR'): ?>
+    <?php if($pendingLevel): ?>
 
         <div
             id="reject-modal-overlay"
@@ -2081,8 +2092,8 @@
     const submitUrl = <?php echo json_encode(route('penerimaan.submit', $penerimaan), 512) ?>;
     const uploadBuktiUrl = <?php echo json_encode(route('penerimaan.bukti-dukung.upload', $penerimaan), 512) ?>;
     const indexUrl = <?php echo json_encode(route('penerimaan.index'), 15, 512) ?>;
-    const approveUrl = <?php echo json_encode(route('penerimaan.approval-direktur.approve', $penerimaan), 512) ?>;
-    const rejectUrl = <?php echo json_encode(route('penerimaan.approval-direktur.reject', $penerimaan), 512) ?>;
+    const approveUrl = <?php echo json_encode($pendingLevel ? route('penerimaan.approval.approve', [$pendingLevel, $penerimaan]) : null) ?>;
+    const rejectUrl = <?php echo json_encode($pendingLevel ? route('penerimaan.approval.reject', [$pendingLevel, $penerimaan]) : null) ?>;
 
     const canEdit = <?php echo json_encode($canEdit, 15, 512) ?>;
 

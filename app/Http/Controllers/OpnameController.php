@@ -1232,6 +1232,19 @@ class OpnameController extends Controller
                     +
                     $rusak;
 
+                /*
+                | Catat asal batch rusak ini supaya bisa dilacak balik --
+                | reff_number pakai kode opname-nya, reff_from = 'OPNAME'.
+                | Kalau bin REJECTED yang sama sebelumnya keisi dari
+                | transaksi lain, reff ini nimpa jadi yang paling baru.
+                */
+
+                $stokRejected->reff_number =
+                    $opname->kd_opname;
+
+                $stokRejected->reff_from =
+                    'OPNAME';
+
                 $stokRejected->updated_by =
                     $userId;
 

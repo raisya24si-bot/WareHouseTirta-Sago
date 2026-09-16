@@ -316,12 +316,8 @@
                                     <span class="material-symbols-outlined text-[14px]">edit_note</span> <?php echo e($kodeStatus === 'REJECTED' ? 'Perbaiki' : 'Lanjutkan Draft'); ?>
 
                                 </a>
-                            <?php elseif($isPending): ?>
-                                <a href="<?php echo e(route('penerimaan.verifikasi', $penerimaan)); ?>" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all">
-                                    <span class="material-symbols-outlined text-[14px]">fact_check</span> <?php echo e($hasLocation ? 'Proses Putaway' : 'Verifikasi & Alokasi'); ?>
-
-                                </a>
                             <?php else: ?>
+                                
                                 <div class="flex items-center justify-center gap-1">
                                     <a href="<?php echo e(route('penerimaan.verifikasi', $penerimaan)); ?>" class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Lihat Detail">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>

@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApprovalController;
-use App\Http\Controllers\ApprovalDirekturController;
+use App\Http\Controllers\ApprovalPenerimaanController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ManajemenStokController;
 use App\Http\Controllers\MasterBarangController;
@@ -570,25 +570,28 @@ Route::middleware('auth')->group(function () {
                     [PenerimaanController::class, 'submit']
                 )->name('submit');
 
-                // Antrean approval Direktur untuk GRN (bukan PO — lihat
-                // grup 'approval.*' di atas yang khusus untuk approval PO).
-                Route::prefix('approval-direktur')
-                    ->name('approval-direktur.')
+                // Antrean approval GRN, bertingkat sama seperti approval PO
+                // di atas: Kasubag -> Kabag -> Direktur (lihat
+                // PenerimaanBarang::LEVELS). Beda dari grup 'approval.*' di
+                // atas yang khusus untuk approval PO.
+                Route::prefix('approval/{level}')
+                    ->name('approval.')
+                    ->where(['level' => 'kasubag|kabag|direktur'])
                     ->group(function () {
 
                         Route::get(
                             '/',
-                            [ApprovalDirekturController::class, 'index']
+                            [ApprovalPenerimaanController::class, 'index']
                         )->name('index');
 
                         Route::post(
                             '/{penerimaan}/approve',
-                            [ApprovalDirekturController::class, 'approve']
+                            [ApprovalPenerimaanController::class, 'approve']
                         )->name('approve');
 
                         Route::post(
                             '/{penerimaan}/reject',
-                            [ApprovalDirekturController::class, 'reject']
+                            [ApprovalPenerimaanController::class, 'reject']
                         )->name('reject');
 
                     });

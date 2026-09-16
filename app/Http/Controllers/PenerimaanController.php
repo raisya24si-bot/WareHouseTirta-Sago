@@ -688,7 +688,10 @@ class PenerimaanController extends Controller
             'buktiDukungs.creator',
 
             'submittedBy',
+            'kasubagBy',
+            'kabagBy',
             'direkturBy',
+            'rejectedBy',
         ]);
 
 
@@ -1201,16 +1204,14 @@ class PenerimaanController extends Controller
         ]);
 
 
-        // Catatan: idealnya alur ini lewat Kasubag -> Kabag dulu sebelum
-        // Direktur (lihat PenerimaanBarang::LEVELS). Karena halaman approval
-        // Kasubag & Kabag belum dibuat, submit langsung mengarah ke antrian
-        // Direktur supaya alur tetap jalan. Kalau nanti halaman Kasubag/Kabag
-        // dibuat, cukup ganti baris di bawah ini ke 'PENDING_KASUBAG'.
+        // Alur approval GRN bertingkat: Kasubag -> Kabag -> Direktur
+        // (lihat PenerimaanBarang::LEVELS). Submit selalu mulai dari
+        // antrian level pertama.
         $nextStatus =
             MasterStatusPenerimaanBarang::query()
                 ->where(
                     'kd_status_penerimaan_barang',
-                    'PENDING_DIREKTUR'
+                    \App\Models\PenerimaanBarang::LEVELS['kasubag']['status']
                 )
                 ->firstOrFail();
 

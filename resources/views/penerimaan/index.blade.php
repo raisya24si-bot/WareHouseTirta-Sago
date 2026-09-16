@@ -309,11 +309,10 @@
                                 <a href="{{ route('penerimaan.verifikasi', $penerimaan) }}" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-surface-container text-on-surface font-label-bold text-[12px] hover:bg-surface-container-high transition-all">
                                     <span class="material-symbols-outlined text-[14px]">edit_note</span> {{ $kodeStatus === 'REJECTED' ? 'Perbaiki' : 'Lanjutkan Draft' }}
                                 </a>
-                            @elseif($isPending)
-                                <a href="{{ route('penerimaan.verifikasi', $penerimaan) }}" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-primary font-label-bold text-[12px] shadow-sm hover:bg-primary-container transition-all">
-                                    <span class="material-symbols-outlined text-[14px]">fact_check</span> {{ $hasLocation ? 'Proses Putaway' : 'Verifikasi & Alokasi' }}
-                                </a>
                             @else
+                                {{-- Sudah disubmit (menunggu approval Kasubag/Kabag/Direktur) atau
+                                     sudah selesai -- petugas cuma boleh lihat & cetak dari sini,
+                                     bukan ikut memutuskan approve/tolak dari halaman list ini. --}}
                                 <div class="flex items-center justify-center gap-1">
                                     <a href="{{ route('penerimaan.verifikasi', $penerimaan) }}" class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Lihat Detail">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>

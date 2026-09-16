@@ -34,6 +34,22 @@
 
     $canEdit = $penerimaan->canBeEdited();
 
+    // Level approval mana yang sedang menunggu keputusan sekarang
+    // (kasubag / kabag / direktur), null kalau dokumen tidak sedang
+    // menunggu approval siapa pun (draft / rejected / approved).
+    $pendingLevel = collect(\App\Models\PenerimaanBarang::LEVELS)
+        ->search(fn ($cfg) => $cfg['status'] === $status);
+    $pendingLevel = $pendingLevel !== false ? $pendingLevel : null;
+    $pendingLevelConfig = $pendingLevel ? \App\Models\PenerimaanBarang::LEVELS[$pendingLevel] : null;
+    $isFinalPendingLevel = $pendingLevelConfig && $pendingLevelConfig['next_status'] === 'APPROVED';
+
+    // Petugas yang men-submit dokumen ini tidak berhak menyetujui /
+    // menolak dokumennya sendiri, jadi tombol Approve/Reject harus
+    // disembunyikan dari dia meskipun statusnya sedang menunggu
+    // approval. Dia hanya boleh melihat & mencetak dari sini.
+    $isSubmitter = auth()->id() && $penerimaan->submit_by == auth()->id();
+    $canReviewApproval = $pendingLevel && ! $isSubmitter;
+
     $totalQtyPo = $penerimaan->details->sum('qty_request');
     $totalBaik = $penerimaan->details->sum('qty_baik');
     $totalRusak = $penerimaan->details->sum('qty_rusak');
@@ -254,24 +270,9 @@
 
                 <span class="hidden sm:block w-8 h-0.5 bg-outline-variant"></span>
 
-                {{-- DIREKTUR --}}
-                <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-full {{ $status === 'APPROVED' ? 'bg-green-100 text-green-600' : ($status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-surface-container-high text-outline') }} flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[15px]">
-                            {{ $status === 'APPROVED' ? 'check' : ($status === 'REJECTED' ? 'close' : 'hourglass_empty') }}
-                        </span>
-                    </span>
-                    <div class="flex flex-col leading-tight">
-                        <span class="text-[12px] font-label-bold text-on-surface">Direktur</span>
-                        <span class="text-[11px] {{ $status === 'REJECTED' ? 'text-red-600' : 'text-on-surface-variant' }}">
-                            @if($penerimaan->approve_direktur_at)
-                                {{ $penerimaan->direkturBy?->name ?? '-' }} &bull; {{ $penerimaan->approve_direktur_at->translatedFormat('d M Y, H:i') }}
-                                — {{ $status === 'APPROVED' ? 'Disetujui' : 'Ditolak' }}
-                            @else
-                                Menunggu keputusan
-                            @endif
-                        </span>
-                    </div>
+                {{-- KASUBAG -> KABAG -> DIREKTUR --}}
+                <div class="flex-1 min-w-[220px]">
+                    <x-penerimaan.approval-status :penerimaan="$penerimaan" compact with-details />
                 </div>
 
             </div>
@@ -1365,7 +1366,7 @@
                     {{-- 3. ROW --}}
                     <div>
                         <label class="mb-1.5 block text-[11px] font-label-bold text-on-surface-variant uppercase">
-                            3. Row Level
+                            3. Tingkat / Row Level
                         </label>
                         <select
                             id="drawer-select-row"
@@ -1712,7 +1713,6 @@
         </div>
 
 
-      
 
         {{-- =====================================================
             PANDUAN AKSI DOKUMEN — beda dampak Simpan Draft vs Submit
@@ -1754,8 +1754,8 @@
                     <div class="flex flex-col text-[12px]">
                         <span class="font-label-bold text-primary">Submit (Finalisasi):</span>
                         <span class="text-on-surface-variant">
-                            Mengunci dokumen GRN &amp; <span class="font-label-bold text-on-surface">mengirim ke antrian approval Direktur</span>.
-                            Stok gudang baru diperbarui otomatis setelah Direktur menyetujui.
+                            Mengunci dokumen GRN &amp; <span class="font-label-bold text-on-surface">mengirim ke antrian approval {{ \App\Models\PenerimaanBarang::LEVELS['kasubag']['label'] }}</span>.
+                            Dokumen berjalan Kasubag &rarr; Kabag &rarr; Direktur; stok gudang baru diperbarui otomatis setelah Direktur menyetujui.
                         </span>
                     </div>
                 </div>
@@ -1876,14 +1876,14 @@
                             </span>
 
                             <span class="text-[10px] font-normal text-on-primary/80">
-                                Kirim ke Antrian Approval Direktur
+                                Kirim ke Antrian Approval {{ \App\Models\PenerimaanBarang::LEVELS['kasubag']['label'] }}
                             </span>
 
                         </div>
 
                     </button>
 
-                @elseif($status === 'PENDING_DIREKTUR')
+                @elseif($canReviewApproval)
 
                     <button
                         type="button"
@@ -1902,12 +1902,31 @@
                         <span class="material-symbols-outlined text-[20px]">task_alt</span>
 
                         <div class="flex flex-col items-start leading-tight">
-                            <span>Setujui (Approve)</span>
+                            <span>Setujui (Approve) &mdash; {{ $pendingLevelConfig['label'] }}</span>
                             <span class="text-[10px] font-normal text-on-primary/80">
-                                Update stok gudang & kunci dokumen
+                                {{ $isFinalPendingLevel ? 'Update stok gudang & kunci dokumen' : 'Teruskan ke tingkat berikutnya' }}
                             </span>
                         </div>
                     </button>
+
+                @elseif($pendingLevel && $isSubmitter)
+
+                    <div class="px-container-padding py-2.5 rounded-lg bg-tertiary-fixed border border-outline-variant flex items-center gap-stack-sm">
+
+                        <span class="material-symbols-outlined text-[22px] text-on-tertiary-fixed-variant">
+                            hourglass_top
+                        </span>
+
+                        <div class="flex flex-col leading-tight">
+                            <span class="font-label-bold text-body-sm text-on-tertiary-fixed-variant">
+                                Menunggu Approval {{ $pendingLevelConfig['label'] }}
+                            </span>
+                            <span class="text-[11px] text-on-tertiary-fixed-variant/80">
+                                Dokumen sudah disubmit, tinggal menunggu keputusan approver.
+                            </span>
+                        </div>
+
+                    </div>
 
                 @elseif($status === 'APPROVED')
 
@@ -1940,16 +1959,16 @@
 
                         <div class="flex flex-col leading-tight">
                             <span class="font-label-bold text-body-sm text-red-700">
-                                Ditolak Direktur — Perlu Direvisi
+                                Ditolak {{ $penerimaan->reject_level ? \App\Models\PenerimaanBarang::LEVELS[strtolower($penerimaan->reject_level)]['label'] ?? $penerimaan->reject_level : '' }} — Perlu Direvisi
                             </span>
                             <span class="text-[11px] text-red-600">
-                                Oleh {{ $penerimaan->direkturBy?->name ?? '-' }}
+                                Oleh {{ $penerimaan->rejectedBy?->name ?? '-' }}
                                 &bull;
-                                {{ $penerimaan->approve_direktur_at?->translatedFormat('d M Y, H:i') ?? '-' }} WIB
+                                {{ $penerimaan->reject_at?->translatedFormat('d M Y, H:i') ?? '-' }} WIB
                             </span>
-                            @if($penerimaan->catatan_approval)
+                            @if($penerimaan->reject_note ?? $penerimaan->catatan_approval)
                                 <span class="text-[11px] text-red-700 mt-1 italic">
-                                    "{{ $penerimaan->catatan_approval }}"
+                                    "{{ $penerimaan->reject_note ?? $penerimaan->catatan_approval }}"
                                 </span>
                             @endif
                         </div>
@@ -1974,9 +1993,9 @@
 
 
     {{-- =============================================================
-        MODAL: TOLAK PENERIMAAN (alasan penolakan direktur)
+        MODAL: TOLAK PENERIMAAN (alasan penolakan approver)
     ============================================================= --}}
-    @if($status === 'PENDING_DIREKTUR')
+    @if($canReviewApproval)
 
         <div
             id="reject-modal-overlay"
@@ -2060,8 +2079,11 @@
     const submitUrl = @json(route('penerimaan.submit', $penerimaan));
     const uploadBuktiUrl = @json(route('penerimaan.bukti-dukung.upload', $penerimaan));
     const indexUrl = @json(route('penerimaan.index'));
-    const approveUrl = @json(route('penerimaan.approval-direktur.approve', $penerimaan));
-    const rejectUrl = @json(route('penerimaan.approval-direktur.reject', $penerimaan));
+    // Balik ke antrean approval level ini (bukan index umum) setelah
+    // approve/reject, biar approver tetap stay di halamannya sendiri.
+    const approvalIndexUrl = @json($pendingLevel ? route('penerimaan.approval.index', $pendingLevel) : route('penerimaan.index'));
+    const approveUrl = @json($canReviewApproval ? route('penerimaan.approval.approve', [$pendingLevel, $penerimaan]) : null);
+    const rejectUrl = @json($canReviewApproval ? route('penerimaan.approval.reject', [$pendingLevel, $penerimaan]) : null);
 
     const canEdit = @json($canEdit);
 
@@ -2093,7 +2115,7 @@
                 }
 
                 alert(data.message || 'Penerimaan berhasil disetujui.');
-                window.location.href = indexUrl;
+                window.location.href = approvalIndexUrl;
             })
             .catch(error => {
                 console.error(error);
@@ -2142,7 +2164,7 @@
                 }
 
                 alert(data.message || 'Penerimaan ditolak dan dikembalikan ke draft.');
-                window.location.href = indexUrl;
+                window.location.href = approvalIndexUrl;
             })
             .catch(error => {
                 console.error(error);

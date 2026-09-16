@@ -243,7 +243,7 @@
 
                   <a
                     href="{{ route('penerimaan.index') }}"
-                    class="{{ request()->routeIs('penerimaan.*') && ! request()->routeIs('penerimaan.approval-direktur.*')
+                    class="{{ request()->routeIs('penerimaan.*') && ! request()->routeIs('penerimaan.approval.*')
                         ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
                         : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
                         mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan.*') ? '' : 'hover:pl-5' }}"
@@ -257,26 +257,10 @@
                     </span>
                 </a>
 
-                <a
-                    href="{{ route('penerimaan.approval-direktur.index') }}"
-                    class="{{ request()->routeIs('penerimaan.approval-direktur.*')
-                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
-                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
-                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan.approval-direktur.*') ? '' : 'hover:pl-5' }}"
-                >
-                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('penerimaan.approval-direktur.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('penerimaan.approval-direktur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
-                        task_alt
-                    </span>
 
-                    <span class="text-sidebar-nav font-sidebar-nav">
-                        Approval Direktur (GRN)
-                    </span>
-                </a>
-
-
-                <!-- Antrean Persetujuan -->
+                {{-- ==================== APPROVAL (PO + Barang Masuk / GRN) ==================== --}}
                 @php
-                    $isApprovalActive = request()->routeIs('approval.*');
+                    $isApprovalActive = request()->routeIs('approval.*') || request()->routeIs('penerimaan.approval.*');
                 @endphp
 
                 <button
@@ -288,8 +272,8 @@
                         pending_actions
                     </span>
 
-                    <span class="text-sidebar-nav font-sidebar-nav flex-1 text-left">
-                        Antrean Persetujuan
+                    <span class="text-sidebar-nav font-sidebar-nav font-bold flex-1 text-left">
+                        Approval
                     </span>
 
                     <span
@@ -301,26 +285,67 @@
 
                 <div
                     id="approval-menu"
-                    class="ml-4 mt-1 space-y-0.5 border-l-2 border-outline-variant pl-2 overflow-hidden transition-all duration-200 {{ $isApprovalActive ? '' : 'hidden' }}">
+                    class="ml-4 mt-1 space-y-3 border-l-2 border-outline-variant pl-2 overflow-hidden transition-all duration-200 {{ $isApprovalActive ? '' : 'hidden' }}">
 
-                    @foreach(\App\Models\Po::LEVELS as $slug => $levelConfig)
+                    {{-- Sub-grup: Approval PO --}}
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval PO
+                        </p>
 
-                        <a href="{{ route('approval.index', $slug) }}"
-                        class="{{ request()->routeIs('approval.*') && request()->route('level') === $slug
-                                ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
-                                : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
-                                flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+                        <div class="space-y-0.5">
 
-                            <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->route('level') === $slug) style="font-variation-settings: 'FILL' 1;" @endif>
-                                fact_check
-                            </span>
+                            @foreach(\App\Models\Po::LEVELS as $slug => $levelConfig)
 
-                            <span class="text-sidebar-nav font-sidebar-nav">
-                                {{ $levelConfig['label'] }}
-                            </span>
-                        </a>
+                                <a href="{{ route('approval.index', $slug) }}"
+                                class="{{ request()->routeIs('approval.*') && request()->route('level') === $slug
+                                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                                        flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
 
-                    @endforeach
+                                    <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('approval.*') && request()->route('level') === $slug) style="font-variation-settings: 'FILL' 1;" @endif>
+                                        fact_check
+                                    </span>
+
+                                    <span class="text-sidebar-nav font-sidebar-nav">
+                                        {{ $levelConfig['label'] }}
+                                    </span>
+                                </a>
+
+                            @endforeach
+
+                        </div>
+                    </div>
+
+                    {{-- Sub-grup: Approval Barang Masuk (GRN) --}}
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval Barang Masuk
+                        </p>
+
+                        <div class="space-y-0.5">
+
+                            @foreach(\App\Models\PenerimaanBarang::LEVELS as $slug => $levelConfig)
+
+                                <a href="{{ route('penerimaan.approval.index', $slug) }}"
+                                class="{{ request()->routeIs('penerimaan.approval.*') && request()->route('level') === $slug
+                                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                                        flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+
+                                    <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('penerimaan.approval.*') && request()->route('level') === $slug) style="font-variation-settings: 'FILL' 1;" @endif>
+                                        move_to_inbox
+                                    </span>
+
+                                    <span class="text-sidebar-nav font-sidebar-nav">
+                                        {{ $levelConfig['label'] }}
+                                    </span>
+                                </a>
+
+                            @endforeach
+
+                        </div>
+                    </div>
 
                 </div>
 

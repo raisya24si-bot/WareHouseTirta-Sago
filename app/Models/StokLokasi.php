@@ -16,6 +16,8 @@ class StokLokasi extends Model
         'fk_lokasi',
         'qty_stok',
         'qty_rusak',
+        'reff_number',
+        'reff_from',
         'created_by',
         'updated_by',
         'deleted_by',
