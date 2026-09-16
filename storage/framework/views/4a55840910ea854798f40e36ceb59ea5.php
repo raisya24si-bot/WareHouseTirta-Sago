@@ -25,36 +25,6 @@
 <?php endif; ?>
 
 
-<?php if(session('success')): ?>
-
-    <div class="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-
-        <div class="flex items-center gap-2">
-
-            <span class="material-symbols-outlined text-[18px]">
-                check_circle
-            </span>
-
-            <?php echo e(session('success')); ?>
-
-
-        </div>
-
-    </div>
-
-<?php endif; ?>
-
-
-<?php if($errors->any()): ?>
-
-    <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        <?php echo e($errors->first()); ?>
-
-    </div>
-
-<?php endif; ?>
-
-
 <!-- ========================================================= -->
 <!-- STATS -->
 <!-- ========================================================= -->
@@ -294,6 +264,7 @@
                                         >
                                             Quick Approve
                                         </button>
+
                                     </form>
 
                                 <?php elseif($po->hasPassedLevel($level)): ?>
@@ -303,7 +274,10 @@
                                         disabled
                                         class="flex cursor-not-allowed items-center gap-1.5 rounded-md bg-green-600 px-4 py-2 text-xs font-label-bold text-white opacity-90"
                                     >
-                                        <span class="material-symbols-outlined text-[15px]">check</span>
+                                        <span class="material-symbols-outlined text-[15px]">
+                                            check
+                                        </span>
+
                                         Approved
                                     </button>
 
@@ -314,7 +288,10 @@
                                         disabled
                                         class="flex cursor-not-allowed items-center gap-1.5 rounded-md bg-error px-4 py-2 text-xs font-label-bold text-white opacity-90"
                                     >
-                                        <span class="material-symbols-outlined text-[15px]">close</span>
+                                        <span class="material-symbols-outlined text-[15px]">
+                                            close
+                                        </span>
+
                                         Rejected
                                     </button>
 
@@ -334,9 +311,7 @@
                             colspan="5"
                             class="px-4 py-10 text-center text-on-surface-variant"
                         >
-
                             Belum ada permintaan yang masuk ke tahap persetujuan <?php echo e($config['label']); ?>.
-
                         </td>
 
                     </tr>
@@ -374,5 +349,4 @@
 </div>
 
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\ProjectPDAM\laragon-6.0-minimal\www\WareHouse\resources\views/approval/index.blade.php ENDPATH**/ ?>

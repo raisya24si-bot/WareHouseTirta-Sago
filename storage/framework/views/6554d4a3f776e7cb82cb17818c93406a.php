@@ -266,6 +266,23 @@
                     </span>
                 </a>
 
+                <a
+                    href="<?php echo e(route('retur.index')); ?>"
+                    class="<?php echo e(request()->routeIs('retur.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
+
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group <?php echo e(request()->routeIs('retur.*') ? '' : 'hover:pl-5'); ?>"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] <?php echo e(request()->routeIs('retur.*') ? '' : 'text-outline group-hover:text-primary transition-colors'); ?>" <?php if(request()->routeIs('retur.*')): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
+                        assignment_return
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Retur Barang Masuk
+                    </span>
+                </a>
+
 
                 
                 <?php

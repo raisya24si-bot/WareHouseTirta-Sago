@@ -43,6 +43,13 @@
     $pendingLevelConfig = $pendingLevel ? \App\Models\PenerimaanBarang::LEVELS[$pendingLevel] : null;
     $isFinalPendingLevel = $pendingLevelConfig && $pendingLevelConfig['next_status'] === 'APPROVED';
 
+    // Petugas yang men-submit dokumen ini tidak berhak menyetujui /
+    // menolak dokumennya sendiri, jadi tombol Approve/Reject harus
+    // disembunyikan dari dia meskipun statusnya sedang menunggu
+    // approval. Dia hanya boleh melihat & mencetak dari sini.
+    $isSubmitter = auth()->id() && $penerimaan->submit_by == auth()->id();
+    $canReviewApproval = $pendingLevel && ! $isSubmitter;
+
     $totalQtyPo = $penerimaan->details->sum('qty_request');
     $totalBaik = $penerimaan->details->sum('qty_baik');
     $totalRusak = $penerimaan->details->sum('qty_rusak');
@@ -1915,7 +1922,7 @@
 
                     </button>
 
-                <?php elseif($pendingLevel): ?>
+                <?php elseif($canReviewApproval): ?>
 
                     <button
                         type="button"
@@ -1941,6 +1948,26 @@
                             </span>
                         </div>
                     </button>
+
+                <?php elseif($pendingLevel && $isSubmitter): ?>
+
+                    <div class="px-container-padding py-2.5 rounded-lg bg-tertiary-fixed border border-outline-variant flex items-center gap-stack-sm">
+
+                        <span class="material-symbols-outlined text-[22px] text-on-tertiary-fixed-variant">
+                            hourglass_top
+                        </span>
+
+                        <div class="flex flex-col leading-tight">
+                            <span class="font-label-bold text-body-sm text-on-tertiary-fixed-variant">
+                                Menunggu Approval <?php echo e($pendingLevelConfig['label']); ?>
+
+                            </span>
+                            <span class="text-[11px] text-on-tertiary-fixed-variant/80">
+                                Dokumen sudah disubmit, tinggal menunggu keputusan approver.
+                            </span>
+                        </div>
+
+                    </div>
 
                 <?php elseif($status === 'APPROVED'): ?>
 
@@ -2010,7 +2037,7 @@
 
 
     
-    <?php if($pendingLevel): ?>
+    <?php if($canReviewApproval): ?>
 
         <div
             id="reject-modal-overlay"
@@ -2092,8 +2119,11 @@
     const submitUrl = <?php echo json_encode(route('penerimaan.submit', $penerimaan), 512) ?>;
     const uploadBuktiUrl = <?php echo json_encode(route('penerimaan.bukti-dukung.upload', $penerimaan), 512) ?>;
     const indexUrl = <?php echo json_encode(route('penerimaan.index'), 15, 512) ?>;
-    const approveUrl = <?php echo json_encode($pendingLevel ? route('penerimaan.approval.approve', [$pendingLevel, $penerimaan]) : null) ?>;
-    const rejectUrl = <?php echo json_encode($pendingLevel ? route('penerimaan.approval.reject', [$pendingLevel, $penerimaan]) : null) ?>;
+    // Balik ke antrean approval level ini (bukan index umum) setelah
+    // approve/reject, biar approver tetap stay di halamannya sendiri.
+    const approvalIndexUrl = <?php echo json_encode($pendingLevel ? route('penerimaan.approval.index', $pendingLevel) : route('penerimaan.index'), 512) ?>;
+    const approveUrl = <?php echo json_encode($canReviewApproval ? route('penerimaan.approval.approve', [$pendingLevel, $penerimaan]) : null) ?>;
+    const rejectUrl = <?php echo json_encode($canReviewApproval ? route('penerimaan.approval.reject', [$pendingLevel, $penerimaan]) : null) ?>;
 
     const canEdit = <?php echo json_encode($canEdit, 15, 512) ?>;
 
@@ -2125,7 +2155,7 @@
                 }
 
                 alert(data.message || 'Penerimaan berhasil disetujui.');
-                window.location.href = indexUrl;
+                window.location.href = approvalIndexUrl;
             })
             .catch(error => {
                 console.error(error);
@@ -2174,7 +2204,7 @@
                 }
 
                 alert(data.message || 'Penerimaan ditolak dan dikembalikan ke draft.');
-                window.location.href = indexUrl;
+                window.location.href = approvalIndexUrl;
             })
             .catch(error => {
                 console.error(error);

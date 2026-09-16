@@ -19,6 +19,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StrukturLokasiController;
 use App\Http\Controllers\PenerimaanController;
+use App\Http\Controllers\ReturBarangController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -598,4 +599,12 @@ Route::middleware('auth')->group(function () {
 
             });
 
+    Route::prefix('retur')->name('retur.')->group(function () {
+    Route::get('/', [ReturBarangController::class, 'index'])->name('index');
+    Route::get('/export', [ReturBarangController::class, 'export'])->name('export');
+    Route::get('/grn/{grn}/items', [ReturBarangController::class, 'itemsForGrn'])->name('items-for-grn');
+    Route::post('/', [ReturBarangController::class, 'store'])->name('store');
+    Route::get('/{retur}', [ReturBarangController::class, 'show'])->name('show');
+    });
+        
 });
