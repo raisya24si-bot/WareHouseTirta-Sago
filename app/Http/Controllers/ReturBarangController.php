@@ -307,6 +307,187 @@ class ReturBarangController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | EDIT / UPDATE (khusus status DRAFT)
+    |--------------------------------------------------------------------------
+    |
+    | GRN sumbernya dikunci -- gak bisa diganti lewat sini, cuma qty,
+    | catatan, alasan kerusakan per item, dan foto bukti yang bisa
+    | diubah. Item bisa dihapus (uncheck), tapi nggak bisa nambah item
+    | baru dari GRN lain di sini -- itu tetap lewat form "Buat Retur
+    | Baru" yang terpisah.
+    */
+
+    public function edit(ReturBarang $retur)
+    {
+        abort_unless($retur->canBeEdited(), 403, 'Dokumen retur ini sudah terkirim ke vendor dan tidak bisa diedit lagi.');
+
+        $retur->load([
+            'statusRetur',
+            'penerimaanBarang.po.supplier',
+            'details.barang',
+            'details.alasan',
+            'details.fotos',
+        ]);
+
+        $alasanList = MasterAlasanRetur::aktif()->orderBy('nm_alasan_retur')->get();
+
+        return view('retur.edit', [
+            'retur' => $retur,
+            'alasanList' => $alasanList,
+        ]);
+    }
+
+    public function update(Request $request, ReturBarang $retur)
+    {
+        abort_unless($retur->canBeEdited(), 403, 'Dokumen retur ini sudah terkirim ke vendor dan tidak bisa diedit lagi.');
+
+        $validated = $request->validate([
+            'catatan_retur' => ['nullable', 'string'],
+
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id_retur_detail' => [
+                'required', 'integer', 'exists:tbl_retur_barang_detail,id_retur_detail',
+            ],
+            'items.*.qty_diretur' => ['required', 'integer', 'min:1'],
+            'items.*.catatan_detail' => ['nullable', 'string', 'max:255'],
+            'items.*.alasan_ids' => ['required', 'array', 'min:1'],
+            'items.*.alasan_ids.*' => ['exists:tbl_master_alasan_retur,id_alasan_retur'],
+            'items.*.fotos' => ['nullable', 'array'],
+            'items.*.fotos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'items.required' => 'Minimal 1 item tersisa di dokumen retur ini.',
+            'items.*.qty_diretur.min' => 'Qty retur minimal 1.',
+            'items.*.alasan_ids.required' => 'Pilih minimal 1 alasan kerusakan untuk tiap item.',
+        ]);
+
+        $userId = auth()->id() ?? 1;
+        $isDraft = $request->input('mode') === 'draft';
+
+        DB::transaction(function () use ($retur, $validated, $userId, $isDraft) {
+
+            $keptDetailIds = collect($validated['items'])->pluck('id_retur_detail')->all();
+
+            // Item yang di-uncheck di form dianggap dikeluarkan dari
+            // dokumen retur ini.
+            $retur->details()
+                ->whereNotIn('id_retur_detail', $keptDetailIds)
+                ->get()
+                ->each(fn (ReturBarangDetail $d) => $d->update(['deleted_by' => $userId]))
+                ->each(fn (ReturBarangDetail $d) => $d->delete());
+
+            $nilaiTotal = 0;
+
+            foreach ($validated['items'] as $index => $item) {
+
+                $detail = ReturBarangDetail::findOrFail($item['id_retur_detail']);
+
+                abort_unless($detail->fk_retur === $retur->id_retur, 403);
+
+                $subtotal = $item['qty_diretur'] * (float) $detail->harga_satuan;
+                $nilaiTotal += $subtotal;
+
+                $detail->update([
+                    'qty_diretur' => $item['qty_diretur'],
+                    'subtotal_retur' => $subtotal,
+                    'catatan_detail' => $item['catatan_detail'] ?? null,
+                    'updated_by' => $userId,
+                ]);
+
+                $detail->alasan()->sync($item['alasan_ids']);
+
+                $fotos = request()->file("items.{$index}.fotos", []);
+
+                foreach ($fotos as $file) {
+
+                    $path = $file->store('retur-bukti', 'public');
+
+                    ReturBarangFoto::create([
+                        'fk_retur_detail' => $detail->id_retur_detail,
+                        'nama_file' => $file->getClientOriginalName(),
+                        'path_file' => $path,
+                        'mime_type' => $file->getClientMimeType(),
+                        'ukuran_file' => $file->getSize(),
+                        'created_by' => $userId,
+                        'updated_by' => $userId,
+                    ]);
+                }
+            }
+
+            $statusBaru = MasterStatusRetur::where(
+                'kd_status_retur',
+                $isDraft ? 'DRAFT' : 'MENUNGGU_RESPON_VENDOR'
+            )->firstOrFail();
+
+            $retur->update([
+                'catatan_retur' => $validated['catatan_retur'] ?? null,
+                'nilai_total_retur' => $nilaiTotal,
+                'fk_status_retur' => $statusBaru->id_status_retur,
+                'submit_by' => $isDraft ? null : ($retur->submit_by ?? $userId),
+                'submit_at' => $isDraft ? null : ($retur->submit_at ?? now()),
+                'updated_by' => $userId,
+            ]);
+        });
+
+        return redirect()
+            ->route('retur.show', $retur)
+            ->with('success', $isDraft
+                ? 'Draf retur '.$retur->kd_retur.' berhasil diperbarui.'
+                : 'Dokumen retur '.$retur->kd_retur.' berhasil diterbitkan dan menunggu respon vendor.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HAPUS (khusus status DRAFT)
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(ReturBarang $retur)
+    {
+        abort_unless($retur->canBeDeleted(), 403, 'Dokumen retur yang sudah terkirim ke vendor tidak bisa dihapus.');
+
+        $userId = auth()->id() ?? 1;
+
+        DB::transaction(function () use ($retur, $userId) {
+
+            $retur->details()->get()->each(function (ReturBarangDetail $detail) use ($userId) {
+                $detail->update(['deleted_by' => $userId]);
+                $detail->delete();
+            });
+
+            $retur->update(['deleted_by' => $userId]);
+            $retur->delete();
+        });
+
+        return redirect()
+            ->route('retur.index')
+            ->with('success', 'Draf retur '.$retur->kd_retur.' berhasil dihapus.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CETAK BAP (dokumen sudah resmi -- bukan DRAFT lagi)
+    |--------------------------------------------------------------------------
+    */
+
+    public function cetakBap(ReturBarang $retur)
+    {
+        abort_unless($retur->canCetakBap(), 403, 'Draf retur belum diterbitkan, BAP belum bisa dicetak.');
+
+        $retur->load([
+            'statusRetur',
+            'penerimaanBarang.po.supplier',
+            'details.barang.satuan',
+            'details.alasan',
+            'submittedBy',
+        ]);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('retur.pdf.bap', ['retur' => $retur]);
+
+        return $pdf->stream('BAP-Retur-'.$retur->kd_retur.'.pdf');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | HELPERS
     |--------------------------------------------------------------------------
     */

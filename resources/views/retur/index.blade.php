@@ -262,12 +262,34 @@
                             </td>
                             <td class="p-stack-md align-top text-right">
                                 <div class="flex items-center justify-end gap-1">
+                                    {{-- Lihat: selalu boleh, di status manapun --}}
                                     <a href="{{ route('retur.show', $retur) }}" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary transition-colors inline-flex" title="Lihat Detail Retur">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>
                                     </a>
-                                    <button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Cetak BAP PDF" type="button">
-                                        <span class="material-symbols-outlined text-[18px]">print</span>
-                                    </button>
+
+                                    {{-- Edit & Hapus: cuma selama masih DRAFT, sebelum resmi terkirim ke vendor --}}
+                                    @if($retur->canBeEdited())
+                                        <a href="{{ route('retur.edit', $retur) }}" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors inline-flex" title="Edit Draf Retur">
+                                            <span class="material-symbols-outlined text-[18px]">edit</span>
+                                        </a>
+                                    @endif
+
+                                    @if($retur->canBeDeleted())
+                                        <form method="POST" action="{{ route('retur.destroy', $retur) }}" onsubmit="return confirm('Hapus draf retur {{ $retur->kd_retur }}? Tindakan ini tidak bisa dibatalkan.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-on-error-container text-error transition-colors" title="Hapus Draf Retur" type="submit">
+                                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    {{-- Cetak BAP: cuma kalau dokumen udah resmi terbit (bukan DRAFT lagi) --}}
+                                    @if($retur->canCetakBap())
+                                        <a href="{{ route('retur.cetak', $retur) }}" target="_blank" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors inline-flex" title="Cetak BAP PDF">
+                                            <span class="material-symbols-outlined text-[18px]">print</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

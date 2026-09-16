@@ -74,6 +74,34 @@ class ReturBarang extends Model
         return in_array($this->kode_status, MasterStatusRetur::GROUP_DALAM_PROSES, true);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | ATURAN AKSI PER STATUS (Lihat / Edit / Hapus / Cetak BAP)
+    |--------------------------------------------------------------------------
+    |
+    | Selama masih DRAFT, dokumen belum resmi jadi masih bebas diedit /
+    | dihapus, tapi belum bisa dicetak BAP-nya karena belum diterbitkan.
+    | Begitu status berubah jadi MENUNGGU_RESPON_VENDOR (sudah terkirim
+    | ke vendor), datanya dikunci -- gak boleh diedit/dihapus lagi, tapi
+    | BAP-nya udah resmi jadi boleh dicetak. Berlaku sama untuk
+    | PROSES_KIRIM_GANTI dan SELESAI.
+    */
+
+    public function canBeEdited(): bool
+    {
+        return $this->kode_status === 'DRAFT';
+    }
+
+    public function canBeDeleted(): bool
+    {
+        return $this->kode_status === 'DRAFT';
+    }
+
+    public function canCetakBap(): bool
+    {
+        return $this->kode_status !== null && $this->kode_status !== 'DRAFT';
+    }
+
     public function isSelesai(): bool
     {
         return in_array($this->kode_status, MasterStatusRetur::GROUP_SELESAI, true);

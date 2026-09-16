@@ -264,12 +264,34 @@
                             </td>
                             <td class="p-stack-md align-top text-right">
                                 <div class="flex items-center justify-end gap-1">
+                                    
                                     <a href="<?php echo e(route('retur.show', $retur)); ?>" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary transition-colors inline-flex" title="Lihat Detail Retur">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>
                                     </a>
-                                    <button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Cetak BAP PDF" type="button">
-                                        <span class="material-symbols-outlined text-[18px]">print</span>
-                                    </button>
+
+                                    
+                                    <?php if($retur->canBeEdited()): ?>
+                                        <a href="<?php echo e(route('retur.edit', $retur)); ?>" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors inline-flex" title="Edit Draf Retur">
+                                            <span class="material-symbols-outlined text-[18px]">edit</span>
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <?php if($retur->canBeDeleted()): ?>
+                                        <form method="POST" action="<?php echo e(route('retur.destroy', $retur)); ?>" onsubmit="return confirm('Hapus draf retur <?php echo e($retur->kd_retur); ?>? Tindakan ini tidak bisa dibatalkan.');">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+                                            <button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-on-error-container text-error transition-colors" title="Hapus Draf Retur" type="submit">
+                                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    
+                                    <?php if($retur->canCetakBap()): ?>
+                                        <a href="<?php echo e(route('retur.cetak', $retur)); ?>" target="_blank" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors inline-flex" title="Cetak BAP PDF">
+                                            <span class="material-symbols-outlined text-[18px]">print</span>
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

@@ -43,10 +43,32 @@
                 — Supplier <strong>{{ $retur->supplier?->nm_master_supplier ?? '-' }}</strong>
             </p>
         </div>
-        <button class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-body-sm transition-all shadow-sm" type="button">
-            <span class="material-symbols-outlined text-[18px]">print</span>
-            Cetak BAP PDF
-        </button>
+        <div class="flex items-center gap-stack-sm">
+            @if($retur->canBeEdited())
+                <a href="{{ route('retur.edit', $retur) }}" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-body-sm transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                    Edit Draf
+                </a>
+            @endif
+
+            @if($retur->canBeDeleted())
+                <form method="POST" action="{{ route('retur.destroy', $retur) }}" onsubmit="return confirm('Hapus draf retur {{ $retur->kd_retur }}? Tindakan ini tidak bisa dibatalkan.');">
+                    @csrf
+                    @method('DELETE')
+                    <button class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-error-container hover:text-on-error-container text-error font-label-bold text-body-sm transition-all shadow-sm" type="submit">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                        Hapus Draf
+                    </button>
+                </form>
+            @endif
+
+            @if($retur->canCetakBap())
+                <a href="{{ route('retur.cetak', $retur) }}" target="_blank" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-body-sm transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">print</span>
+                    Cetak BAP PDF
+                </a>
+            @endif
+        </div>
     </div>
 
     {{-- Ringkasan --}}

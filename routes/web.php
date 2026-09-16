@@ -605,6 +605,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/grn/{grn}/items', [ReturBarangController::class, 'itemsForGrn'])->name('items-for-grn');
     Route::post('/', [ReturBarangController::class, 'store'])->name('store');
     Route::get('/{retur}', [ReturBarangController::class, 'show'])->name('show');
+    Route::get('/{retur}/edit', [ReturBarangController::class, 'edit'])->name('edit');
+    Route::put('/{retur}', [ReturBarangController::class, 'update'])->name('update');
+    Route::delete('/{retur}', [ReturBarangController::class, 'destroy'])->name('destroy');
+    Route::get('/{retur}/cetak', [ReturBarangController::class, 'cetakBap'])->name('cetak');
     });
         
 });

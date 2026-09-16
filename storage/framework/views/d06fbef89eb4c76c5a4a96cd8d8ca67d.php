@@ -47,7 +47,18 @@
     // menolak dokumennya sendiri, jadi tombol Approve/Reject harus
     // disembunyikan dari dia meskipun statusnya sedang menunggu
     // approval. Dia hanya boleh melihat & mencetak dari sini.
-    $isSubmitter = auth()->id() && $penerimaan->submit_by == auth()->id();
+    //
+    // Sama seperti pengecekan segregation of duty di
+    // ApprovalPenerimaanController@approve/@reject, ini dinonaktifkan
+    // dulu selama tahap beta (config app.enforce_approval_segregation)
+    // karena baru ada 1 akun user, jadi akun yang sama perlu bisa nyoba
+    // submit -> approve semua level buat testing. Set
+    // ENFORCE_APPROVAL_SEGREGATION=true di .env begitu akun per role
+    // (Kasubag/Kabag/Direktur) udah ada -- baris ini akan otomatis ikut
+    // ngunci lagi begitu flag itu dinyalakan, tanpa perlu diubah lagi.
+    $isSubmitter = config('app.enforce_approval_segregation')
+        && auth()->id()
+        && $penerimaan->submit_by == auth()->id();
     $canReviewApproval = $pendingLevel && ! $isSubmitter;
 
     $totalQtyPo = $penerimaan->details->sum('qty_request');

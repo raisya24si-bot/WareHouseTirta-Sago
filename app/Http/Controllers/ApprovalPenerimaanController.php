@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HasPerPage;
+use App\Models\MasterBarang;
 use App\Models\MasterStatusPenerimaanBarang;
 use App\Models\PenerimaanBarang;
 use App\Models\StokLokasi;
@@ -210,7 +211,17 @@ class ApprovalPenerimaanController extends Controller
         // GRN yang sudah ia submit (status PENDING_*) lalu memakai
         // tombol Approve yang sejatinya hanya untuk approver level
         // tersebut.
-        if ($penerimaan->submit_by && $penerimaan->submit_by == (auth()->id() ?? 1)) {
+        //
+        // Dinonaktifkan dulu selama tahap beta (lihat config
+        // app.enforce_approval_segregation) -- baru ada 1 akun user,
+        // jadi akun yang sama perlu bisa nyoba submit -> approve semua
+        // level buat testing. Set ENFORCE_APPROVAL_SEGREGATION=true di
+        // .env begitu akun per role (Kasubag/Kabag/Direktur) udah ada.
+        if (
+            config('app.enforce_approval_segregation')
+            && $penerimaan->submit_by
+            && $penerimaan->submit_by == (auth()->id() ?? 1)
+        ) {
 
             $message = 'Anda adalah pengaju (petugas) penerimaan ini dan tidak berhak menyetujuinya sendiri.';
 
@@ -366,8 +377,14 @@ class ApprovalPenerimaanController extends Controller
         }
 
         // Sama seperti approve(): petugas pengaju tidak berhak menolak
-        // (memutuskan) dokumennya sendiri.
-        if ($penerimaan->submit_by && $penerimaan->submit_by == (auth()->id() ?? 1)) {
+        // (memutuskan) dokumennya sendiri. Dinonaktifkan dulu selama
+        // tahap beta -- lihat catatan di approve() / config
+        // app.enforce_approval_segregation.
+        if (
+            config('app.enforce_approval_segregation')
+            && $penerimaan->submit_by
+            && $penerimaan->submit_by == (auth()->id() ?? 1)
+        ) {
 
             $message = 'Anda adalah pengaju (petugas) penerimaan ini dan tidak berhak memutuskan approvalnya sendiri.';
 
@@ -439,7 +456,12 @@ class ApprovalPenerimaanController extends Controller
 
 
     /**
-     * Upsert qty stok pada satu bin (dipakai untuk barang baik).
+     * Upsert qty stok pada satu bin (dipakai untuk barang baik). Sekalian
+     * ikut naikkan stok_saat_ini di Master Barang -- itu angka global
+     * yang dibaca modul Stock Monitoring & Procurement buat nentuin
+     * barang mana yang MENIPIS/HABIS dan perlu di-PO lagi. Tanpa ini,
+     * barang yang udah fisik masuk gudang tetap kebaca menipis/habis
+     * selamanya sampai ada yang edit manual di Master Barang.
      */
     private function tambahStok(int $fkBarang, int $fkLokasi, int $qty, int $userId): void
     {
@@ -465,6 +487,27 @@ class ApprovalPenerimaanController extends Controller
                 'updated_by' => $userId,
             ]);
         }
+
+        $this->tambahStokSaatIniMasterBarang($fkBarang, $qty, $userId);
+    }
+
+    /**
+     * Naikkan stok_saat_ini di tbl_master_barang. Dipanggil pakai
+     * save() (bukan increment()) supaya event "updating" di model
+     * MasterBarang ikut jalan dan stok_status (NORMAL/MENIPIS/HABIS)
+     * ke-recalculate otomatis begitu angkanya berubah.
+     */
+    private function tambahStokSaatIniMasterBarang(int $fkBarang, int $qty, int $userId): void
+    {
+        $barang = MasterBarang::find($fkBarang);
+
+        if (! $barang) {
+            return;
+        }
+
+        $barang->stok_saat_ini = (int) $barang->stok_saat_ini + $qty;
+        $barang->updated_by = $userId;
+        $barang->save();
     }
 
     /**
