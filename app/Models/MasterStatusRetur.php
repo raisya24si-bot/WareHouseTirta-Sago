@@ -16,9 +16,9 @@ class MasterStatusRetur extends Model
         'urutan',
     ];
 
-    // Kelompok status yang masuk tab "Dalam Proses" vs "Selesai" di list.
+
     public const GROUP_DALAM_PROSES = [
-        'DRAFT', 'MENUNGGU_RESPON_VENDOR', 'PROSES_KIRIM_GANTI',
+        'MENUNGGU_RESPON_VENDOR', 'PROSES_KIRIM_GANTI',
     ];
 
     public const GROUP_SELESAI = ['SELESAI'];

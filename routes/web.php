@@ -20,6 +20,8 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StrukturLokasiController;
 use App\Http\Controllers\PenerimaanController;
 use App\Http\Controllers\ReturBarangController;
+use App\Http\Controllers\PenerimaanReturController;
+use App\Http\Controllers\MasterAlasanReturController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -610,5 +612,32 @@ Route::middleware('auth')->group(function () {
     Route::delete('/{retur}', [ReturBarangController::class, 'destroy'])->name('destroy');
     Route::get('/{retur}/cetak', [ReturBarangController::class, 'cetakBap'])->name('cetak');
     });
+
+    Route::prefix('penerimaan-retur')
+    ->name('penerimaan-retur.')
+    ->group(function () {
+ 
+        Route::get('/', [PenerimaanReturController::class, 'index'])->name('index');
+ 
+        Route::get('/retur/{retur}/items', [PenerimaanReturController::class, 'itemsForRetur'])->name('items-for-retur');
+ 
+        Route::post('/', [PenerimaanReturController::class, 'store'])->name('store');
+ 
+        Route::get('/{penerimaanRetur}', [PenerimaanReturController::class, 'show'])->name('show');
+ 
+    });
+
+    Route::prefix('master-alasan-retur')->name('master-alasan-retur.')->group(function () {
+ 
+    Route::get('/', [MasterAlasanReturController::class, 'index'])->name('index');
+ 
+    Route::post('/', [MasterAlasanReturController::class, 'store'])->name('store');
+ 
+    Route::put('/{masterAlasanRetur}', [MasterAlasanReturController::class, 'update'])->name('update');
+ 
+    Route::delete('/{masterAlasanRetur}', [MasterAlasanReturController::class, 'destroy'])->name('destroy');
+ 
+    });
+ 
         
 });

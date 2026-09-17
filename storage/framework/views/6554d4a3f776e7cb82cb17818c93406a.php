@@ -266,6 +266,23 @@
                     </span>
                 </a>
 
+                <a href="<?php echo e(route('master-alasan-retur.index')); ?>"
+                    class="<?php echo e(request()->routeIs('master-alasan-retur.*')
+                            ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                            : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
+
+                            flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+                    
+                        <span class="material-symbols-outlined mr-3 text-[19px]" <?php if(request()->routeIs('master-alasan-retur.*')): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
+                            emergency
+                        </span>
+                    
+                        <span class="text-sidebar-nav font-sidebar-nav">
+                            Alasan Kerusakan
+                        </span>
+                    </a>
+ 
+
                 <a
                     href="<?php echo e(route('retur.index')); ?>"
                     class="<?php echo e(request()->routeIs('retur.*')
@@ -280,6 +297,23 @@
 
                     <span class="text-sidebar-nav font-sidebar-nav">
                         Retur Barang Masuk
+                    </span>
+                </a>
+
+                <a
+                    href="<?php echo e(route('penerimaan-retur.index')); ?>"
+                    class="<?php echo e(request()->routeIs('penerimaan-retur.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'); ?>
+
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group <?php echo e(request()->routeIs('penerimaan-retur.*') ? '' : 'hover:pl-5'); ?>"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] <?php echo e(request()->routeIs('penerimaan-retur.*') ? '' : 'text-outline group-hover:text-primary transition-colors'); ?>" <?php if(request()->routeIs('penerimaan-retur.*')): ?> style="font-variation-settings: 'FILL' 1;" <?php endif; ?>>
+                        move_to_inbox
+                    </span>
+                
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Penerimaan Barang Pengganti Retur
                     </span>
                 </a>
 

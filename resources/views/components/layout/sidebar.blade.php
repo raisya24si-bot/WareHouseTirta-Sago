@@ -257,6 +257,22 @@
                     </span>
                 </a>
 
+                <a href="{{ route('master-alasan-retur.index') }}"
+                    class="{{ request()->routeIs('master-alasan-retur.*')
+                            ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                            : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                            flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+                    
+                        <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('master-alasan-retur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                            emergency
+                        </span>
+                    
+                        <span class="text-sidebar-nav font-sidebar-nav">
+                            Alasan Kerusakan
+                        </span>
+                    </a>
+ 
+
                 <a
                     href="{{ route('retur.index') }}"
                     class="{{ request()->routeIs('retur.*')
@@ -270,6 +286,22 @@
 
                     <span class="text-sidebar-nav font-sidebar-nav">
                         Retur Barang Masuk
+                    </span>
+                </a>
+
+                <a
+                    href="{{ route('penerimaan-retur.index') }}"
+                    class="{{ request()->routeIs('penerimaan-retur.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan-retur.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('penerimaan-retur.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('penerimaan-retur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        move_to_inbox
+                    </span>
+                
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Penerimaan Barang Pengganti Retur
                     </span>
                 </a>
 

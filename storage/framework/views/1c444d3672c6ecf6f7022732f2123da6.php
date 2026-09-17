@@ -45,10 +45,32 @@
                 — Supplier <strong><?php echo e($retur->supplier?->nm_master_supplier ?? '-'); ?></strong>
             </p>
         </div>
-        <button class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-body-sm transition-all shadow-sm" type="button">
-            <span class="material-symbols-outlined text-[18px]">print</span>
-            Cetak BAP PDF
-        </button>
+        <div class="flex items-center gap-stack-sm">
+            <?php if($retur->canBeEdited()): ?>
+                <a href="<?php echo e(route('retur.edit', $retur)); ?>" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-body-sm transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                    Edit Draf
+                </a>
+            <?php endif; ?>
+
+            <?php if($retur->canBeDeleted()): ?>
+                <form method="POST" action="<?php echo e(route('retur.destroy', $retur)); ?>" onsubmit="return confirm('Hapus draf retur <?php echo e($retur->kd_retur); ?>? Tindakan ini tidak bisa dibatalkan.');">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('DELETE'); ?>
+                    <button class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-error-container hover:text-on-error-container text-error font-label-bold text-body-sm transition-all shadow-sm" type="submit">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                        Hapus Draf
+                    </button>
+                </form>
+            <?php endif; ?>
+
+            <?php if($retur->canCetakBap()): ?>
+                <a href="<?php echo e(route('retur.cetak', $retur)); ?>" target="_blank" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-bold text-body-sm transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">print</span>
+                    Cetak BAP PDF
+                </a>
+            <?php endif; ?>
+        </div>
     </div>
 
     

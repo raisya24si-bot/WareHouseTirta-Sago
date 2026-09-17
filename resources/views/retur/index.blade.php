@@ -7,12 +7,18 @@
 
 @php
     $statusBadge = function ($kode) {
-        return match ($kode) {
-            'MENUNGGU_RESPON_VENDOR' => ['bg-tertiary-fixed text-on-tertiary-fixed', 'bg-tertiary'],
-            'PROSES_KIRIM_GANTI' => ['bg-primary-fixed text-on-primary-fixed', 'bg-primary animate-pulse'],
-            'SELESAI' => ['bg-surface-container text-on-surface', null],
-            default => ['bg-surface-container-high text-on-surface-variant', 'bg-outline'],
+        return match (true) {
+            in_array($kode, \App\Models\MasterStatusRetur::GROUP_DALAM_PROSES, true)
+                => ['bg-tertiary-fixed text-on-tertiary-fixed', 'bg-tertiary animate-pulse'],
+            $kode === 'SELESAI' => ['bg-surface-container text-on-surface', null],
+            default => ['bg-surface-container-high text-on-surface-variant', 'bg-outline'], // DRAFT & lainnya
         };
+    };
+
+    $statusLabel = function ($retur) {
+        return in_array($retur->kode_status, \App\Models\MasterStatusRetur::GROUP_DALAM_PROSES, true)
+            ? 'Sedang Diproses'
+            : ($retur->statusRetur?->nm_status_retur ?? '-');
     };
 @endphp
 
@@ -248,7 +254,7 @@
                                 <div class="flex flex-col gap-0.5">
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full {{ $badgeBg }} font-label-bold text-[11px] w-fit">
                                         @if($dotBg)<span class="w-1.5 h-1.5 rounded-full {{ $dotBg }}"></span>@endif
-                                        {{ $retur->statusRetur?->nm_status_retur }}
+                                        {{ $statusLabel($retur) }}
                                     </span>
                                     @if($slaSisaJam !== null)
                                         <span class="text-[11px] font-bold {{ $slaSisaJam <= 24 ? 'text-error' : 'text-tertiary' }}">

@@ -10,6 +10,8 @@ use App\Models\PenerimaanBarang;
 use App\Models\ReturBarang;
 use App\Models\ReturBarangDetail;
 use App\Models\ReturBarangFoto;
+use App\Models\StokLokasi;
+use App\Models\StrukturLokasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -254,6 +256,13 @@ class ReturBarangController extends Controller
 
                 $detail->alasan()->sync($item['alasan_ids']);
 
+                // Barang rusak ini resmi keluar dari bin karantina begitu
+                // retur-nya diterbitkan (bukan draf) -- qty_rusak di bin
+                // REJECTED dikurangin sebesar qty yang diretur.
+                if (! $isDraft) {
+                    $this->kurangiStokRusak($detailSumber->fk_barang, $item['qty_diretur'], $userId);
+                }
+
                 // Foto bukti kerusakan untuk item ini
                 $fotos = request()->file("items.{$index}.fotos", []);
 
@@ -395,6 +404,13 @@ class ReturBarangController extends Controller
 
                 $detail->alasan()->sync($item['alasan_ids']);
 
+                // Sama kayak di store(): begitu draf ini resmi diterbitkan
+                // (bukan disimpan sebagai draf lagi), qty yang diretur
+                // resmi keluar dari bin karantina.
+                if (! $isDraft) {
+                    $this->kurangiStokRusak($detail->fk_barang, $item['qty_diretur'], $userId);
+                }
+
                 $fotos = request()->file("items.{$index}.fotos", []);
 
                 foreach ($fotos as $file) {
@@ -491,6 +507,49 @@ class ReturBarangController extends Controller
     | HELPERS
     |--------------------------------------------------------------------------
     */
+
+    // Bin aktif pertama pada gudang berkategori REJECTED -- ini tempat
+    // fisik barang rusak "nangkring" sebelum resmi diretur. Polanya sama
+    // persis kayak rejectedLocation() di ApprovalPenerimaanController.
+    private function rejectedLocation(): ?StrukturLokasi
+    {
+        return StrukturLokasi::query()
+            ->where('status_lokasi', 'AKTIF')
+            ->whereHas(
+                'row.rak.gudang.kategoriGudang',
+                fn ($q) => $q->whereRaw('UPPER(nm_kategori_gudang) = ?', ['REJECTED'])
+            )
+            ->orderBy('id_lokasi')
+            ->first();
+    }
+
+    // Begitu retur resmi diterbitkan, qty yang diretur dianggap sudah
+    // keluar fisik dari bin karantina (dikirim balik ke supplier) --
+    // qty_rusak di StokLokasi bin REJECTED dikurangin, bukan qty_stok
+    // (qty_rusak memang nggak pernah ikut menaikkan stok_saat_ini, jadi
+    // di sini juga nggak perlu menyentuh MasterBarang).
+    private function kurangiStokRusak(int $fkBarang, int $qty, int $userId): void
+    {
+        $rejectedLocation = $this->rejectedLocation();
+
+        if (! $rejectedLocation) {
+            return;
+        }
+
+        $stok = StokLokasi::query()
+            ->where('fk_barang', $fkBarang)
+            ->where('fk_lokasi', $rejectedLocation->id_lokasi)
+            ->first();
+
+        if (! $stok) {
+            return;
+        }
+
+        $stok->update([
+            'qty_rusak' => max(0, (int) $stok->qty_rusak - $qty),
+            'updated_by' => $userId,
+        ]);
+    }
 
     private function filteredQuery(Request $request)
     {
