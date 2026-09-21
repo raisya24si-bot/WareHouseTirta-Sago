@@ -224,6 +224,179 @@
                     </span>
                 </a>
 
+                <a
+                    href="{{ route('procurement.index') }}"
+                    class="{{ request()->routeIs('procurement.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('procurement.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('procurement.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('procurement.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        shopping_cart
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Stock Monitoring & Procurement
+                    </span>
+                </a>
+
+
+                  <a
+                    href="{{ route('penerimaan.index') }}"
+                    class="{{ request()->routeIs('penerimaan.*') && ! request()->routeIs('penerimaan.approval.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('penerimaan.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('penerimaan.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        move_to_inbox
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Penerimaan Barang PO
+                    </span>
+                </a>
+
+                <a href="{{ route('master-alasan-retur.index') }}"
+                    class="{{ request()->routeIs('master-alasan-retur.*')
+                            ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                            : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                            flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+                    
+                        <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('master-alasan-retur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                            emergency
+                        </span>
+                    
+                        <span class="text-sidebar-nav font-sidebar-nav">
+                            Alasan Kerusakan
+                        </span>
+                    </a>
+ 
+
+                <a
+                    href="{{ route('retur.index') }}"
+                    class="{{ request()->routeIs('retur.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('retur.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('retur.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('retur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        assignment_return
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Retur Barang Masuk
+                    </span>
+                </a>
+
+                <a
+                    href="{{ route('penerimaan-retur.index') }}"
+                    class="{{ request()->routeIs('penerimaan-retur.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('penerimaan-retur.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('penerimaan-retur.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('penerimaan-retur.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        move_to_inbox
+                    </span>
+                
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Penerimaan Barang Pengganti Retur
+                    </span>
+                </a>
+
+
+                {{-- ==================== APPROVAL (PO + Barang Masuk / GRN) ==================== --}}
+                @php
+                    $isApprovalActive = request()->routeIs('approval.*') || request()->routeIs('penerimaan.approval.*');
+                @endphp
+
+                <button
+                    type="button"
+                    onclick="toggleApprovalMenu()"
+                    class="mx-2 w-[calc(100%-1rem)] text-on-surface-variant hover:text-primary flex items-center px-4 py-2.5 rounded-xl hover:bg-surface-container-low transition-all duration-150 group">
+
+                    <span class="material-symbols-outlined mr-3 text-[20px] text-outline group-hover:text-primary transition-colors">
+                        pending_actions
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav font-bold flex-1 text-left">
+                        Approval
+                    </span>
+
+                    <span
+                        id="approval-chevron"
+                        class="material-symbols-outlined text-[20px] transition-transform duration-200 {{ $isApprovalActive ? 'rotate-180' : '' }}">
+                        expand_more
+                    </span>
+                </button>
+
+                <div
+                    id="approval-menu"
+                    class="ml-4 mt-1 space-y-3 border-l-2 border-outline-variant pl-2 overflow-hidden transition-all duration-200 {{ $isApprovalActive ? '' : 'hidden' }}">
+
+                    {{-- Sub-grup: Approval PO --}}
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval PO
+                        </p>
+
+                        <div class="space-y-0.5">
+
+                            @foreach(\App\Models\Po::LEVELS as $slug => $levelConfig)
+
+                                <a href="{{ route('approval.index', $slug) }}"
+                                class="{{ request()->routeIs('approval.*') && request()->route('level') === $slug
+                                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                                        flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+
+                                    <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('approval.*') && request()->route('level') === $slug) style="font-variation-settings: 'FILL' 1;" @endif>
+                                        fact_check
+                                    </span>
+
+                                    <span class="text-sidebar-nav font-sidebar-nav">
+                                        {{ $levelConfig['label'] }}
+                                    </span>
+                                </a>
+
+                            @endforeach
+
+                        </div>
+                    </div>
+
+                    {{-- Sub-grup: Approval Barang Masuk (GRN) --}}
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval Barang Masuk
+                        </p>
+
+                        <div class="space-y-0.5">
+
+                            @foreach(\App\Models\PenerimaanBarang::LEVELS as $slug => $levelConfig)
+
+                                <a href="{{ route('penerimaan.approval.index', $slug) }}"
+                                class="{{ request()->routeIs('penerimaan.approval.*') && request()->route('level') === $slug
+                                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                                        flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+
+                                    <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('penerimaan.approval.*') && request()->route('level') === $slug) style="font-variation-settings: 'FILL' 1;" @endif>
+                                        move_to_inbox
+                                    </span>
+
+                                    <span class="text-sidebar-nav font-sidebar-nav">
+                                        {{ $levelConfig['label'] }}
+                                    </span>
+                                </a>
+
+                            @endforeach
+
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
@@ -272,6 +445,14 @@
             menu.classList.toggle('hidden');
             chevron.classList.toggle('rotate-180');
         }
+
+        function toggleApprovalMenu() {
+            const menu = document.getElementById('approval-menu');
+            const chevron = document.getElementById('approval-chevron');
+
+            menu.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
     </script>
 
     <!-- Footer -->
@@ -289,10 +470,10 @@
 
         <div class="space-y-0.5">
 
-            <a href="#"
-               class="text-on-surface-variant hover:text-primary mx-2 flex items-center px-3 py-2 rounded-lg hover:bg-surface-container-low transition-all duration-150 group">
+            <a href="{{ route('settings.show') }}"
+               class="{{ request()->routeIs('settings.*') ? 'text-primary bg-primary/5' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }} mx-2 flex items-center px-3 py-2 rounded-lg transition-all duration-150 group">
 
-                <span class="material-symbols-outlined mr-3 text-outline group-hover:text-primary text-[20px] transition-colors">
+                <span class="material-symbols-outlined mr-3 text-[20px] transition-colors {{ request()->routeIs('settings.*') ? 'text-primary' : 'text-outline group-hover:text-primary' }}">
                     settings
                 </span>
 
@@ -315,28 +496,36 @@
 
         </div>
 
+        @php
+            $sidebarUser = auth()->user();
+            $sidebarAvatar = $sidebarUser->avatarUrl(64);
+        @endphp
+
         <!-- Profile -->
-        <div class="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant transition hover:border-primary/30">
+        <a
+            href="{{ route('profile.show') }}"
+            class="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant transition hover:border-primary/30 hover:shadow-sm"
+        >
 
             <img
                 class="w-8 h-8 rounded-full object-cover border border-outline-variant"
-                alt="Administrator Profile"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqidWYZVLESTtnmZrZI_eBKsS-Bb9m2MOKUVikHuFf7AVmfS-HLwSK9X0zEpFT-SMzTcuFnfpejVMlgOwcf1D7vKzoaOZ7tYBjH8SS0erqjFLvl_5Ke-Dwc-iuMysUEEMN4gjrnuWS5OrnpaHOe_nEOZ0pIOTReZXb3PC7lRh1ZZw22RbzClE0oQdjn4JHOlJZSLpoboBAfBVLHD5lXVeXxBpE33H1NtjsSoTVzBb4mV6kPk7-qzGd-A"
+                alt="{{ $sidebarUser->name }}"
+                src="{{ $sidebarAvatar }}"
             >
 
             <div class="flex-1 overflow-hidden">
                 <p class="text-sm font-label-bold text-on-surface truncate">
-                    Administrator
+                    {{ $sidebarUser->name }}
                 </p>
 
                 <p class="text-xs text-on-surface-variant truncate">
-                    admin@tirtasago.id
+                    {{ $sidebarUser->email }}
                 </p>
             </div>
 
             <span class="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online"></span>
 
-        </div>
+        </a>
 
     </div>
 

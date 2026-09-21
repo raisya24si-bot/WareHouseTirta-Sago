@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\ApprovalPenerimaanController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ManajemenStokController;
 use App\Http\Controllers\MasterBarangController;
 use App\Http\Controllers\MasterGudangController;
 use App\Http\Controllers\MasterKategoriController;
@@ -7,92 +11,633 @@ use App\Http\Controllers\MasterRakController;
 use App\Http\Controllers\MasterRowController;
 use App\Http\Controllers\MasterSatuanController;
 use App\Http\Controllers\MasterSupplierController;
+use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\OpnameController;
+use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StrukturLokasiController;
-use App\Http\Controllers\ManajemenStokController;
+use App\Http\Controllers\PenerimaanController;
+use App\Http\Controllers\ReturBarangController;
+use App\Http\Controllers\PenerimaanReturController;
+use App\Http\Controllers\MasterAlasanReturController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [MasterBarangController::class, 'index'])->name('barang.index');
-Route::post('/barang', [MasterBarangController::class, 'store'])->name('barang.store');
-Route::put('/barang/{masterBarang}', [MasterBarangController::class, 'update'])->name('barang.update');
-Route::delete('/barang/{masterBarang}', [MasterBarangController::class, 'destroy'])->name('barang.destroy');
-Route::post('/barang/import', [MasterBarangController::class, 'import'])->name('barang.import');
-Route::get('/barang/import/template', [MasterBarangController::class, 'importTemplate'])->name('barang.import-template');
 
-Route::get('/master-kategori', [MasterKategoriController::class, 'index'])->name('master-kategori.index');
-Route::post('/master-kategori', [MasterKategoriController::class, 'store'])->name('master-kategori.store');
-Route::put('/master-kategori/{masterKategori}', [MasterKategoriController::class, 'update'])->name('master-kategori.update');
-Route::delete('/master-kategori/{masterKategori}', [MasterKategoriController::class, 'destroy'])->name('master-kategori.destroy');
+//auth
 
-Route::get('/master-satuan', [MasterSatuanController::class, 'index'])->name('master-satuan.index');
-Route::post('/master-satuan', [MasterSatuanController::class, 'store'])->name('master-satuan.store');
-Route::put('/master-satuan/{masterSatuan}', [MasterSatuanController::class, 'update'])->name('master-satuan.update');
-Route::delete('/master-satuan/{masterSatuan}', [MasterSatuanController::class, 'destroy'])->name('master-satuan.destroy');
+Route::middleware('guest')->group(function () {
 
-Route::get('/master-supplier', [MasterSupplierController::class, 'index'])->name('master-supplier.index');
-Route::post('/master-supplier', [MasterSupplierController::class, 'store'])->name('master-supplier.store');
-Route::put('/master-supplier/{masterSupplier}', [MasterSupplierController::class, 'update'])->name('master-supplier.update');
-Route::delete('/master-supplier/{masterSupplier}', [MasterSupplierController::class, 'destroy'])->name('master-supplier.destroy');
+    Route::get('/login', [LoginController::class, 'create'])
+        ->name('login');
 
-// MASTER GUDANG - satu halaman untuk Gudang, Rak, Row, dan Struktur Lokasi/Bin.
-Route::get('/master-gudang', [MasterGudangController::class, 'index'])->name('master-gudang.index');
+    Route::post('/login', [LoginController::class, 'attempt'])
+        ->name('login.attempt');
+});
 
-Route::post('/master-gudang', [MasterGudangController::class, 'store'])->name('master-gudang.store');
-Route::put('/master-gudang/{masterGudang}', [MasterGudangController::class, 'update'])->name('master-gudang.update');
-Route::delete('/master-gudang/{masterGudang}', [MasterGudangController::class, 'destroy'])->name('master-gudang.destroy');
+Route::middleware('auth')->post(
+    '/logout',
+    [LoginController::class, 'destroy']
+)->name('logout');
 
-Route::post('/master-rak', [MasterRakController::class, 'store'])->name('master-rak.store');
-Route::put('/master-rak/{masterRak}', [MasterRakController::class, 'update'])->name('master-rak.update');
-Route::delete('/master-rak/{masterRak}', [MasterRakController::class, 'destroy'])->name('master-rak.destroy');
 
-Route::post('/master-row', [MasterRowController::class, 'store'])->name('master-row.store');
-Route::put('/master-row/{masterRow}', [MasterRowController::class, 'update'])->name('master-row.update');
-Route::delete('/master-row/{masterRow}', [MasterRowController::class, 'destroy'])->name('master-row.destroy');
+// authentikasi route
 
-Route::post('/struktur-lokasi', [StrukturLokasiController::class, 'store'])->name('struktur-lokasi.store');
-Route::put('/struktur-lokasi/{strukturLokasi}', [StrukturLokasiController::class, 'update'])->name('struktur-lokasi.update');
-Route::delete('/struktur-lokasi/{strukturLokasi}', [StrukturLokasiController::class, 'destroy'])->name('struktur-lokasi.destroy');
+Route::middleware('auth')->group(function () {
 
-// STOCK OPNAME - modul terpisah, bukan bagian dari dropdown Master Data.
-Route::get('/opname', [OpnameController::class, 'index'])->name('opname.index');
-Route::post('/opname', [OpnameController::class, 'store'])->name('opname.store');
-Route::get('/opname/{opname}', [OpnameController::class, 'show'])->name('opname.show');
-Route::put('/opname/{opname}', [OpnameController::class, 'update'])->name('opname.update');
-Route::any('/opname/{opname}/submit-adjustment', [OpnameController::class, 'submitAdjustment'])->name('opname.submit-adjustment');
-Route::post('/opname/{opname}/items', [OpnameController::class, 'addItem'])->name('opname.add-item');
-Route::put('/opname/{opname}/items/{item}', [OpnameController::class, 'updateItem'])->name('opname.update-item');
-Route::delete('/opname/{opname}/items/{item}', [OpnameController::class, 'deleteItem'])->name('opname.delete-item');
-Route::delete('/opname/{opname}/bins/{lokasi}', [OpnameController::class, 'deleteBin'])->name('opname.delete-bin');
+    // Dashboard / Home (index Master Barang dipakai sebagai halaman utama)
+    Route::get(
+        '/',
+        [MasterBarangController::class, 'index']
+    )->name('barang.index');
 
-// MANAJEMEN STOK BARANG
-Route::get(
-    '/manajemen-stok',
-    [ManajemenStokController::class, 'index']
-)->name('manajemen-stok.index');
 
-Route::get(
-    '/manajemen-stok/barang/{masterBarang}',
-    [ManajemenStokController::class, 'show']
-)->name('manajemen-stok.show');
+    // Search
+    Route::prefix('search')->group(function () {
 
-Route::get(
-    '/manajemen-stok/stok/{stokLokasi}/edit',
-    [ManajemenStokController::class, 'edit']
-)->name('manajemen-stok.edit');
+        Route::get(
+            '/',
+            [SearchController::class, 'index']
+        )->name('search');
+    });
 
-Route::put(
-    '/manajemen-stok/stok/{stokLokasi}',
-    [ManajemenStokController::class, 'update']
-)->name('manajemen-stok.update');
 
-Route::post(
-    '/manajemen-stok/add-bin',
-    [ManajemenStokController::class, 'addBin']
-)->name('manajemen-stok.add-bin');
+    // Notifications
+    Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
 
-Route::delete(
-    '/manajemen-stok/stok/{stokLokasi}',
-    [ManajemenStokController::class, 'destroy']
-)->name('manajemen-stok.destroy');
+        Route::get(
+            '/',
+            [NotificationsController::class, 'index']
+        )->name('index');
 
-Route::delete('/opname/{opname}', [OpnameController::class, 'destroy'])->name('opname.destroy');
+        Route::get(
+            '/{notifikasi}',
+            [NotificationsController::class, 'open']
+        )->name('open');
+
+        Route::post(
+            '/mark-all-read',
+            [NotificationsController::class, 'markAllRead']
+        )->name('mark-all-read');
+    });
+
+
+    // Profile
+    Route::prefix('profile')->name('profile.')->group(function () {
+
+        Route::get(
+            '/',
+            [ProfileController::class, 'show']
+        )->name('show');
+
+        Route::put(
+            '/',
+            [ProfileController::class, 'update']
+        )->name('update');
+    });
+
+
+    // Settings
+    Route::prefix('settings')->name('settings.')->group(function () {
+
+        Route::get(
+            '/',
+            [SettingsController::class, 'show']
+        )->name('show');
+
+        Route::put(
+            '/password',
+            [SettingsController::class, 'updatePassword']
+        )->name('update-password');
+
+        Route::put(
+            '/preferences',
+            [SettingsController::class, 'updatePreferences']
+        )->name('update-preferences');
+    });
+
+
+    // Master Barang
+    Route::prefix('barang')->name('barang.')->group(function () {
+
+        Route::post(
+            '/',
+            [MasterBarangController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterBarang}',
+            [MasterBarangController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterBarang}',
+            [MasterBarangController::class, 'destroy']
+        )->name('destroy');
+
+        Route::post(
+            '/import',
+            [MasterBarangController::class, 'import']
+        )->name('import');
+
+        Route::get(
+            '/import/template',
+            [MasterBarangController::class, 'importTemplate']
+        )->name('import-template');
+    });
+
+
+    // Master Kategori
+    Route::prefix('master-kategori')->name('master-kategori.')->group(function () {
+
+        Route::get(
+            '/',
+            [MasterKategoriController::class, 'index']
+        )->name('index');
+
+        Route::post(
+            '/',
+            [MasterKategoriController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterKategori}',
+            [MasterKategoriController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterKategori}',
+            [MasterKategoriController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Master Satuan
+    Route::prefix('master-satuan')->name('master-satuan.')->group(function () {
+
+        Route::get(
+            '/',
+            [MasterSatuanController::class, 'index']
+        )->name('index');
+
+        Route::post(
+            '/',
+            [MasterSatuanController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterSatuan}',
+            [MasterSatuanController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterSatuan}',
+            [MasterSatuanController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Master Supplier
+    Route::prefix('master-supplier')->name('master-supplier.')->group(function () {
+
+        Route::get(
+            '/',
+            [MasterSupplierController::class, 'index']
+        )->name('index');
+
+        Route::post(
+            '/',
+            [MasterSupplierController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterSupplier}',
+            [MasterSupplierController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterSupplier}',
+            [MasterSupplierController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Master Gudang
+    Route::prefix('master-gudang')->name('master-gudang.')->group(function () {
+
+        Route::get(
+            '/',
+            [MasterGudangController::class, 'index']
+        )->name('index');
+
+        Route::post(
+            '/',
+            [MasterGudangController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterGudang}',
+            [MasterGudangController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterGudang}',
+            [MasterGudangController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Master Rak
+    Route::prefix('master-rak')->name('master-rak.')->group(function () {
+
+        Route::post(
+            '/',
+            [MasterRakController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterRak}',
+            [MasterRakController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterRak}',
+            [MasterRakController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Master Row
+    Route::prefix('master-row')->name('master-row.')->group(function () {
+
+        Route::post(
+            '/',
+            [MasterRowController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterRow}',
+            [MasterRowController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterRow}',
+            [MasterRowController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Struktur Lokasi / BIN
+    Route::prefix('struktur-lokasi')->name('struktur-lokasi.')->group(function () {
+
+        Route::post(
+            '/',
+            [StrukturLokasiController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{strukturLokasi}',
+            [StrukturLokasiController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{strukturLokasi}',
+            [StrukturLokasiController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Stock Opname
+    Route::prefix('opname')->name('opname.')->group(function () {
+
+        Route::get(
+            '/',
+            [OpnameController::class, 'index']
+        )->name('index');
+
+        Route::post(
+            '/',
+            [OpnameController::class, 'store']
+        )->name('store');
+
+        Route::get(
+            '/{opname}',
+            [OpnameController::class, 'show']
+        )->name('show');
+
+        Route::put(
+            '/{opname}',
+            [OpnameController::class, 'update']
+        )->name('update');
+
+        Route::any(
+            '/{opname}/submit-adjustment',
+            [OpnameController::class, 'submitAdjustment']
+        )->name('submit-adjustment');
+
+        Route::post(
+            '/{opname}/items',
+            [OpnameController::class, 'addItem']
+        )->name('add-item');
+
+        Route::put(
+            '/{opname}/items/{item}',
+            [OpnameController::class, 'updateItem']
+        )->name('update-item');
+
+        Route::delete(
+            '/{opname}/items/{item}',
+            [OpnameController::class, 'deleteItem']
+        )->name('delete-item');
+
+        Route::delete(
+            '/{opname}/bins/{lokasi}',
+            [OpnameController::class, 'deleteBin']
+        )->name('delete-bin');
+
+        Route::delete(
+            '/{opname}',
+            [OpnameController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Manajemen Stok
+    Route::prefix('manajemen-stok')->name('manajemen-stok.')->group(function () {
+
+        Route::get(
+            '/',
+            [ManajemenStokController::class, 'index']
+        )->name('index');
+
+        Route::get(
+            '/barang/{masterBarang}',
+            [ManajemenStokController::class, 'show']
+        )->name('show');
+
+        Route::get(
+            '/stok/{stokLokasi}/edit',
+            [ManajemenStokController::class, 'edit']
+        )->name('edit');
+
+        Route::put(
+            '/stok/{stokLokasi}',
+            [ManajemenStokController::class, 'update']
+        )->name('update');
+
+        Route::post(
+            '/add-bin',
+            [ManajemenStokController::class, 'addBin']
+        )->name('add-bin');
+
+        Route::delete(
+            '/stok/{stokLokasi}',
+            [ManajemenStokController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Procurement (Stock Monitoring & Procurement, draft PO, lifecycle PO)
+    Route::prefix('procurement')->name('procurement.')->group(function () {
+
+        Route::get(
+            '/',
+            [ProcurementController::class, 'index']
+        )->name('index');
+
+
+        // Draft
+        Route::post(
+            '/draft/items',
+            [ProcurementController::class, 'addToDraft']
+        )->name('draft.add-item');
+
+        Route::put(
+            '/draft/items/{masterBarang}',
+            [ProcurementController::class, 'updateDraftQty']
+        )->name('draft.update-item');
+
+        Route::delete(
+            '/draft/items/{masterBarang}',
+            [ProcurementController::class, 'removeDraftItem']
+        )->name('draft.remove-item');
+
+        Route::post(
+            '/draft/supplier',
+            [ProcurementController::class, 'setDraftSupplier']
+        )->name('draft.set-supplier');
+
+        Route::post(
+            '/draft/create',
+            [ProcurementController::class, 'createPurchaseOrder']
+        )->name('draft.create');
+
+
+        // Purchase Order
+        Route::get(
+            '/{po}',
+            [ProcurementController::class, 'show']
+        )->name('show');
+
+        Route::get(
+            '/{po}/edit',
+            [ProcurementController::class, 'edit']
+        )->name('edit');
+
+        Route::put(
+            '/{po}',
+            [ProcurementController::class, 'update']
+        )->name('update');
+
+        Route::post(
+            '/{po}/items',
+            [ProcurementController::class, 'addItem']
+        )->name('add-item');
+
+        Route::delete(
+            '/{po}/items/{item}',
+            [ProcurementController::class, 'removeItem']
+        )->name('remove-item');
+
+        Route::post(
+            '/{po}/submit',
+            [ProcurementController::class, 'submit']
+        )->name('submit');
+
+        Route::delete(
+            '/{po}',
+            [ProcurementController::class, 'destroy']
+        )->name('destroy');
+
+    });
+
+
+    // Antrean Persetujuan PO Kasubag -> Kabag -> Direktur
+    Route::prefix('approval')
+        ->name('approval.')
+        ->where(['level' => 'kasubag|kabag|direktur'])
+        ->group(function () {
+
+            Route::get(
+                '/{level}',
+                [ApprovalController::class, 'index']
+            )->name('index');
+
+            Route::get(
+                '/{level}/{po}',
+                [ApprovalController::class, 'review']
+            )->name('review');
+
+            Route::post(
+                '/{level}/{po}/approve',
+                [ApprovalController::class, 'approve']
+            )->name('approve');
+
+            Route::post(
+                '/{level}/{po}/reject',
+                [ApprovalController::class, 'reject']
+            )->name('reject');
+
+        });
+
+      // Penerimaan Barang PO
+        Route::prefix('penerimaan')
+            ->name('penerimaan.')
+            ->group(function () {
+
+                Route::get(
+                    '/',
+                    [PenerimaanController::class, 'index']
+                )->name('index');
+
+                Route::get(
+                    '/export',
+                    [PenerimaanController::class, 'export']
+                )->name('export');
+
+                Route::get(
+                    '/laporan-akurasi',
+                    [PenerimaanController::class, 'laporanAkurasiPdf']
+                )->name('laporan-akurasi');
+
+                Route::post(
+                    '/',
+                    [PenerimaanController::class, 'store']
+                )->name('store');
+
+                Route::get(
+                    '/{penerimaan}/verifikasi',
+                    [PenerimaanController::class, 'verifikasi']
+                )->name('verifikasi');
+
+                // dipakai oleh drawer "Alokasi Penyimpanan" di halaman verifikasi.
+                Route::prefix('lokasi')
+                    ->name('lokasi.')
+                    ->group(function () {
+
+                        Route::get(
+                            '/gudang',
+                            [PenerimaanController::class, 'lokasiGudangOptions']
+                        )->name('gudang');
+
+                        Route::get(
+                            '/rak',
+                            [PenerimaanController::class, 'lokasiRakOptions']
+                        )->name('rak');
+
+                        Route::get(
+                            '/row',
+                            [PenerimaanController::class, 'lokasiRowOptions']
+                        )->name('row');
+
+                        Route::get(
+                            '/bin',
+                            [PenerimaanController::class, 'lokasiBinOptions']
+                        )->name('bin');
+
+                    });
+
+                Route::post(
+                    '/{penerimaan}/draft',
+                    [PenerimaanController::class, 'saveDraft']
+                )->name('save-draft');
+
+                Route::post(
+                    '/{penerimaan}/bukti-dukung',
+                    [PenerimaanController::class, 'uploadBuktiDukung']
+                )->name('bukti-dukung.upload');
+
+                Route::post(
+                    '/{penerimaan}/submit',
+                    [PenerimaanController::class, 'submit']
+                )->name('submit');
+
+                // Antrean approval GRN, bertingkat sama seperti approval PO
+                // di atas: Kasubag -> Kabag -> Direktur (lihat
+                // PenerimaanBarang::LEVELS). Beda dari grup 'approval.*' di
+                // atas yang khusus untuk approval PO.
+                Route::prefix('approval/{level}')
+                    ->name('approval.')
+                    ->where(['level' => 'kasubag|kabag|direktur'])
+                    ->group(function () {
+
+                        Route::get(
+                            '/',
+                            [ApprovalPenerimaanController::class, 'index']
+                        )->name('index');
+
+                        Route::post(
+                            '/{penerimaan}/approve',
+                            [ApprovalPenerimaanController::class, 'approve']
+                        )->name('approve');
+
+                        Route::post(
+                            '/{penerimaan}/reject',
+                            [ApprovalPenerimaanController::class, 'reject']
+                        )->name('reject');
+
+                    });
+
+            });
+
+    Route::prefix('retur')->name('retur.')->group(function () {
+    Route::get('/', [ReturBarangController::class, 'index'])->name('index');
+    Route::get('/export', [ReturBarangController::class, 'export'])->name('export');
+    Route::get('/grn/{grn}/items', [ReturBarangController::class, 'itemsForGrn'])->name('items-for-grn');
+    Route::post('/', [ReturBarangController::class, 'store'])->name('store');
+    Route::get('/{retur}', [ReturBarangController::class, 'show'])->name('show');
+    Route::get('/{retur}/edit', [ReturBarangController::class, 'edit'])->name('edit');
+    Route::put('/{retur}', [ReturBarangController::class, 'update'])->name('update');
+    Route::delete('/{retur}', [ReturBarangController::class, 'destroy'])->name('destroy');
+    Route::get('/{retur}/cetak', [ReturBarangController::class, 'cetakBap'])->name('cetak');
+    });
+
+    Route::prefix('penerimaan-retur')
+    ->name('penerimaan-retur.')
+    ->group(function () {
+ 
+        Route::get('/', [PenerimaanReturController::class, 'index'])->name('index');
+ 
+        Route::get('/retur/{retur}/items', [PenerimaanReturController::class, 'itemsForRetur'])->name('items-for-retur');
+ 
+        Route::post('/', [PenerimaanReturController::class, 'store'])->name('store');
+ 
+        Route::get('/{penerimaanRetur}', [PenerimaanReturController::class, 'show'])->name('show');
+ 
+    });
+
+    Route::prefix('master-alasan-retur')->name('master-alasan-retur.')->group(function () {
+ 
+    Route::get('/', [MasterAlasanReturController::class, 'index'])->name('index');
+ 
+    Route::post('/', [MasterAlasanReturController::class, 'store'])->name('store');
+ 
+    Route::put('/{masterAlasanRetur}', [MasterAlasanReturController::class, 'update'])->name('update');
+ 
+    Route::delete('/{masterAlasanRetur}', [MasterAlasanReturController::class, 'destroy'])->name('destroy');
+ 
+    });
+ 
+        
+});

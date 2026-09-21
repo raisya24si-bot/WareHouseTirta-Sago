@@ -47,6 +47,28 @@ return [
             'report' => false,
         ],
 
+        /*
+        |----------------------------------------------------------------
+        | AVATARS
+        |----------------------------------------------------------------
+        |
+        | Sengaja root-nya langsung ke public_path(), bukan storage/app +
+        | symlink kayak disk 'public' bawaan. Alasannya: symlink 'storage'
+        | butuh `php artisan storage:link` dijalankan manual di server
+        | (gampang kelupaan pas deploy), sedangkan foto profil butuh
+        | selalu bisa diakses browser tanpa langkah tambahan itu.
+        |----------------------------------------------------------------
+        */
+
+        'avatars' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/avatars'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads/avatars',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

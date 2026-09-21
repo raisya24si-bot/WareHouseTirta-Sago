@@ -123,4 +123,23 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Segregasi Approval (Segregation of Duty)
+    |--------------------------------------------------------------------------
+    |
+    | Kalau TRUE: petugas yang men-submit PO/GRN tidak boleh approve/reject
+    | dokumennya sendiri di tahap Kasubag/Kabag/Direktur -- aturan ini butuh
+    | akun terpisah per role buat bisa dites/dipakai.
+    |
+    | Sengaja di-set FALSE dulu selama tahap beta (baru ada 1 akun user),
+    | supaya alur approval tetap bisa dicoba end-to-end pakai 1 akun yang
+    | sama. Begitu akun per role (Kasubag/Kabag/Direktur) udah dibuat,
+    | set ENFORCE_APPROVAL_SEGREGATION=true di .env buat nyalain lagi
+    | aturan ini tanpa perlu ubah kode di controller/view.
+    |
+    */
+
+    'enforce_approval_segregation' => env('ENFORCE_APPROVAL_SEGREGATION', false),
+
 ];

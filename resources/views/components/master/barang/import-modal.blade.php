@@ -11,7 +11,7 @@
                 <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <span class="material-symbols-outlined text-[20px]">upload_file</span>
                 </div>
-                <h2 class="text-xl font-semibold">Import Barang dari CSV</h2>
+                <h2 class="text-xl font-semibold">Import File</h2>
             </div>
             <button type="button" onclick="closeImportBarangModal()">
                 <span class="material-symbols-outlined">close</span>
@@ -27,10 +27,8 @@
             @csrf
 
             <div class="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-on-surface-variant">
-                Kolom minimal: <strong>Kode Barang</strong> (opsional, buat update data lama),
+                Kolom minimal: <strong>Kode Barang</strong> (opsional),
                 <strong>Nama Barang</strong>, <strong>Kategori</strong>, <strong>Satuan</strong>.
-                Kategori & Satuan harus sudah ada di Master Kategori / Master Satuan
-                (dicocokkan berdasarkan nama).
                 <a
                     href="{{ route('barang.import-template') }}"
                     class="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"

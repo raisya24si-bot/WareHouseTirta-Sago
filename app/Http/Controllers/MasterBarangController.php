@@ -34,11 +34,7 @@ class MasterBarangController extends Controller
         $categories = MasterKategori::where('status_master_kategori', 'AKTIF')->orderBy('nm_master_kategori')->get();
         $satuans = MasterSatuan::where('status_master_satuan', 'AKTIF')->orderBy('nm_master_satuan')->get();
 
-        /*
-        |--------------------------------------------------------------------------
-        | RINGKASAN (buat kartu statistik di atas tabel)
-        |--------------------------------------------------------------------------
-        */
+
 
         $summary = [
             'total' => MasterBarang::count(),
@@ -84,29 +80,6 @@ class MasterBarangController extends Controller
         return back()->with('success', 'Barang berhasil dinonaktifkan.');
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMPORT CSV / EXCEL
-    |--------------------------------------------------------------------------
-    |
-    | Minimal kolom yang dibaca: Kode Barang, Nama Barang, Kategori, Satuan.
-    | Min. Stok & Stok Saat Ini opsional (default 0 kalau kosong).
-    |
-    | - Nama header di baris pertama fleksibel (lihat normalizeHeaderKey()) --
-    |   "Nama Barang", "nama_barang", "nm_master_barang" semua dikenali.
-    | - Kategori & Satuan dicocokkan berdasarkan NAMA (case-insensitive)
-    |   ke data master yang sudah ada. Kalau tidak ketemu, baris itu
-    |   dilewati (tidak dibuatkan kategori/satuan baru secara diam-diam).
-    | - Kode Barang itu sendiri SELALU di-generate otomatis oleh model
-    |   (lihat MasterBarang::booted()) untuk barang baru. Kolom "Kode
-    |   Barang" di file cuma dipakai untuk mencocokkan barang yang SUDAH
-    |   ADA (supaya import ulang meng-update, bukan duplikat).
-    |
-    | .csv dibaca pakai parser native PHP (fgetcsv), .xlsx/.xls dibaca
-    | lewat PhpSpreadsheet (composer require phpoffice/phpspreadsheet).
-    |--------------------------------------------------------------------------
-    */
 
     public function import(Request $request)
     {
@@ -167,10 +140,7 @@ class MasterBarangController extends Controller
         $updated = 0;
         $skipped = [];
 
-        /*
-        | rowNum mulai dari 1 karena baris pertama (index 0) adalah
-        | header, jadi data pertama itu baris ke-2 di file aslinya.
-        */
+    
         $rowNum = 1;
 
         foreach ($rows as $row) {
@@ -299,14 +269,6 @@ class MasterBarangController extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | BACA FILE CSV
-    |--------------------------------------------------------------------------
-    |
-    | Return [$header, $rows] -- $rows berupa iterable array per baris.
-    |--------------------------------------------------------------------------
-    */
 
     private function readCsvRows(string $path): array
     {
@@ -367,13 +329,7 @@ class MasterBarangController extends Controller
 
         $sheet = $spreadsheet->getActiveSheet();
 
-        /*
-        | toArray(null, true, true, false):
-        | - null  -> sel kosong jadi null
-        | - true  -> hitung style (biarin default)
-        | - true  -> format tanggal/angka dikonversi
-        | - false -> key array numerik dari 0 (bukan pakai huruf kolom "A","B",...)
-        */
+
 
         $data = $sheet->toArray(null, true, true, false);
 

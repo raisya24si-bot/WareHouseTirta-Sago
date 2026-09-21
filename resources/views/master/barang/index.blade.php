@@ -44,7 +44,7 @@
         addAction="openBarangModal()"
         addText="Barang Baru"
         secondaryAction="openImportBarangModal()"
-        secondaryText="Import CSV"
+        secondaryText="Import File"
         secondaryIcon="upload_file"
         filterName="fk_kategori"
         filterLabel="Kategori"

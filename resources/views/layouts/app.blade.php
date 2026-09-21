@@ -2,293 +2,7 @@
 <html class="light" lang="id">
 
 <head>
-    <meta charset="utf-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>@yield('title', 'Warehouse Tirta Sago')</title>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Work+Sans:wght@400;500;700&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- Material Symbols -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100;200;300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-
-    <!--
-        Tailwind Configuration
-        PENTING: ini SATU-SATUNYA config Tailwind untuk seluruh aplikasi.
-        Jangan copy config ini ke file halaman lain lagi - kalau ada warna
-        baru yang dibutuhkan, tambahkan di sini saja supaya semua halaman
-        (termasuk sidebar & navbar) selalu konsisten.
-    -->
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-
-            theme: {
-                extend: {
-
-                    colors: {
-                        background: "#f9f9ff",
-                        "on-primary": "#ffffff",
-                        "on-primary-fixed": "#001a41",
-                        "primary": "#0059bb",
-                        "primary-container": "#0070ea",
-                        "surface": "#f9f9ff",
-                        "surface-bright": "#f9f9ff",
-                        "surface-container-low": "#f1f3fe",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-container-high": "#e6e8f3",
-                        "surface-container-highest": "#e0e2ed",
-                        "surface-variant": "#e0e2ed",
-                        "inverse-surface": "#2d3039",
-                        "surface-dim": "#d7d9e5",
-                        "surface-tint": "#005bc0",
-                        "on-surface": "#181c23",
-                        "on-surface-variant": "#414754",
-                        "outline": "#717786",
-                        "outline-variant": "#c1c6d7",
-                        "error": "#ba1a1a",
-                        "error-container": "#ffdad6",
-                        "on-error-container": "#93000a",
-                        "secondary-container": "#dde3eb"
-                    },
-
-                    borderRadius: {
-                        DEFAULT: "0.125rem",
-                        lg: "0.25rem",
-                        xl: "0.5rem",
-                        full: "0.75rem"
-                    },
-
-                    spacing: {
-                        gutter: "16px",
-                        "container-padding": "24px"
-                    },
-
-                    fontFamily: {
-                        "headline-md": ["Manrope"],
-                        "display-lg": ["Manrope"],
-                        "body-lg": ["Work Sans"],
-                        "body-sm": ["Work Sans"],
-                        "label-bold": ["Work Sans"],
-                        "sidebar-nav": ["Work Sans"]
-                    },
-
-                    fontSize: {
-                        "headline-md": [
-                            "24px",
-                            {
-                                lineHeight: "32px",
-                                fontWeight: "600"
-                            }
-                        ],
-
-                        "display-lg": [
-                            "32px",
-                            {
-                                lineHeight: "40px",
-                                fontWeight: "700"
-                            }
-                        ],
-
-                        "body-lg": [
-                            "16px",
-                            {
-                                lineHeight: "24px"
-                            }
-                        ],
-
-                        "body-sm": [
-                            "14px",
-                            {
-                                lineHeight: "20px"
-                            }
-                        ],
-
-                        "label-bold": [
-                            "14px",
-                            {
-                                lineHeight: "20px",
-                                fontWeight: "700"
-                            }
-                        ],
-
-                        "sidebar-nav": [
-                            "13px",
-                            {
-                                lineHeight: "18px",
-                                fontWeight: "500"
-                            }
-                        ]
-                    }
-                }
-            }
-        };
-    </script>
-
-    <style>
-        body {
-            font-family: 'Work Sans', sans-serif;
-            background-color: #f9f9ff;
-            color: #181c23;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f3fe;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #c1c6d7;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #717786;
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | FULL PAGE LOADING SCREEN
-        |--------------------------------------------------------------------------
-        |
-        | Defaultnya KELIHATAN (bukan disembunyikan pakai JS) supaya begitu
-        | HTML halaman mulai di-parse browser, loading screen ini LANGSUNG
-        | nutup layar tanpa nunggu JS jalan dulu -- jadi transisi antar
-        | halaman kerasa nyambung, nggak ada kedip konten mentah.
-        | JS di bawah cuma tugasnya nyembunyiin pas halaman udah siap.
-        |--------------------------------------------------------------------------
-        */
-
-        #page-loading-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #f9f9ff;
-            opacity: 1;
-            transition: opacity 0.3s ease-out;
-        }
-
-        #page-loading-overlay.is-hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-ring {
-            width: 64px;
-            height: 64px;
-            border-radius: 9999px;
-            border: 4px solid rgba(0, 89, 187, 0.15);
-            border-top-color: #0059bb;
-            animation: loading-ring-spin 0.8s linear infinite;
-        }
-
-        @keyframes loading-ring-spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-badge {
-            animation: loading-badge-pulse 1.4s ease-in-out infinite;
-        }
-
-        @keyframes loading-badge-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.9); }
-        }
-
-        .loading-dot {
-            animation: loading-dot-bounce 1s ease-in-out infinite;
-        }
-
-        @keyframes loading-dot-bounce {
-            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-5px); opacity: 1; }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | FLASH MESSAGE MASUK DENGAN ANIMASI
-        |--------------------------------------------------------------------------
-        */
-
-        @keyframes flash-slide-in {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .flash-message {
-            animation: flash-slide-in 0.3s ease-out;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SPINNER KECIL UNTUK TOMBOL YANG LAGI PROSES
-        |--------------------------------------------------------------------------
-        */
-
-        .btn-spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid currentColor;
-            border-right-color: transparent;
-            border-radius: 50%;
-            animation: btn-spinner-spin 0.6s linear infinite;
-        }
-
-        @keyframes btn-spinner-spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | KONTEN HALAMAN FADE-IN HALUS SETIAP KALI SELESAI DIMUAT
-        |--------------------------------------------------------------------------
-        */
-
-        @keyframes page-fade-in {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .page-fade-in {
-            animation: page-fade-in 0.25s ease-out;
-        }
-    </style>
-
-    @stack('head')
+    @include('layouts.partials.head')
 </head>
 
 <body class="bg-background flex overflow-hidden h-screen">
@@ -382,24 +96,6 @@
             });
     </script>
 
-
-    <!--
-        FULL PAGE LOADING SCREEN + TOMBOL SPINNER (satu-satunya, dipakai semua halaman)
-        =====================================================================
-        - Loading screen ini defaultnya udah KELIHATAN dari HTML (lihat CSS
-          di atas), jadi begitu halaman baru mulai di-render browser, layar
-          loading langsung nutup konten -- nggak nunggu JS ini jalan dulu.
-          JS di sini cuma tugasnya SEMBUNYIIN pas halaman udah siap, dan
-          MEMUNCULKAN lagi pas user klik link / submit form (biar dapat
-          feedback instan sebelum browser beneran pindah halaman).
-        - Tombol submit: otomatis di-disable + diganti jadi spinner +
-          "Memproses..." pas form-nya beneran ke-submit (bukan pas
-          dibatalkan lewat confirm()).
-        - Nggak perlu ubah apapun di halaman lain -- ini nempel otomatis
-          ke SEMUA <a> dan <form> di seluruh aplikasi.
-        - Opt-out per elemen kalau memang nggak mau: kasih atribut
-          data-no-loading di <a>/<form>, atau data-no-spinner di tombolnya.
-    -->
     <script>
     (function () {
 
@@ -428,21 +124,26 @@
         }
 
         /*
-        | Halaman ini sendiri baru selesai dimuat -> sembunyikan
-        | loading screen-nya (dengan jeda minimum biar animasinya
-        | kelihatan, nggak cuma numpang lewat sepersekian detik).
+        |--------------------------------------------------------------------------
+        | Sengaja DOMContentLoaded, BUKAN window 'load'.
+        |--------------------------------------------------------------------------
+        |
+        | window 'load' baru nyala setelah SEMUA resource kelar. Kalau
+        | salah satu lambat/lemot, overlay ini ikut nyangkut lama padahal
+        | kontennya sendiri udah siap. DOMContentLoaded cuma nunggu
+        | HTML+CSS+script penting selesai diproses, jauh lebih
+        | representatif buat "halaman udah bisa dipakai". (Font & avatar
+        | sekarang udah di-bundle/di-generate lokal, jadi nggak ada lagi
+        | request ke domain luar yang bisa nyangkutin ini.)
+        |--------------------------------------------------------------------------
         */
 
-        if (document.readyState === 'complete') {
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
             hideLoading();
         } else {
-            window.addEventListener('load', hideLoading);
+            document.addEventListener('DOMContentLoaded', hideLoading);
         }
 
-        /*
-        | Klik link internal (bukan #, javascript:, target=_blank,
-        | atau link ke domain lain) -> tampilkan lagi loading screen-nya.
-        */
 
         document.addEventListener('click', function (e) {
 
@@ -471,11 +172,15 @@
             showLoading();
         });
 
+
         /*
-        | Submit form -> tampilkan loading screen + ubah tombolnya jadi
-        | spinner. Kalau submit-nya dibatalkan (misal user klik "Batal"
-        | di confirm()), e.defaultPrevented sudah true duluan di titik
-        | ini, jadi kita skip -- nggak jadi nampilin loading buat apa-apa.
+        |--------------------------------------------------------------------------
+        | Layar loading PENUH itu cuma buat perpindahan HALAMAN. Aksi kecil
+        | dalam halaman yang sama (misal +/- qty, hapus 1 baris) dikasih
+        | atribut data-no-loading di <form>-nya supaya nggak ikut nyalain
+        | overlay -- tapi tombolnya TETAP dikasih spinner kecil (kecuali
+        | juga dikasih data-no-spinner) biar tetap ada feedback pas diklik.
+        |--------------------------------------------------------------------------
         */
 
         document.addEventListener('submit', function (e) {
@@ -484,9 +189,9 @@
 
             const form = e.target;
 
-            if (form.hasAttribute('data-no-loading')) return;
-
-            showLoading();
+            if (! form.hasAttribute('data-no-loading')) {
+                showLoading();
+            }
 
             const submitter =
                 e.submitter ||
@@ -497,14 +202,6 @@
                 submitter.tagName === 'BUTTON' &&
                 ! submitter.hasAttribute('data-no-spinner')
             ) {
-
-                /*
-                | Tombol icon-only (kayak tombol Delete di tabel) cuma
-                | diganti spinner-nya doang, tanpa teks -- biar nggak
-                | melebar aneh di dalam baris tabel yang sempit. Tombol
-                | yang emang ada tulisannya ("Submit Adjustment", "Import",
-                | dst) tetap dikasih teks "Memproses..." biar jelas.
-                */
 
                 const hasText =
                     submitter.textContent.trim().length > 0;

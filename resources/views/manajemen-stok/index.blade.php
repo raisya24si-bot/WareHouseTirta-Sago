@@ -710,43 +710,82 @@
             </div>
 
 
-            {{-- BIN --}}
+            {{-- LOKASI: GUDANG -> RAK -> ROW -> BIN (cascading) --}}
 
-            <div class="mb-5">
+            <div class="mb-5 grid grid-cols-2 gap-3">
 
-                <label class="mb-2 block text-sm">
-                    BIN
-                </label>
+                <div>
+                    <label class="mb-2 block text-sm">
+                        Gudang
+                    </label>
 
-                <select
-                    name="fk_lokasi"
-                    required
-                    class="w-full rounded-md border border-outline-variant bg-white px-3 py-2.5 text-sm outline-none focus:border-primary"
-                >
+                    <select
+                        id="add-bin-gudang"
+                        onchange="onAddBinGudangChange()"
+                        class="w-full rounded-md border border-outline-variant bg-white px-3 py-2.5 text-sm outline-none focus:border-primary"
+                    >
+                        <option value="">Pilih Gudang</option>
 
-                    <option value="">
-                        Pilih BIN
-                    </option>
+                        @foreach($gudangs as $gudang)
+                            <option value="{{ $gudang->id_gudang }}">
+                                {{ $gudang->nm_gudang }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    @foreach($lokasis as $lokasi)
+                <div>
+                    <label class="mb-2 block text-sm">
+                        Rak
+                    </label>
 
-                        <option value="{{ $lokasi->id_lokasi }}">
+                    <select
+                        id="add-bin-rak"
+                        disabled
+                        onchange="onAddBinRakChange()"
+                        class="w-full rounded-md border border-outline-variant bg-surface-container-low px-3 py-2.5 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <option value="">Pilih Gudang dulu</option>
+                    </select>
+                </div>
 
-                            {{ $lokasi->bin }}
-                            —
-                            {{ $lokasi->row?->kd_row ?? '-' }}
-                            —
-                            {{ $lokasi->row?->rak?->kd_rak ?? '-' }}
-                            —
-                            {{ $lokasi->row?->rak?->gudang?->nm_gudang ?? '-' }}
+                <div>
+                    <label class="mb-2 block text-sm">
+                        Row
+                    </label>
 
-                        </option>
+                    <select
+                        id="add-bin-row"
+                        disabled
+                        onchange="onAddBinRowChange()"
+                        class="w-full rounded-md border border-outline-variant bg-surface-container-low px-3 py-2.5 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <option value="">Pilih Rak dulu</option>
+                    </select>
+                </div>
 
-                    @endforeach
+                <div>
+                    <label class="mb-2 block text-sm">
+                        BIN
+                    </label>
 
-                </select>
+                    <select
+                        id="add-bin-bin"
+                        name="fk_lokasi"
+                        required
+                        disabled
+                        class="w-full rounded-md border border-outline-variant bg-surface-container-low px-3 py-2.5 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <option value="">Pilih Row dulu</option>
+                    </select>
+                </div>
 
             </div>
+
+            <p id="add-bin-path" class="mb-5 -mt-3 hidden items-center gap-1.5 text-xs text-primary">
+                <span class="material-symbols-outlined text-[15px]">location_on</span>
+                <span id="add-bin-path-text"></span>
+            </p>
 
 
             {{-- STOK --}}
@@ -883,6 +922,168 @@
     |--------------------------------------------------------------------------
     */
 
+    /*
+    | Pohon Gudang -> Rak -> Row -> BIN, dikirim dari server (lihat
+    | ManajemenStokController::index() -> $lokasiTree). Dipakai buat
+    | ngisi dropdown Rak/Row/BIN secara bertahap sesuai pilihan user,
+    | bukan 1 dropdown datar isi semua BIN yang ada.
+    */
+    const addBinLokasiTree = @json($lokasiTree);
+
+    function resetAddBinCascade() {
+
+        const rakSelect = document.getElementById('add-bin-rak');
+        const rowSelect = document.getElementById('add-bin-row');
+        const binSelect = document.getElementById('add-bin-bin');
+        const pathEl = document.getElementById('add-bin-path');
+
+        document.getElementById('add-bin-gudang').value = '';
+
+        rakSelect.innerHTML = '<option value="">Pilih Gudang dulu</option>';
+        rakSelect.disabled = true;
+
+        rowSelect.innerHTML = '<option value="">Pilih Rak dulu</option>';
+        rowSelect.disabled = true;
+
+        binSelect.innerHTML = '<option value="">Pilih Row dulu</option>';
+        binSelect.disabled = true;
+
+        pathEl.classList.add('hidden');
+    }
+
+    function onAddBinGudangChange() {
+
+        const gudangId = document.getElementById('add-bin-gudang').value;
+
+        const rakSelect = document.getElementById('add-bin-rak');
+        const rowSelect = document.getElementById('add-bin-row');
+        const binSelect = document.getElementById('add-bin-bin');
+
+        rowSelect.innerHTML = '<option value="">Pilih Rak dulu</option>';
+        rowSelect.disabled = true;
+
+        binSelect.innerHTML = '<option value="">Pilih Row dulu</option>';
+        binSelect.disabled = true;
+
+        document.getElementById('add-bin-path').classList.add('hidden');
+
+        if (! gudangId || ! addBinLokasiTree[gudangId]) {
+            rakSelect.innerHTML = '<option value="">Pilih Gudang dulu</option>';
+            rakSelect.disabled = true;
+            return;
+        }
+
+        const raks = addBinLokasiTree[gudangId].raks;
+
+        let options = '<option value="">Pilih Rak</option>';
+
+        Object.keys(raks).forEach(function (rakId) {
+            options += '<option value="' + rakId + '">' + raks[rakId].nama + '</option>';
+        });
+
+        rakSelect.innerHTML = options;
+        rakSelect.disabled = false;
+    }
+
+    function onAddBinRakChange() {
+
+        const gudangId = document.getElementById('add-bin-gudang').value;
+        const rakId = document.getElementById('add-bin-rak').value;
+
+        const rowSelect = document.getElementById('add-bin-row');
+        const binSelect = document.getElementById('add-bin-bin');
+
+        binSelect.innerHTML = '<option value="">Pilih Row dulu</option>';
+        binSelect.disabled = true;
+
+        document.getElementById('add-bin-path').classList.add('hidden');
+
+        if (! rakId || ! addBinLokasiTree[gudangId]?.raks?.[rakId]) {
+            rowSelect.innerHTML = '<option value="">Pilih Rak dulu</option>';
+            rowSelect.disabled = true;
+            return;
+        }
+
+        const rows = addBinLokasiTree[gudangId].raks[rakId].rows;
+
+        let options = '<option value="">Pilih Row</option>';
+
+        Object.keys(rows).forEach(function (rowId) {
+            options += '<option value="' + rowId + '">' + rows[rowId].nama + '</option>';
+        });
+
+        rowSelect.innerHTML = options;
+        rowSelect.disabled = false;
+    }
+
+    function onAddBinRowChange() {
+
+        const gudangId = document.getElementById('add-bin-gudang').value;
+        const rakId = document.getElementById('add-bin-rak').value;
+        const rowId = document.getElementById('add-bin-row').value;
+
+        const binSelect = document.getElementById('add-bin-bin');
+
+        document.getElementById('add-bin-path').classList.add('hidden');
+
+        const rowData = addBinLokasiTree[gudangId]?.raks?.[rakId]?.rows?.[rowId];
+
+        if (! rowId || ! rowData) {
+            binSelect.innerHTML = '<option value="">Pilih Row dulu</option>';
+            binSelect.disabled = true;
+            return;
+        }
+
+        if (rowData.bins.length === 0) {
+            binSelect.innerHTML = '<option value="">Row ini belum punya BIN</option>';
+            binSelect.disabled = true;
+            return;
+        }
+
+        let options = '<option value="">Pilih BIN</option>';
+
+        rowData.bins.forEach(function (bin) {
+            options += '<option value="' + bin.id + '">' + bin.bin + ' (' + bin.kd_lokasi + ')</option>';
+        });
+
+        binSelect.innerHTML = options;
+        binSelect.disabled = false;
+
+        onAddBinBinChange();
+    }
+
+    function onAddBinBinChange() {
+
+        const gudangId = document.getElementById('add-bin-gudang').value;
+        const rakId = document.getElementById('add-bin-rak').value;
+        const rowId = document.getElementById('add-bin-row').value;
+        const binId = document.getElementById('add-bin-bin').value;
+
+        const pathEl = document.getElementById('add-bin-path');
+        const pathText = document.getElementById('add-bin-path-text');
+
+        if (! binId) {
+            pathEl.classList.add('hidden');
+            return;
+        }
+
+        const gudangNama = addBinLokasiTree[gudangId].nama;
+        const rakNama = addBinLokasiTree[gudangId].raks[rakId].nama;
+        const rowNama = addBinLokasiTree[gudangId].raks[rakId].rows[rowId].nama;
+        const binData = addBinLokasiTree[gudangId].raks[rakId].rows[rowId].bins.find(
+            function (b) { return String(b.id) === String(binId); }
+        );
+
+        pathText.textContent =
+            gudangNama + ' \u2192 ' + rakNama + ' \u2192 ' + rowNama + ' \u2192 BIN ' + binData.bin;
+
+        pathEl.classList.remove('hidden');
+    }
+
+    document
+        .getElementById('add-bin-bin')
+        .addEventListener('change', onAddBinBinChange);
+
     function openAddBinModal(
         barangId,
         barangNama
@@ -910,6 +1111,7 @@
         barangInput.value =
             barangNama;
 
+        resetAddBinCascade();
 
         modal.classList.remove('hidden');
 
@@ -931,6 +1133,8 @@
         modal.classList.remove('flex');
 
         document.body.classList.remove('overflow-hidden');
+
+        resetAddBinCascade();
     }
 
 

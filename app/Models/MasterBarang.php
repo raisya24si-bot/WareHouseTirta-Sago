@@ -75,4 +75,38 @@ class MasterBarang extends Model
     {
         return $this->hasMany(StokLokasi::class, 'fk_barang', 'id_master_barang');
     }
+
+    public function syncStokSaatIni(?int $userId = null): void
+    {
+        $totalStokFisik = (int) StokLokasi::query()
+            ->where('fk_barang', $this->id_master_barang)
+            ->whereNull('deleted_at')
+            ->sum('qty_stok');
+
+        $this->stok_saat_ini = $totalStokFisik;
+
+        if ($userId !== null) {
+            $this->updated_by = $userId;
+        }
+
+        // Pakai save() (bukan update kolom langsung) supaya event "updating"
+        // di atas ikut jalan dan stok_status (NORMAL/MENIPIS/HABIS)
+        // ter-recalculate otomatis.
+        $this->save();
+    }
+
+    /**
+     * Versi praktis: sinkronkan berdasarkan id barang, aman dipanggil
+     * walau barangnya sudah tidak ada.
+     */
+    public static function syncStokSaatIniById(?int $idBarang, ?int $userId = null): void
+    {
+        if (! $idBarang) {
+            return;
+        }
+
+        $barang = self::find($idBarang);
+
+        $barang?->syncStokSaatIni($userId);
+    }
 }

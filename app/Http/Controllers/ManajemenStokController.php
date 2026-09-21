@@ -7,6 +7,7 @@ use App\Models\MasterBarang;
 use App\Models\MasterGudang;
 use App\Models\StokLokasi;
 use App\Models\StrukturLokasi;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -170,6 +171,48 @@ class ManajemenStokController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | POHON GUDANG -> RAK -> ROW -> BIN (buat cascading select di modal
+        | Tambah BIN, biar user milih step-by-step bukan 1 dropdown datar
+        | isi semua BIN sekaligus)
+        |--------------------------------------------------------------------------
+        */
+
+        $lokasiTree = [];
+
+        foreach ($lokasis as $lokasi) {
+
+            $row = $lokasi->row;
+            $rak = $row?->rak;
+            $gudang = $rak?->gudang;
+
+            if (! $row || ! $rak || ! $gudang) {
+                continue;
+            }
+
+            $lokasiTree[$gudang->id_gudang] ??= [
+                'nama' => $gudang->nm_gudang,
+                'raks' => [],
+            ];
+
+            $lokasiTree[$gudang->id_gudang]['raks'][$rak->id_rak] ??= [
+                'nama' => $rak->kd_rak,
+                'rows' => [],
+            ];
+
+            $lokasiTree[$gudang->id_gudang]['raks'][$rak->id_rak]['rows'][$row->id_row] ??= [
+                'nama' => $row->kd_row,
+                'bins' => [],
+            ];
+
+            $lokasiTree[$gudang->id_gudang]['raks'][$rak->id_rak]['rows'][$row->id_row]['bins'][] = [
+                'id' => $lokasi->id_lokasi,
+                'bin' => $lokasi->bin,
+                'kd_lokasi' => $lokasi->kd_lokasi,
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | RINGKASAN (kartu statistik di atas tabel)
         |--------------------------------------------------------------------------
         |
@@ -206,6 +249,7 @@ class ManajemenStokController extends Controller
                 'barangs',
                 'gudangs',
                 'lokasis',
+                'lokasiTree',
                 'perPage',
                 'stokSummary'
             )
@@ -312,6 +356,8 @@ class ManajemenStokController extends Controller
                 ->withInput();
         }
 
+        $qtySebelum = (int) $stokLokasi->qty_stok;
+
         $stokLokasi->update([
             'fk_lokasi' =>
                 $validated['fk_lokasi'],
@@ -322,6 +368,36 @@ class ManajemenStokController extends Controller
             'updated_by' =>
                 auth()->id() ?? 1,
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | NOTIFIKASI: BARANG MASUK / STOK HABIS
+        |--------------------------------------------------------------------------
+        */
+
+        $barang = MasterBarang::find($stokLokasi->fk_barang);
+
+        if ($barang) {
+
+            // Samakan "Stok Saat Ini" di Master Barang dengan total qty di
+            // seluruh bin. Tanpa ini, mengubah qty lewat Manajemen Stok
+            // hanya mengubah tbl_stok_lokasi, sementara angka di Master
+            // Barang tetap tertinggal di nilai lama.
+            $barang->syncStokSaatIni(auth()->id() ?? 1);
+
+            $selisihQty = (int) $validated['qty_stok'] - $qtySebelum;
+
+            if ($selisihQty > 0) {
+
+                $lokasiTujuan = StrukturLokasi::find($validated['fk_lokasi']);
+
+                if ($lokasiTujuan) {
+                    NotificationService::barangMasuk($barang, $lokasiTujuan, $selisihQty);
+                }
+            }
+
+            NotificationService::cekStokHabis($barang);
+        }
 
         return back()->with(
             'success',
@@ -391,6 +467,29 @@ class ManajemenStokController extends Controller
 
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | NOTIFIKASI: BARANG MASUK (BIN baru langsung diisi stok)
+        |--------------------------------------------------------------------------
+        */
+
+        // Stok bertambah karena ada BIN baru yang langsung diisi -> Master
+        // Barang harus ikut disamakan, bukan cuma tbl_stok_lokasi.
+        MasterBarang::syncStokSaatIniById(
+            (int) $validated['fk_barang'],
+            auth()->id() ?? 1
+        );
+
+        if ((int) $validated['qty_stok'] > 0) {
+
+            $barang = MasterBarang::find($validated['fk_barang']);
+            $lokasiTujuan = StrukturLokasi::find($validated['fk_lokasi']);
+
+            if ($barang && $lokasiTujuan) {
+                NotificationService::barangMasuk($barang, $lokasiTujuan, (int) $validated['qty_stok']);
+            }
+        }
+
         return back()->with(
             'success',
             'BIN berhasil ditambahkan ke barang.'
@@ -401,12 +500,25 @@ class ManajemenStokController extends Controller
     public function destroy(
         StokLokasi $stokLokasi
     ) {
+        $fkBarang = $stokLokasi->fk_barang;
+
         $stokLokasi->update([
             'deleted_by' =>
                 auth()->id() ?? 1,
         ]);
 
         $stokLokasi->delete();
+
+        $barang = MasterBarang::find($fkBarang);
+
+        if ($barang) {
+            // BIN dilepas -> qty di bin itu hilang dari total stok fisik,
+            // jadi Master Barang wajib dihitung ulang. Sebelumnya stok
+            // barang tetap tercatat utuh walau bin-nya sudah dilepas.
+            $barang->syncStokSaatIni(auth()->id() ?? 1);
+
+            NotificationService::cekStokHabis($barang);
+        }
 
         return back()->with(
             'success',

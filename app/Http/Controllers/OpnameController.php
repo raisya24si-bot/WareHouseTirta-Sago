@@ -10,6 +10,7 @@ use App\Models\Opname;
 use App\Models\OpnameDetail;
 use App\Models\StokLokasi;
 use App\Models\StrukturLokasi;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -1094,10 +1095,33 @@ class OpnameController extends Controller
         $opname,
         $rejectedLocation
     ){
-        $id_lokasi = collect($allDetails)->select('fk_lokasi')->pluck('fk_lokasi')->toArray();
+        /*
+        |--------------------------------------------------------------------------
+        | CATATAN PERBAIKAN BUG STOK
+        |--------------------------------------------------------------------------
+        |
+        | Sebelumnya di sini ada baris:
+        |
+        |     StokLokasi::whereIn('fk_lokasi', $id_lokasi)->delete();
+        |
+        | Baris itu MENGHAPUS SELURUH baris stok pada bin-bin yang dipakai
+        | opname -- termasuk stok milik BARANG LAIN yang kebetulan berada
+        | di bin yang sama. Setelah itu, loop di bawah hanya membuat ulang
+        | baris untuk barang yang ada di detail opname saja, sehingga stok
+        | barang lain di bin tersebut HILANG permanen (tabel ini dihapus
+        | secara hard delete karena model StokLokasi tidak memakai
+        | SoftDeletes).
+        |
+        | Inilah kenapa total stok di lokasi jadi tidak cocok dengan angka
+        | di Master Barang. Baris hapus massal itu juga sebenarnya tidak
+        | diperlukan: loop di bawah sudah melakukan upsert per pasangan
+        | (barang + bin) dan menimpa qty_stok dengan hasil hitung fisik,
+        | termasuk menulis 0 kalau memang barangnya habis.
+        |
+        */
 
-        $hapus_stok_by_bin = StokLokasi::whereIn('fk_lokasi',$id_lokasi)->delete();
         $userId = auth()->id() ?? 1;
+
         foreach ($allDetails as $detail) {
 
             $actual = (int) $detail->stok_aktual;
@@ -1231,6 +1255,19 @@ class OpnameController extends Controller
                     +
                     $rusak;
 
+                /*
+                | Catat asal batch rusak ini supaya bisa dilacak balik --
+                | reff_number pakai kode opname-nya, reff_from = 'OPNAME'.
+                | Kalau bin REJECTED yang sama sebelumnya keisi dari
+                | transaksi lain, reff ini nimpa jadi yang paling baru.
+                */
+
+                $stokRejected->reff_number =
+                    $opname->kd_opname;
+
+                $stokRejected->reff_from =
+                    'OPNAME';
+
                 $stokRejected->updated_by =
                     $userId;
 
@@ -1255,6 +1292,39 @@ class OpnameController extends Controller
                 $userId,
         ]);
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOTIFIKASI: OPNAME SELISIH & STOK HABIS
+    |--------------------------------------------------------------------------
+    |
+    | Di luar transaksi DB di atas (notifikasi bukan bagian dari data
+    | opname itu sendiri, jadi nggak perlu ikut rollback kalau notifnya
+    | kenapa-napa -- yang penting stoknya udah aman ke-update duluan).
+    |--------------------------------------------------------------------------
+    */
+
+    $jumlahSelisih = $allDetails->where('status_item', 'SELISIH')->count();
+
+    NotificationService::opnameSelisih($opname, $jumlahSelisih);
+
+    foreach ($allDetails->unique('fk_barang') as $detail) {
+
+        $barangTerpengaruh = MasterBarang::find($detail->fk_barang);
+
+        if ($barangTerpengaruh) {
+
+            // Opname menimpa qty_stok di bin dengan hasil hitung fisik, tapi
+            // sebelumnya "Stok Saat Ini" di Master Barang sama sekali tidak
+            // ikut disesuaikan -- ini penyebab utama angka di Master Barang
+            // berbeda dengan total stok di lokasi. Hitung ulang di sini.
+            // (auth()->id() dipanggil langsung karena $userId di atas
+            // hanya hidup di dalam closure DB::transaction.)
+            $barangTerpengaruh->syncStokSaatIni(auth()->id() ?? 1);
+
+            NotificationService::cekStokHabis($barangTerpengaruh);
+        }
+    }
 
     return back()->with(
         'success',
@@ -1789,4 +1859,3 @@ class OpnameController extends Controller
             );
     }
 }
-
