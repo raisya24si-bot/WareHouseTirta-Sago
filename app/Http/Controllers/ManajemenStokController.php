@@ -379,6 +379,12 @@ class ManajemenStokController extends Controller
 
         if ($barang) {
 
+            // Samakan "Stok Saat Ini" di Master Barang dengan total qty di
+            // seluruh bin. Tanpa ini, mengubah qty lewat Manajemen Stok
+            // hanya mengubah tbl_stok_lokasi, sementara angka di Master
+            // Barang tetap tertinggal di nilai lama.
+            $barang->syncStokSaatIni(auth()->id() ?? 1);
+
             $selisihQty = (int) $validated['qty_stok'] - $qtySebelum;
 
             if ($selisihQty > 0) {
@@ -467,6 +473,13 @@ class ManajemenStokController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        // Stok bertambah karena ada BIN baru yang langsung diisi -> Master
+        // Barang harus ikut disamakan, bukan cuma tbl_stok_lokasi.
+        MasterBarang::syncStokSaatIniById(
+            (int) $validated['fk_barang'],
+            auth()->id() ?? 1
+        );
+
         if ((int) $validated['qty_stok'] > 0) {
 
             $barang = MasterBarang::find($validated['fk_barang']);
@@ -499,6 +512,11 @@ class ManajemenStokController extends Controller
         $barang = MasterBarang::find($fkBarang);
 
         if ($barang) {
+            // BIN dilepas -> qty di bin itu hilang dari total stok fisik,
+            // jadi Master Barang wajib dihitung ulang. Sebelumnya stok
+            // barang tetap tercatat utuh walau bin-nya sudah dilepas.
+            $barang->syncStokSaatIni(auth()->id() ?? 1);
+
             NotificationService::cekStokHabis($barang);
         }
 

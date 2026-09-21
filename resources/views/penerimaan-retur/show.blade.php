@@ -88,14 +88,6 @@
                     </div>
                     <span class="font-mono text-[12px] text-on-surface">{{ $detail->binTujuan?->kd_lokasi }} ({{ $detail->binTujuan?->row?->rak?->gudang?->nm_gudang }})</span>
                 </div>
-
-                <div class="flex flex-wrap gap-1.5">
-                    @foreach($detail->serials as $serial)
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-mono font-label-bold text-[11px]">
-                            {{ $serial->no_seri }}
-                        </span>
-                    @endforeach
-                </div>
             </div>
         @endforeach
     </div>

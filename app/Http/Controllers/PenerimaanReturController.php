@@ -8,7 +8,6 @@ use App\Models\MasterStatusRetur;
 use App\Models\MasterSupplier;
 use App\Models\PenerimaanRetur;
 use App\Models\PenerimaanReturDetail;
-use App\Models\PenerimaanReturDetailSerial;
 use App\Models\ReturBarang;
 use App\Models\StokLokasi;
 use App\Models\StrukturLokasi;
@@ -146,31 +145,32 @@ class PenerimaanReturController extends Controller
             'items.*.fk_retur_detail' => ['required', 'exists:tbl_retur_barang_detail,id_retur_detail'],
             'items.*.qty_tiba' => ['required', 'integer', 'min:1'],
             'items.*.fk_bin_tujuan' => ['required', 'exists:tbl_master_lokasi,id_lokasi'],
-            'items.*.serials' => ['required', 'array', 'min:1'],
-            'items.*.serials.*' => ['required', 'string', 'max:100', 'distinct'],
         ], [
             'is_consent_verifikasi.accepted' => 'Pernyataan berita acara wajib dicentang.',
-            'items.*.serials.required' => 'Isi nomor seri untuk tiap unit yang datang.',
-            'items.*.serials.*.distinct' => 'Ada nomor seri yang double di item yang sama.',
         ]);
-
-        // Validasi tambahan: jumlah serial number harus PAS sama dengan qty_tiba
-        foreach ($validated['items'] as $index => $item) {
-            if (count($item['serials']) !== (int) $item['qty_tiba']) {
-                return back()->withErrors([
-                    "items.{$index}.serials" => 'Jumlah nomor seri harus sama dengan Qty Tiba.',
-                ])->withInput();
-            }
-        }
 
         $userId = auth()->id() ?? 1;
         $isDraft = $request->input('mode') === 'draft';
 
         $penerimaan = DB::transaction(function () use ($validated, $userId, $isDraft) {
 
+            // Bug lama: waktu non-draf disubmit, dokumen ini dikasih status
+            // PROSES_QC (masuk grup GROUP_DALAM_PROSES), padahal stok SUDAH
+            // langsung didorong ke tbl_stok_lokasi & Master Barang pas itu
+            // juga (lihat loop item di bawah). Nggak ada route/aksi lain
+            // manapun di controller ini yang pernah memindahkan status dari
+            // PROSES_QC ke SELESAI atau ngisi selesai_by/selesai_at -- jadi
+            // dokumennya nyangkut selamanya di tab "Proses" dan semua
+            // ringkasan yang bergantung ke status SELESAI / selesai_at
+            // (tab "Selesai", "selesai_bulan_ini", "unit_kembali_stok_bulan_ini"
+            // di index()) nggak akan pernah keisi meskipun stoknya sendiri
+            // sudah bener di database. Perbaikannya: begitu !$isDraft,
+            // langsung tandai SELESAI + isi selesai_by/selesai_at, karena
+            // submit non-draf di form ini memang sudah jadi titik final QC
+            // (stok langsung masuk saat itu juga, bukan ada tahap lanjutan).
             $statusAwal = MasterStatusPenerimaanRetur::where(
                 'kd_status_penerimaan_retur',
-                $isDraft ? 'MENUNGGU_KEDATANGAN' : 'PROSES_QC'
+                $isDraft ? 'MENUNGGU_KEDATANGAN' : 'SELESAI'
             )->firstOrFail();
 
             $retur = ReturBarang::findOrFail($validated['fk_retur']);
@@ -188,6 +188,8 @@ class PenerimaanReturController extends Controller
                 'is_consent_verifikasi' => (bool) ($validated['is_consent_verifikasi'] ?? false),
                 'submit_by' => $userId,
                 'submit_at' => now(),
+                'selesai_by' => $isDraft ? null : $userId,
+                'selesai_at' => $isDraft ? null : now(),
                 'created_by' => $userId,
                 'updated_by' => $userId,
             ]);
@@ -207,15 +209,6 @@ class PenerimaanReturController extends Controller
                     'created_by' => $userId,
                     'updated_by' => $userId,
                 ]);
-
-                foreach ($item['serials'] as $noSeri) {
-                    PenerimaanReturDetailSerial::create([
-                        'fk_penerimaan_retur_detail' => $detail->id_penerimaan_retur_detail,
-                        'no_seri' => $noSeri,
-                        'created_by' => $userId,
-                        'updated_by' => $userId,
-                    ]);
-                }
 
                 // Draf belum push stok -- baru dieksekusi begitu QC final disubmit.
                 if (! $isDraft) {
@@ -251,7 +244,6 @@ class PenerimaanReturController extends Controller
             'returBarang.penerimaanBarang.po.supplier',
             'details.barang',
             'details.binTujuan.row.rak.gudang',
-            'details.serials',
             'submittedBy',
         ]);
 
@@ -436,12 +428,8 @@ class PenerimaanReturController extends Controller
             ]);
         }
 
-        $barang = \App\Models\MasterBarang::find($fkBarang);
-
-        if ($barang) {
-            $barang->stok_saat_ini = (int) $barang->stok_saat_ini + $qty;
-            $barang->updated_by = $userId;
-            $barang->save();
-        }
+        // Hitung ulang dari total qty seluruh bin (bukan sekadar ditambah),
+        // supaya konsisten dengan modul lain dan tidak melenceng.
+        \App\Models\MasterBarang::syncStokSaatIniById($fkBarang, $userId);
     }
 }

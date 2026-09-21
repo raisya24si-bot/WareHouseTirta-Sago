@@ -1095,10 +1095,33 @@ class OpnameController extends Controller
         $opname,
         $rejectedLocation
     ){
-        $id_lokasi = collect($allDetails)->select('fk_lokasi')->pluck('fk_lokasi')->toArray();
+        /*
+        |--------------------------------------------------------------------------
+        | CATATAN PERBAIKAN BUG STOK
+        |--------------------------------------------------------------------------
+        |
+        | Sebelumnya di sini ada baris:
+        |
+        |     StokLokasi::whereIn('fk_lokasi', $id_lokasi)->delete();
+        |
+        | Baris itu MENGHAPUS SELURUH baris stok pada bin-bin yang dipakai
+        | opname -- termasuk stok milik BARANG LAIN yang kebetulan berada
+        | di bin yang sama. Setelah itu, loop di bawah hanya membuat ulang
+        | baris untuk barang yang ada di detail opname saja, sehingga stok
+        | barang lain di bin tersebut HILANG permanen (tabel ini dihapus
+        | secara hard delete karena model StokLokasi tidak memakai
+        | SoftDeletes).
+        |
+        | Inilah kenapa total stok di lokasi jadi tidak cocok dengan angka
+        | di Master Barang. Baris hapus massal itu juga sebenarnya tidak
+        | diperlukan: loop di bawah sudah melakukan upsert per pasangan
+        | (barang + bin) dan menimpa qty_stok dengan hasil hitung fisik,
+        | termasuk menulis 0 kalau memang barangnya habis.
+        |
+        */
 
-        $hapus_stok_by_bin = StokLokasi::whereIn('fk_lokasi',$id_lokasi)->delete();
         $userId = auth()->id() ?? 1;
+
         foreach ($allDetails as $detail) {
 
             $actual = (int) $detail->stok_aktual;
@@ -1290,6 +1313,15 @@ class OpnameController extends Controller
         $barangTerpengaruh = MasterBarang::find($detail->fk_barang);
 
         if ($barangTerpengaruh) {
+
+            // Opname menimpa qty_stok di bin dengan hasil hitung fisik, tapi
+            // sebelumnya "Stok Saat Ini" di Master Barang sama sekali tidak
+            // ikut disesuaikan -- ini penyebab utama angka di Master Barang
+            // berbeda dengan total stok di lokasi. Hitung ulang di sini.
+            // (auth()->id() dipanggil langsung karena $userId di atas
+            // hanya hidup di dalam closure DB::transaction.)
+            $barangTerpengaruh->syncStokSaatIni(auth()->id() ?? 1);
+
             NotificationService::cekStokHabis($barangTerpengaruh);
         }
     }

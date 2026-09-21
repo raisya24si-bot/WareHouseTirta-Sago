@@ -376,14 +376,13 @@
                                 <th class="p-stack-sm">Material</th>
                                 <th class="p-stack-sm text-center">Qty Diklaim</th>
                                 <th class="p-stack-sm text-center">Qty Tiba</th>
-                                <th class="p-stack-sm">Nomor Seri Baru (per unit)</th>
                                 <th class="p-stack-sm">Alokasi Bin Tujuan</th>
                                 <th class="p-stack-sm text-center">Status Item</th>
                             </tr>
                         </thead>
                         <tbody id="itemRowsBody" class="divide-y bg-surface-container-lowest">
                             <tr id="itemPlaceholderRow">
-                                <td colspan="6" class="p-stack-md text-center text-on-surface-variant">Pilih BAP Retur di atas untuk memuat item klaimnya.</td>
+                                <td colspan="5" class="p-stack-md text-center text-on-surface-variant">Pilih BAP Retur di atas untuk memuat item klaimnya.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -454,17 +453,17 @@
 
         if (!this.value) {
             itemCountLabel.textContent = 'Pilih BAP Retur dulu';
-            itemRowsBody.innerHTML = '<tr><td colspan="6" class="p-stack-md text-center text-on-surface-variant">Pilih BAP Retur di atas untuk memuat item klaimnya.</td></tr>';
+            itemRowsBody.innerHTML = '<tr><td colspan="5" class="p-stack-md text-center text-on-surface-variant">Pilih BAP Retur di atas untuk memuat item klaimnya.</td></tr>';
             return;
         }
 
-        itemRowsBody.innerHTML = '<tr><td colspan="6" class="p-stack-md text-center text-on-surface-variant">Memuat item klaim...</td></tr>';
+        itemRowsBody.innerHTML = '<tr><td colspan="5" class="p-stack-md text-center text-on-surface-variant">Memuat item klaim...</td></tr>';
 
         fetch(`/penerimaan-retur/retur/${this.value}/items`)
             .then(res => res.json())
             .then(data => renderItemRows(data.items))
             .catch(() => {
-                itemRowsBody.innerHTML = '<tr><td colspan="6" class="p-stack-md text-center text-error">Gagal memuat item klaim. Coba lagi.</td></tr>';
+                itemRowsBody.innerHTML = '<tr><td colspan="5" class="p-stack-md text-center text-error">Gagal memuat item klaim. Coba lagi.</td></tr>';
             });
     });
 
@@ -475,7 +474,7 @@
         itemCountLabel.textContent = items.length + ' Item Material (' + totalUnit + ' Unit)';
 
         if (items.length === 0) {
-            itemRowsBody.innerHTML = '<tr><td colspan="6" class="p-stack-md text-center text-on-surface-variant">Semua item klaim BAP Retur ini sudah pernah diterima.</td></tr>';
+            itemRowsBody.innerHTML = '<tr><td colspan="5" class="p-stack-md text-center text-on-surface-variant">Semua item klaim BAP Retur ini sudah pernah diterima.</td></tr>';
             return;
         }
 
@@ -514,32 +513,6 @@
         qtyInput.className = 'w-16 text-center bg-surface-container-lowest font-label-bold text-[12px] py-1 border rounded-lg focus:outline-none';
         tdTiba.appendChild(qtyInput);
 
-        // --- Serial number list (jumlah kolom ngikutin qty_tiba) ---
-        const tdSerial = document.createElement('td');
-        tdSerial.className = 'p-stack-sm align-top';
-
-        const serialWrap = document.createElement('div');
-        serialWrap.className = 'flex flex-col gap-1';
-        tdSerial.appendChild(serialWrap);
-
-        function renderSerialInputs() {
-            const qty = parseInt(qtyInput.value || '0', 10);
-            serialWrap.innerHTML = '';
-
-            for (let i = 0; i < qty; i++) {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.required = true;
-                input.placeholder = `SN unit #${i + 1}`;
-                input.name = `items[${index}][serials][]`;
-                input.className = 'w-full bg-surface-container-lowest border border-surface-container-highest rounded px-2 py-1 font-mono text-[11px] focus:outline-none';
-                serialWrap.appendChild(input);
-            }
-        }
-
-        qtyInput.addEventListener('input', renderSerialInputs);
-        renderSerialInputs();
-
         // --- Bin tujuan ---
         const tdBin = document.createElement('td');
         tdBin.className = 'p-stack-sm align-top';
@@ -570,7 +543,6 @@
         tr.appendChild(tdMaterial);
         tr.appendChild(tdKlaim);
         tr.appendChild(tdTiba);
-        tr.appendChild(tdSerial);
         tr.appendChild(tdBin);
         tr.appendChild(tdStatus);
 

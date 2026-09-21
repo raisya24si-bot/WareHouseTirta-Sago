@@ -44,12 +44,6 @@ class ApprovalPenerimaanController extends Controller
         return $config['next_status'] === 'APPROVED';
     }
 
-    /**
-     * Bin aktif pertama pada gudang berkategori REJECTED -- semua barang
-     * rusak (dari Opname maupun dari Penerimaan PO) ditumpuk ke sini,
-     * biar petugas gak perlu setting bin karantina satu-satu per item.
-     * Sama persis polanya dengan OpnameController.
-     */
     private function rejectedLocation(): ?StrukturLokasi
     {
         return StrukturLokasi::query()
@@ -205,18 +199,7 @@ class ApprovalPenerimaanController extends Controller
             return back()->withErrors(['approve' => $message]);
         }
 
-        // Segregation of duty: petugas yang submit dokumen ini tidak
-        // boleh menyetujui dokumennya sendiri di level manapun. Ini
-        // menutup celah di mana petugas membuka lagi halaman verifikasi
-        // GRN yang sudah ia submit (status PENDING_*) lalu memakai
-        // tombol Approve yang sejatinya hanya untuk approver level
-        // tersebut.
-        //
-        // Dinonaktifkan dulu selama tahap beta (lihat config
-        // app.enforce_approval_segregation) -- baru ada 1 akun user,
-        // jadi akun yang sama perlu bisa nyoba submit -> approve semua
-        // level buat testing. Set ENFORCE_APPROVAL_SEGREGATION=true di
-        // .env begitu akun per role (Kasubag/Kabag/Direktur) udah ada.
+    
         if (
             config('app.enforce_approval_segregation')
             && $penerimaan->submit_by
@@ -231,12 +214,7 @@ class ApprovalPenerimaanController extends Controller
 
             return back()->withErrors(['approve' => $message]);
         }
-
-        // Terima lokasi bin / bin karantina yang baru dipilih approver di
-        // drawer alokasi. Field qty/harga TIDAK diterima di sini -- itu
-        // tetap wewenang petugas sebelum submit -- tapi lokasi wajib bisa
-        // diisi/diubah di tahap approval manapun, karena validasi di
-        // bawah ini mewajibkannya sebelum bisa disetujui.
+     
         $validated = $request->validate([
             'details' => ['sometimes', 'array'],
             'details.*.fk_lokasi_barang' => [
@@ -256,11 +234,7 @@ class ApprovalPenerimaanController extends Controller
             $penerimaan->load('details');
         }
 
-        // Validasi: item baik wajib sudah punya bin penyimpanan sebelum
-        // bisa disetujui, di level manapun -- supaya ketahuan sejak dini.
-        // Item RUSAK tidak perlu bin manual lagi -- otomatis ditumpuk ke
-        // bin gudang kategori REJECTED (lihat rejectedLocation()), jadi
-        // yang perlu dicek cuma: bin REJECTED-nya beneran ada atau belum.
+
         $adaBarangRusak = false;
 
         foreach ($penerimaan->details as $detail) {
@@ -425,11 +399,6 @@ class ApprovalPenerimaanController extends Controller
     }
 
 
-    /**
-     * Simpan pilihan lokasi bin / bin karantina yang dikirim bareng
-     * approve(). Cuma nyentuh fk_lokasi_barang & fk_lokasi_karantina --
-     * qty/harga/tanggal tetap gak bisa diutak-atik dari sini.
-     */
     private function applyLokasiInputs(PenerimaanBarang $penerimaan, array $detailsInput, int $userId): void
     {
         if (empty($detailsInput)) {
@@ -455,14 +424,6 @@ class ApprovalPenerimaanController extends Controller
     }
 
 
-    /**
-     * Upsert qty stok pada satu bin (dipakai untuk barang baik). Sekalian
-     * ikut naikkan stok_saat_ini di Master Barang -- itu angka global
-     * yang dibaca modul Stock Monitoring & Procurement buat nentuin
-     * barang mana yang MENIPIS/HABIS dan perlu di-PO lagi. Tanpa ini,
-     * barang yang udah fisik masuk gudang tetap kebaca menipis/habis
-     * selamanya sampai ada yang edit manual di Master Barang.
-     */
     private function tambahStok(int $fkBarang, int $fkLokasi, int $qty, int $userId): void
     {
         $stok = StokLokasi::query()
@@ -491,31 +452,13 @@ class ApprovalPenerimaanController extends Controller
         $this->tambahStokSaatIniMasterBarang($fkBarang, $qty, $userId);
     }
 
-    /**
-     * Naikkan stok_saat_ini di tbl_master_barang. Dipanggil pakai
-     * save() (bukan increment()) supaya event "updating" di model
-     * MasterBarang ikut jalan dan stok_status (NORMAL/MENIPIS/HABIS)
-     * ke-recalculate otomatis begitu angkanya berubah.
-     */
+
     private function tambahStokSaatIniMasterBarang(int $fkBarang, int $qty, int $userId): void
     {
-        $barang = MasterBarang::find($fkBarang);
 
-        if (! $barang) {
-            return;
-        }
-
-        $barang->stok_saat_ini = (int) $barang->stok_saat_ini + $qty;
-        $barang->updated_by = $userId;
-        $barang->save();
+        MasterBarang::syncStokSaatIniById($fkBarang, $userId);
     }
 
-    /**
-     * Upsert qty_rusak pada bin REJECTED (bukan qty_stok) -- dipakai
-     * untuk barang rusak dari Penerimaan PO. reff_number/reff_from
-     * dicatat supaya batch rusak ini bisa dilacak balik ke GRN asalnya
-     * (sama seperti yang dilakukan OpnameController untuk sumber Opname).
-     */
     private function tambahStokRusak(int $fkBarang, int $fkLokasi, int $qty, string $kdPenerimaan, int $userId): void
     {
         $stok = StokLokasi::query()

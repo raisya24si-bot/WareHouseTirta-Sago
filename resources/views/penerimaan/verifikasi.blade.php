@@ -34,40 +34,45 @@
 
     $canEdit = $penerimaan->canBeEdited();
 
-    // Level approval mana yang sedang menunggu keputusan sekarang
-    // (kasubag / kabag / direktur), null kalau dokumen tidak sedang
-    // menunggu approval siapa pun (draft / rejected / approved).
-    $pendingLevel = collect(\App\Models\PenerimaanBarang::LEVELS)
-        ->search(fn ($cfg) => $cfg['status'] === $status);
-    $pendingLevel = $pendingLevel !== false ? $pendingLevel : null;
-    $pendingLevelConfig = $pendingLevel ? \App\Models\PenerimaanBarang::LEVELS[$pendingLevel] : null;
-    $isFinalPendingLevel = $pendingLevelConfig && $pendingLevelConfig['next_status'] === 'APPROVED';
+    // Total agregat dari baris detail. Sebelumnya tiga variabel ini tidak
+    // pernah didefinisikan (dan juga tidak dikirim dari controller), sehingga
+    // halaman verifikasi langsung 500: "Undefined variable $totalBaik".
+    $totalQtyPo = (int) $penerimaan->details->sum('qty_request');
+    $totalBaik = (int) $penerimaan->details->sum('qty_baik');
+    $totalRusak = (int) $penerimaan->details->sum('qty_rusak');
 
-    // Petugas yang men-submit dokumen ini tidak berhak menyetujui /
-    // menolak dokumennya sendiri, jadi tombol Approve/Reject harus
-    // disembunyikan dari dia meskipun statusnya sedang menunggu
-    // approval. Dia hanya boleh melihat & mencetak dari sini.
-    //
-    // Sama seperti pengecekan segregation of duty di
-    // ApprovalPenerimaanController@approve/@reject, ini dinonaktifkan
-    // dulu selama tahap beta (config app.enforce_approval_segregation)
-    // karena baru ada 1 akun user, jadi akun yang sama perlu bisa nyoba
-    // submit -> approve semua level buat testing. Set
-    // ENFORCE_APPROVAL_SEGREGATION=true di .env begitu akun per role
-    // (Kasubag/Kabag/Direktur) udah ada -- baris ini akan otomatis ikut
-    // ngunci lagi begitu flag itu dinyalakan, tanpa perlu diubah lagi.
-    $isSubmitter = config('app.enforce_approval_segregation')
-        && auth()->id()
-        && $penerimaan->submit_by == auth()->id();
-    $canReviewApproval = $pendingLevel && ! $isSubmitter;
-
-    $totalQtyPo = $penerimaan->details->sum('qty_request');
-    $totalBaik = $penerimaan->details->sum('qty_baik');
-    $totalRusak = $penerimaan->details->sum('qty_rusak');
-
-    // Selisih boleh negatif / positif.
-    // Contoh PO 100, baik 78, rusak 2 => -20.
     $totalSelisih = $totalBaik + $totalRusak - $totalQtyPo;
+
+    // Level approval yang sedang menunggu dokumen ini (null kalau DRAFT/
+    // REJECTED/APPROVED). Sebelumnya variabel-variabel di bawah ini juga
+    // tidak pernah didefinisikan -> "Undefined variable $canReviewApproval".
+    $pendingLevel = null;
+
+    foreach (\App\Models\PenerimaanBarang::LEVELS as $levelKey => $levelConfig) {
+        if ($penerimaan->isPendingAt($levelKey)) {
+            $pendingLevel = $levelKey;
+            break;
+        }
+    }
+
+    $pendingLevelConfig = $pendingLevel
+        ? \App\Models\PenerimaanBarang::LEVELS[$pendingLevel]
+        : null;
+
+    // Level terakhir dalam rantai approval -> ini yang mendorong stok ke
+    // gudang & mengunci dokumen (dipakai buat teks tombol Approve).
+    $isFinalPendingLevel = $pendingLevelConfig
+        && $pendingLevelConfig['next_status'] === 'APPROVED';
+
+    $isSubmitter = $penerimaan->submit_by
+        && $penerimaan->submit_by == (auth()->id() ?? 1);
+
+    // Aturan ini SAMA PERSIS dengan pengecekan segregation-of-duty di
+    // ApprovalPenerimaanController::approve()/reject() -- petugas yang
+    // submit dokumen tidak boleh menyetujui dokumennya sendiri, KECUALI
+    // config app.enforce_approval_segregation masih dimatikan (mode beta).
+    $canReviewApproval = $pendingLevel !== null
+        && (! config('app.enforce_approval_segregation') || ! $isSubmitter);
 
     $totalSku = $penerimaan->details->count();
 
