@@ -1,18 +1,7 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 
-/*
-|--------------------------------------------------------------------------
-| SELF-HOSTED FONTS
-|--------------------------------------------------------------------------
-|
-| Sebelumnya font ini di-load dari Google Fonts CDN (fonts.googleapis.com
-| / fonts.gstatic.com) lewat <link> di <head>. Sekarang di-bundle lokal
-| lewat npm (@fontsource/*, material-symbols) supaya ke-compile jadi
-| satu build sama CSS/JS lain lewat Vite -- nggak ada request tambahan
-| ke domain luar tiap kali halaman dibuka.
-|--------------------------------------------------------------------------
-*/
+
 
 @import '@fontsource/manrope/400.css';
 @import '@fontsource/manrope/600.css';
@@ -32,16 +21,6 @@
     --font-sans: 'Work Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Design tokens (Material Design palette dipakai di seluruh aplikasi)
-    |--------------------------------------------------------------------------
-    |
-    | PENTING: ini SATU-SATUNYA tempat token warna/font/radius/spacing custom
-    | didefinisikan. Jangan tambah config Tailwind lain di file manapun -
-    | kalau butuh token baru, tambahkan di sini saja.
-    |--------------------------------------------------------------------------
-    */
 
     --color-background: #f9f9ff;
     --color-on-primary: #ffffff;

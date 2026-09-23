@@ -257,6 +257,22 @@
                 </a>
 
                 <a
+                    href="{{ route('permintaan-barang.index') }}"
+                    class="{{ request()->routeIs('permintaan-barang.*')
+                        ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                        mx-2 flex items-center px-4 py-2.5 rounded-xl transition-all duration-150 group {{ request()->routeIs('permintaan-barang.*') ? '' : 'hover:pl-5' }}"
+                >
+                    <span class="material-symbols-outlined mr-3 text-[20px] {{ request()->routeIs('permintaan-barang.*') ? '' : 'text-outline group-hover:text-primary transition-colors' }}" @if(request()->routeIs('permintaan-barang.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                        assignment
+                    </span>
+
+                    <span class="text-sidebar-nav font-sidebar-nav">
+                        Permintaan Barang (BPB)
+                    </span>
+                </a>
+
+                <a
                     href="{{ route('procurement.index') }}"
                     class="{{ request()->routeIs('procurement.*')
                         ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'

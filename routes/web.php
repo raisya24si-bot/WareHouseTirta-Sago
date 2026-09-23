@@ -20,6 +20,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StrukturLokasiController;
 use App\Http\Controllers\PenerimaanController;
+use App\Http\Controllers\PermintaanBarangController;
 use App\Http\Controllers\ReturBarangController;
 use App\Http\Controllers\PenerimaanReturController;
 use App\Http\Controllers\MasterAlasanReturController;
@@ -626,6 +627,12 @@ Route::middleware('auth')->group(function () {
                     });
 
             });
+
+    // Permintaan Barang (BPB) - masih tampilan dummy, belum terhubung DB
+    Route::prefix('permintaan-barang')->name('permintaan-barang.')->group(function () {
+        Route::get('/', [PermintaanBarangController::class, 'index'])->name('index');
+        Route::get('/{kode}', [PermintaanBarangController::class, 'show'])->name('show');
+    });
 
     Route::prefix('retur')->name('retur.')->group(function () {
     Route::get('/', [ReturBarangController::class, 'index'])->name('index');
