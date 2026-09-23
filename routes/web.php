@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ManajemenStokController;
 use App\Http\Controllers\MasterBarangController;
 use App\Http\Controllers\MasterGudangController;
+use App\Http\Controllers\MasterKategoriGudangController;
 use App\Http\Controllers\MasterKategoriController;
 use App\Http\Controllers\MasterRakController;
 use App\Http\Controllers\MasterRowController;
@@ -244,6 +245,31 @@ Route::middleware('auth')->group(function () {
         Route::delete(
             '/{masterGudang}',
             [MasterGudangController::class, 'destroy']
+        )->name('destroy');
+    });
+
+
+    // Master Jenis / Kategori Gudang
+    Route::prefix('master-kategori-gudang')->name('master-kategori-gudang.')->group(function () {
+
+        Route::get(
+            '/',
+            [MasterKategoriGudangController::class, 'index']
+        )->name('index');
+
+        Route::post(
+            '/',
+            [MasterKategoriGudangController::class, 'store']
+        )->name('store');
+
+        Route::put(
+            '/{masterKategoriGudang}',
+            [MasterKategoriGudangController::class, 'update']
+        )->name('update');
+
+        Route::delete(
+            '/{masterKategoriGudang}',
+            [MasterKategoriGudangController::class, 'destroy']
         )->name('destroy');
     });
 

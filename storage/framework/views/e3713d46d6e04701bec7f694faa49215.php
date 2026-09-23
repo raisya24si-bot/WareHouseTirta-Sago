@@ -94,6 +94,12 @@
                     <span><?php echo e(session('success')); ?></span>
                 </div>
             <?php endif; ?>
+            <?php if(session('error')): ?>
+                <div class="flash-message mb-4 flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3">
+                    <span class="material-symbols-outlined text-[20px]">error</span>
+                    <span><?php echo e(session('error')); ?></span>
+                </div>
+            <?php endif; ?>
             <?php if($errors->any()): ?>
                 <div class="flash-message mb-4 flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3">
                     <span class="material-symbols-outlined text-[20px]">error</span>

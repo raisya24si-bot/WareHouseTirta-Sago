@@ -137,6 +137,28 @@ class ProcurementController extends Controller
                         );
                     }
                 );
+
+                // PO yang barangnya sudah diterima (penerimaan/GRN sudah
+                // APPROVED, stok gudang sudah bertambah) tidak lagi
+                // dianggap "sedang dipesan", jadi nomor PO-nya hilang dari
+                // Critical Stock Action List. Kalau stok barang itu habis
+                // lagi, tombol "Add to PO" muncul kembali.
+                $query->whereDoesntHave(
+                    'penerimaanBarangs',
+                    function ($grn) {
+
+                        $grn->whereHas(
+                            'statusPenerimaan',
+                            function ($status) {
+
+                                $status->where(
+                                    'kd_status_penerimaan_barang',
+                                    'APPROVED'
+                                );
+                            }
+                        );
+                    }
+                );
             })
             ->latest('id_po_detail')
             ->get()
