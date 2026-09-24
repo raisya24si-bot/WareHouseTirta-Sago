@@ -32,6 +32,10 @@
     $urgensiKode = $bpb->urgensi->kd_urgensi_bpb ?? 'NORMAL';
 
     $isDraft = $bpb->isDraft();
+    // BPB yang Ditolak juga boleh diedit & diajukan ulang oleh pekerja,
+    // jadi tombol tambah/edit/hapus item & submit dibuka untuk keduanya.
+    $isEditable = $bpb->isEditable();
+    $isDitolak = $statusKode === 'DITOLAK';
 @endphp
 
 <div class="flex flex-col w-full pb-container-padding gap-stack-md">
@@ -45,6 +49,41 @@
     @if($errors->any())
         <div class="px-container-padding py-stack-sm rounded-xl bg-error-container text-on-error-container text-body-sm font-label-bold">
             {{ $errors->first() }}
+        </div>
+    @endif
+
+    @if($isDitolak)
+        <div class="flex items-start gap-stack-sm px-container-padding py-stack-md rounded-xl bg-error-container text-on-error-container">
+            <span class="material-symbols-outlined text-[20px] mt-0.5">info</span>
+            <div class="text-body-sm">
+                <span class="font-label-bold">Permintaan ini ditolak Kasubag.</span>
+                Kamu masih bisa mengubah item &amp; catatan di bawah, lalu ajukan ulang kapan saja lewat tombol "Ajukan Ulang ke Kasubag" di bagian bawah halaman.
+            </div>
+        </div>
+    @endif
+
+    @if($statusKode === 'MENUNGGU_APPROVAL')
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-stack-sm px-container-padding py-stack-md rounded-xl bg-amber-100 text-amber-800">
+            <div class="flex items-start gap-stack-sm">
+                <span class="material-symbols-outlined text-[20px] mt-0.5">hourglass_top</span>
+                <div class="text-body-sm">
+                    <span class="font-label-bold">Menunggu keputusan Kasubag.</span>
+                    Cek rincian barang di bawah, lalu setujui untuk diteruskan ke Gudang, atau tolak kalau ada yang perlu diperbaiki pekerja.
+                </div>
+            </div>
+            <div class="flex items-center gap-stack-sm shrink-0">
+                <button type="button" onclick="bukaTolak('{{ route('approval-bpb.reject', $bpb->kd_bpb) }}', '{{ $bpb->kd_bpb }}')" class="inline-flex items-center gap-1.5 px-stack-md py-2 rounded-lg bg-error-container text-error hover:bg-error hover:text-on-error text-body-sm font-label-bold transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    Tolak
+                </button>
+                <form method="POST" action="{{ route('approval-bpb.approve', $bpb->kd_bpb) }}" onsubmit="return confirm('Setujui BPB {{ $bpb->kd_bpb }}? Status akan pindah ke Diproses Gudang.');">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-stack-md py-2 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-body-sm font-label-bold transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[18px]">check</span>
+                        Setujui (Kasubag)
+                    </button>
+                </form>
+            </div>
         </div>
     @endif
 
@@ -83,7 +122,7 @@
                 <span class="material-symbols-outlined text-[18px]">print</span>
                 Cetak Draf
             </button>
-            @if($isDraft)
+            @if($isEditable)
                 <button type="button" onclick="document.getElementById('modal-tambah-barang').classList.remove('hidden')" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-colors">
                     <span class="material-symbols-outlined text-[18px]">add</span>
                     Tambah Barang
@@ -202,7 +241,7 @@
                 </div>
             </div>
 
-            @if($isDraft)
+            @if($isEditable)
                 <button type="button" onclick="document.getElementById('modal-tambah-barang').classList.remove('hidden')" class="inline-flex items-center gap-1.5 px-stack-md py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-sm hover:bg-primary-container transition-colors self-start sm:self-center">
                     <span class="material-symbols-outlined text-[18px]">add</span>
                     Tambah Barang Material
@@ -223,7 +262,7 @@
                         <th class="px-stack-md py-stack-md">Jumlah Diminta</th>
                         <th class="px-stack-md py-stack-md">Catatan Keperluan Lapangan</th>
                         <th class="px-stack-md py-stack-md">Ketersediaan Stok</th>
-                        @if($isDraft)
+                        @if($isEditable)
                             <th class="px-container-padding py-stack-md text-right">Aksi</th>
                         @endif
                     </tr>
@@ -268,7 +307,7 @@
                                 @endif
                             </td>
 
-                            @if($isDraft)
+                            @if($isEditable)
                                 <td class="px-container-padding py-stack-md text-right whitespace-nowrap">
                                     <button
                                         type="button"
@@ -319,13 +358,13 @@
     {{-- ================= FOOTER ACTIONS ================= --}}
     <div class="flex flex-col sm:flex-row items-center justify-between gap-stack-sm p-container-padding rounded-xl bg-surface-container-lowest shadow-sm sticky bottom-0">
 
-        @if($isDraft)
-            <form method="POST" action="{{ route('permintaan-barang.destroy', $bpb->kd_bpb) }}" onsubmit="return confirm('Hapus draft BPB {{ $bpb->kd_bpb }}? Tindakan ini tidak bisa dibatalkan.');">
+        @if($isEditable)
+            <form method="POST" action="{{ route('permintaan-barang.destroy', $bpb->kd_bpb) }}" onsubmit="return confirm('Hapus permintaan BPB {{ $bpb->kd_bpb }}? Tindakan ini tidak bisa dibatalkan.');">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-error-container text-error font-label-bold text-body-sm hover:bg-error hover:text-on-error transition-colors">
                     <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
-                    Hapus Draft Permintaan Ini
+                    {{ $isDitolak ? 'Hapus Permintaan Ini' : 'Hapus Draft Permintaan Ini' }}
                 </button>
             </form>
         @else
@@ -333,12 +372,17 @@
         @endif
 
         <div class="flex items-center gap-stack-sm">
-            @if($isDraft)
-                <form method="POST" action="{{ route('permintaan-barang.submit', $bpb->kd_bpb) }}" onsubmit="return confirm('Ajukan BPB {{ $bpb->kd_bpb }} ke Kasubag?');">
+            @if($isEditable)
+                <a href="{{ route('permintaan-barang.index') }}" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-bold text-body-sm transition-colors shadow-sm" title="Item sudah otomatis tersimpan, tombol ini cuma balik ke daftar">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    Simpan Draft
+                </a>
+
+                <form method="POST" action="{{ route('permintaan-barang.submit', $bpb->kd_bpb) }}" onsubmit="return confirm('{{ $isDitolak ? 'Ajukan ulang' : 'Ajukan' }} BPB {{ $bpb->kd_bpb }} ke Kasubag?');">
                     @csrf
                     <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-colors">
                         <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
-                        Ajukan / Submit Permintaan
+                        {{ $isDitolak ? 'Ajukan Ulang ke Kasubag' : 'Ajukan / Submit Permintaan' }}
                     </button>
                 </form>
             @endif
@@ -348,7 +392,7 @@
 
 </div>
 
-@if($isDraft)
+@if($isEditable)
 {{-- ================= MODAL: TAMBAH ITEM MATERIAL LAPANGAN ================= --}}
 <div id="modal-tambah-barang" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-stack-md">
     <form method="POST" action="{{ route('permintaan-barang.items.store', $bpb->kd_bpb) }}" class="w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -578,6 +622,43 @@
 </div>
 @endif
 
+@if($statusKode === 'MENUNGGU_APPROVAL')
+{{-- ================= MODAL: TOLAK BPB (Approval Kasubag) ================= --}}
+<div id="modal-tolak-bpb" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-stack-md">
+    <form method="POST" id="form-tolak-bpb" action="" class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        @csrf
+
+        <div class="px-container-padding py-stack-md flex items-start justify-between shrink-0 border-b border-outline-variant">
+            <div>
+                <h2 class="text-body-lg font-label-bold text-on-surface">Tolak Permintaan <span id="tolak-kode-bpb"></span></h2>
+                <span class="text-[12px] text-on-surface-variant">Alasan penolakan akan tercatat pada dokumen BPB ini</span>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-tolak-bpb').classList.add('hidden')" class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-highest transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <div class="p-container-padding flex flex-col gap-stack-md">
+            <div class="flex flex-col gap-1">
+                <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Alasan Penolakan</label>
+                <textarea name="alasan_tolak" rows="3" placeholder="Contoh: Belum sesuai kuota gudang bulan ini, silakan ajukan ulang bulan depan." class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none border border-outline-variant"></textarea>
+            </div>
+        </div>
+
+        <div class="px-container-padding py-stack-md bg-surface-container flex items-center justify-end gap-stack-sm shrink-0">
+            <button type="button" onclick="document.getElementById('modal-tolak-bpb').classList.add('hidden')" class="px-container-padding py-2 rounded-lg bg-surface-container-highest text-on-surface font-label-bold text-body-sm hover:bg-surface-container-high transition-colors">
+                Batal
+            </button>
+            <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-error text-on-error font-label-bold text-body-sm shadow-sm hover:bg-error-container hover:text-error transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+                Tolak Permintaan
+            </button>
+        </div>
+
+    </form>
+</div>
+@endif
+
 @push('scripts')
 <script>
     function filterKatalogMaterial(kategori) {
@@ -649,6 +730,12 @@
             row.style.display = cocok ? 'flex' : 'none';
         });
     });
+
+    function bukaTolak(actionUrl, kode) {
+        document.getElementById('form-tolak-bpb').action = actionUrl;
+        document.getElementById('tolak-kode-bpb').textContent = kode;
+        document.getElementById('modal-tolak-bpb').classList.remove('hidden');
+    }
 </script>
 @endpush
 

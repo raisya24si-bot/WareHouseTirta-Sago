@@ -8,23 +8,31 @@ use Illuminate\Http\Request;
 
 class ApprovalBpbController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | ANTREAN APPROVAL KASUBAG
-    |--------------------------------------------------------------------------
-    |
-    | Catatan: untuk sekarang alur approval BPB baru sampai level Kasubag
-    | saja (belum ada tingkat Kabag / Direktur seperti approval PO).
-    | Begitu BPB disetujui Kasubag, status langsung pindah ke
-    | DIPROSES_GUDANG supaya tim gudang bisa mulai picking barang.
-    |
-    */
-
     public function index(Request $request)
     {
-        $query = Bpb::with(['urgensi', 'gudang', 'createdBy', 'details'])
-            ->whereHas('status', fn ($q) => $q->where('kd_status_bpb', 'MENUNGGU_APPROVAL'))
-            ->oldest('submit_at');
+        $statusTabMap = [
+            'menunggu' => 'MENUNGGU_APPROVAL',
+            'draft' => 'DRAFT',
+            'diproses' => 'DIPROSES_GUDANG',
+            'ditolak' => 'DITOLAK',
+        ];
+
+        $tabAktif = $request->get('status', 'menunggu');
+        if (! array_key_exists($tabAktif, $statusTabMap)) {
+            $tabAktif = 'menunggu';
+        }
+        $kodeStatus = $statusTabMap[$tabAktif];
+
+        $query = Bpb::with(['status', 'urgensi', 'gudang', 'createdBy', 'approveKasubagBy', 'details'])
+            ->whereHas('status', fn ($q) => $q->where('kd_status_bpb', $kodeStatus));
+
+        if ($kodeStatus === 'MENUNGGU_APPROVAL') {
+            $query->oldest('submit_at');
+        } elseif ($kodeStatus === 'DRAFT') {
+            $query->latest('updated_at');
+        } else {
+            $query->latest('approve_kasubag_at');
+        }
 
         if ($request->filled('gudang')) {
             $query->where('fk_gudang_pengambilan', $request->gudang);
@@ -32,13 +40,20 @@ class ApprovalBpbController extends Controller
 
         $antrean = $query->paginate(10)->withQueryString();
 
-        $totalMenunggu = Bpb::whereHas('status', fn ($q) => $q->where('kd_status_bpb', 'MENUNGGU_APPROVAL'))->count();
+        $stats = [];
+        foreach ($statusTabMap as $tab => $kode) {
+            $stats[$tab] = Bpb::whereHas('status', fn ($q) => $q->where('kd_status_bpb', $kode))->count();
+        }
+
+
+        $stats['total_approval'] = $stats['menunggu'] + $stats['diproses'] + $stats['ditolak'];
 
         $gudangList = \App\Models\MasterGudang::orderBy('nm_gudang')->get();
 
         return view('permintaan-barang.approval-kasubag', [
             'antrean' => $antrean,
-            'totalMenunggu' => $totalMenunggu,
+            'stats' => $stats,
+            'tabAktif' => $tabAktif,
             'gudangList' => $gudangList,
         ]);
     }
@@ -77,7 +92,6 @@ class ApprovalBpbController extends Controller
 
         $statusDitolakId = MasterStatusBpb::where('kd_status_bpb', 'DITOLAK')->value('id_status_bpb');
 
-       
         $bpb->update([
             'fk_status_bpb' => $statusDitolakId,
             'desc_bpb' => trim(($bpb->desc_bpb ? $bpb->desc_bpb . ' — ' : '') . 'Ditolak Kasubag: ' . ($validated['alasan_tolak'] ?? '-')),

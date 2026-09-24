@@ -105,4 +105,9 @@ class Bpb extends Model
     {
         return $this->status?->kd_status_bpb === 'DRAFT';
     }
+
+    public function isEditable(): bool
+    {
+        return in_array($this->status?->kd_status_bpb, ['DRAFT', 'DITOLAK'], true);
+    }
 }

@@ -57,11 +57,6 @@
 
         <div class="flex items-center gap-stack-sm self-start md:self-center">
 
-            <a href="{{ route('approval-bpb.index') }}" class="inline-flex items-center gap-base px-stack-md py-stack-sm rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-label-bold text-body-sm shadow-sm">
-                <span class="material-symbols-outlined text-[18px]">fact_check</span>
-                Approval Kasubag
-            </a>
-
             <button type="button" class="inline-flex items-center gap-base px-stack-md py-stack-sm rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-label-bold text-body-sm shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">download</span>
                 Export Log
@@ -290,11 +285,14 @@
 
                                     @elseif($statusKode === 'menunggu_approval')
 
-                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[12px] font-label-bold transition-colors" title="Lihat Detail">
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-container-highest hover:border-outline text-[12px] font-label-bold transition-colors shadow-sm" title="Lihat Detail">
                                             <span class="material-symbols-outlined text-[15px]">visibility</span>
                                             Lihat Detail
                                         </a>
-                                        <span class="text-[11px] text-outline">Terkunci</span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-surface-container text-outline text-[11px]" title="Item tidak bisa diubah selama menunggu approval">
+                                            <span class="material-symbols-outlined text-[13px]">lock</span>
+                                            Terkunci
+                                        </span>
 
                                     @elseif($statusKode === 'diproses_gudang')
 
@@ -310,12 +308,21 @@
                                             Siap Diambil
                                         </span>
 
-                                    @endif
+                                    @elseif($statusKode === 'ditolak')
 
-                                    {{-- Selalu tersedia: akses cepat ke halaman detail / show blade --}}
-                                    <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="p-1.5 rounded-lg text-outline hover:bg-primary/10 hover:text-primary transition-colors" title="Lihat Halaman Detail">
-                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
-                                    </a>
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-container-highest hover:border-outline text-[12px] font-label-bold transition-colors shadow-sm" title="Lihat &amp; Perbaiki">
+                                            <span class="material-symbols-outlined text-[15px]">edit</span>
+                                            Lihat &amp; Perbaiki
+                                        </a>
+
+                                    @else
+
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-container-highest hover:border-outline text-[12px] font-label-bold transition-colors shadow-sm" title="Lihat Detail">
+                                            <span class="material-symbols-outlined text-[15px]">visibility</span>
+                                            Lihat Detail
+                                        </a>
+
+                                    @endif
 
                                 </div>
 
@@ -487,7 +494,7 @@
                         <span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px] pointer-events-none">warehouse</span>
                         <select name="fk_gudang_pengambilan" required class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
                             @foreach($gudangList as $gudang)
-                                <option value="{{ $gudang->id_gudang }}">{{ $gudang->nm_gudang }}</option>
+                                <option value="{{ $gudang->id_gudang }}" {{ strcasecmp(trim($gudang->nm_gudang), 'Gudang Utama') === 0 ? 'selected' : '' }}>{{ $gudang->nm_gudang }}</option>
                             @endforeach
                         </select>
                     </div>

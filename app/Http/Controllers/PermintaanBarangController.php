@@ -170,8 +170,8 @@ class PermintaanBarangController extends Controller
     {
         $bpb = Bpb::with('status')->where('kd_bpb', $kode)->firstOrFail();
 
-        if (! $bpb->isDraft()) {
-            return back()->withErrors(['item' => 'Item hanya bisa ditambahkan selama BPB masih berstatus Draft.']);
+        if (! $bpb->isEditable()) {
+            return back()->withErrors(['item' => 'Item hanya bisa ditambahkan selama BPB berstatus Draft atau Ditolak.']);
         }
 
         $validated = $request->validate([
@@ -181,6 +181,27 @@ class PermintaanBarangController extends Controller
         ]);
 
         $barang = MasterBarang::findOrFail($validated['fk_barang']);
+
+        // Kalau barang yang sama sudah ada di daftar BPB ini, jumlahnya
+        // digabung (ditambah) ke baris yang sudah ada saja, tidak bikin
+        // baris duplikat. Baris baru cuma dibuat kalau barangnya memang
+        // belum ada di daftar.
+        $itemSudahAda = BpbDetail::where('fk_bpb', $bpb->id_bpb)
+            ->where('fk_barang', $barang->id_master_barang)
+            ->first();
+
+        if ($itemSudahAda) {
+            $itemSudahAda->update([
+                'qty_request' => $itemSudahAda->qty_request + $validated['qty_request'],
+                'qty_available' => $barang->stok_saat_ini,
+                'catatan' => $validated['catatan'] ?? $itemSudahAda->catatan,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return redirect()
+                ->route('permintaan-barang.show', $bpb->kd_bpb)
+                ->with('success', $barang->nm_master_barang . ' sudah ada di daftar, jumlahnya digabung jadi ' . $itemSudahAda->qty_request . '.');
+        }
 
         BpbDetail::create([
             'fk_bpb' => $bpb->id_bpb,
@@ -200,7 +221,7 @@ class PermintaanBarangController extends Controller
     {
         $bpb = Bpb::with('status')->where('kd_bpb', $kode)->firstOrFail();
 
-        if (! $bpb->isDraft() || (int) $item->fk_bpb !== (int) $bpb->id_bpb) {
+        if (! $bpb->isEditable() || (int) $item->fk_bpb !== (int) $bpb->id_bpb) {
             return back()->withErrors(['item' => 'Item tidak dapat dihapus.']);
         }
 
@@ -214,8 +235,8 @@ class PermintaanBarangController extends Controller
     {
         $bpb = Bpb::with('status')->where('kd_bpb', $kode)->firstOrFail();
 
-        if (! $bpb->isDraft() || (int) $item->fk_bpb !== (int) $bpb->id_bpb) {
-            return back()->withErrors(['item' => 'Item hanya bisa diedit selama BPB masih berstatus Draft.']);
+        if (! $bpb->isEditable() || (int) $item->fk_bpb !== (int) $bpb->id_bpb) {
+            return back()->withErrors(['item' => 'Item hanya bisa diedit selama BPB berstatus Draft atau Ditolak.']);
         }
 
         $validated = $request->validate([
@@ -243,13 +264,15 @@ class PermintaanBarangController extends Controller
     {
         $bpb = Bpb::with(['status', 'details'])->where('kd_bpb', $kode)->firstOrFail();
 
-        if (! $bpb->isDraft()) {
+        if (! $bpb->isEditable()) {
             return back()->withErrors(['submit' => 'BPB ini sudah diajukan sebelumnya.']);
         }
 
         if ($bpb->details->isEmpty()) {
             return back()->withErrors(['submit' => 'Tambahkan minimal 1 item barang sebelum mengajukan BPB.']);
         }
+
+        $sebelumnyaDitolak = $bpb->status->kd_status_bpb === 'DITOLAK';
 
         $statusMenungguId = MasterStatusBpb::where('kd_status_bpb', 'MENUNGGU_APPROVAL')->value('id_status_bpb');
 
@@ -260,9 +283,13 @@ class PermintaanBarangController extends Controller
             'updated_by' => auth()->id(),
         ]);
 
+        $pesan = $sebelumnyaDitolak
+            ? 'BPB ' . $bpb->kd_bpb . ' berhasil diajukan ulang ke Kasubag.'
+            : 'BPB ' . $bpb->kd_bpb . ' berhasil diajukan ke Kasubag.';
+
         return redirect()
             ->route('permintaan-barang.index')
-            ->with('success', 'BPB ' . $bpb->kd_bpb . ' berhasil diajukan ke Kasubag.');
+            ->with('success', $pesan);
     }
 
 
@@ -276,8 +303,8 @@ class PermintaanBarangController extends Controller
     {
         $bpb = Bpb::with('status')->where('kd_bpb', $kode)->firstOrFail();
 
-        if (! $bpb->isDraft()) {
-            return back()->withErrors(['delete' => 'Hanya dokumen Draft yang bisa dihapus.']);
+        if (! $bpb->isEditable()) {
+            return back()->withErrors(['delete' => 'Hanya dokumen berstatus Draft atau Ditolak yang bisa dihapus.']);
         }
 
         $bpb->update(['deleted_by' => auth()->id()]);
@@ -285,6 +312,6 @@ class PermintaanBarangController extends Controller
 
         return redirect()
             ->route('permintaan-barang.index')
-            ->with('success', 'Draft BPB ' . $bpb->kd_bpb . ' dihapus.');
+            ->with('success', 'BPB ' . $bpb->kd_bpb . ' dihapus.');
     }
 }
