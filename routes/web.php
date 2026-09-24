@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\ApprovalBpbController;
 use App\Http\Controllers\ApprovalPenerimaanController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ManajemenStokController;
@@ -628,10 +629,55 @@ Route::middleware('auth')->group(function () {
 
             });
 
-    // Permintaan Barang (BPB) - masih tampilan dummy, belum terhubung DB
+    // Permintaan Barang (BPB) - sudah terhubung DB
+    // Catatan: kd_bpb formatnya "BPB/2026/09/1" (mengandung slash), jadi
+    // parameter {kode} di bawah ini di-set boleh menerima slash lewat
+    // ->where('kode', '.*'). Route yang lebih spesifik (submit, items)
+    // WAJIB didaftarkan lebih dulu daripada {kode} generik (show/destroy),
+    // supaya tidak "dimakan" duluan oleh {kode}.
     Route::prefix('permintaan-barang')->name('permintaan-barang.')->group(function () {
         Route::get('/', [PermintaanBarangController::class, 'index'])->name('index');
-        Route::get('/{kode}', [PermintaanBarangController::class, 'show'])->name('show');
+        Route::post('/', [PermintaanBarangController::class, 'store'])->name('store');
+
+        Route::post('/{kode}/submit', [PermintaanBarangController::class, 'submit'])
+            ->where('kode', '.*')
+            ->name('submit');
+
+        Route::post('/{kode}/items', [PermintaanBarangController::class, 'storeItem'])
+            ->where('kode', '.*')
+            ->name('items.store');
+
+        Route::put('/{kode}/items/{item}', [PermintaanBarangController::class, 'updateItem'])
+            ->where('kode', '.*')
+            ->name('items.update');
+
+        Route::delete('/{kode}/items/{item}', [PermintaanBarangController::class, 'destroyItem'])
+            ->where('kode', '.*')
+            ->name('items.destroy');
+
+        Route::get('/{kode}', [PermintaanBarangController::class, 'show'])
+            ->where('kode', '.*')
+            ->name('show');
+
+        Route::delete('/{kode}', [PermintaanBarangController::class, 'destroy'])
+            ->where('kode', '.*')
+            ->name('destroy');
+    });
+
+    // Antrean Approval Kasubag untuk BPB (Permintaan Barang)
+    // Catatan: untuk sekarang baru 1 tingkat approval (Kasubag).
+    // Kalau nanti perlu tingkat lanjutan (Kabag/Direktur) tinggal
+    // dicontek dari pola grup 'approval.*' (untuk PO) di atas.
+    Route::prefix('approval-bpb')->name('approval-bpb.')->group(function () {
+        Route::get('/', [ApprovalBpbController::class, 'index'])->name('index');
+
+        Route::post('/{kode}/approve', [ApprovalBpbController::class, 'approve'])
+            ->where('kode', '.*')
+            ->name('approve');
+
+        Route::post('/{kode}/reject', [ApprovalBpbController::class, 'reject'])
+            ->where('kode', '.*')
+            ->name('reject');
     });
 
     Route::prefix('retur')->name('retur.')->group(function () {

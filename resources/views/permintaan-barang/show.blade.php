@@ -1,35 +1,52 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Permintaan '.$bpb->kode.' - Warehouse Tirta Sago')
+@section('title', 'Detail Permintaan '.$bpb->kd_bpb.' - Warehouse Tirta Sago')
 @section('breadcrumb', 'Detail Permintaan Barang')
 
 @section('content')
 
 @php
     $statusBadge = [
-        'draft' => ['label' => 'Draf Permintaan', 'classes' => 'bg-surface-container-highest text-secondary'],
-        'menunggu_approval' => ['label' => 'Menunggu Approval Kasubag', 'classes' => 'bg-amber-100 text-amber-800'],
-        'diproses_gudang' => ['label' => 'Sedang Disiapkan Gudang', 'classes' => 'bg-blue-100 text-primary'],
-        'siap_ambil' => ['label' => 'Siap Ambil di Gudang', 'classes' => 'bg-green-100 text-green-800'],
+        'DRAFT' => ['label' => 'Draf Permintaan', 'classes' => 'bg-surface-container-highest text-secondary'],
+        'MENUNGGU_APPROVAL' => ['label' => 'Menunggu Approval Kasubag', 'classes' => 'bg-amber-100 text-amber-800'],
+        'DIPROSES_GUDANG' => ['label' => 'Sedang Disiapkan Gudang', 'classes' => 'bg-blue-100 text-primary'],
+        'SIAP_AMBIL' => ['label' => 'Siap Ambil di Gudang', 'classes' => 'bg-green-100 text-green-800'],
+        'SELESAI' => ['label' => 'Selesai Diambil', 'classes' => 'bg-green-100 text-green-800'],
+        'DITOLAK' => ['label' => 'Ditolak', 'classes' => 'bg-error-container text-on-error-container'],
     ];
-    $badge = $statusBadge[$bpb->status] ?? $statusBadge['draft'];
+    $statusKode = $bpb->status->kd_status_bpb ?? 'DRAFT';
+    $badge = $statusBadge[$statusKode] ?? $statusBadge['DRAFT'];
 
     $prioritasBadge = [
-        'darurat' => 'bg-error text-on-error',
-        'tinggi' => 'bg-primary-fixed text-on-primary-fixed',
-        'normal' => 'bg-surface-container-high text-on-surface-variant',
+        'DARURAT' => 'bg-error text-on-error',
+        'TINGGI' => 'bg-primary-fixed text-on-primary-fixed',
+        'NORMAL' => 'bg-surface-container-high text-on-surface-variant',
     ];
 
     $prioritasLabel = [
-        'darurat' => 'Sangat Mendesak / Darurat',
-        'tinggi' => 'Prioritas Tinggi',
-        'normal' => 'Normal',
+        'DARURAT' => 'Sangat Mendesak / Darurat',
+        'TINGGI' => 'Prioritas Tinggi',
+        'NORMAL' => 'Normal',
     ];
 
-    $isDraft = $bpb->status === 'draft';
+    $urgensiKode = $bpb->urgensi->kd_urgensi_bpb ?? 'NORMAL';
+
+    $isDraft = $bpb->isDraft();
 @endphp
 
 <div class="flex flex-col w-full pb-container-padding gap-stack-md">
+
+    @if(session('success'))
+        <div class="px-container-padding py-stack-sm rounded-xl bg-green-100 text-green-800 text-body-sm font-label-bold">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="px-container-padding py-stack-sm rounded-xl bg-error-container text-on-error-container text-body-sm font-label-bold">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
     {{-- ================= BREADCRUMB ================= --}}
     <nav class="flex items-center gap-stack-sm text-sidebar-nav text-on-surface-variant">
@@ -38,7 +55,7 @@
             Permintaan Barang
         </a>
         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span class="text-primary font-bold">Detail Permintaan ({{ $bpb->kode }})</span>
+        <span class="text-primary font-bold">Detail Permintaan ({{ $bpb->kd_bpb }})</span>
     </nav>
 
 
@@ -46,18 +63,18 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-stack-md">
 
         <div class="flex flex-wrap items-center gap-stack-sm">
-            <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ $bpb->kode }}</h1>
+            <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ $bpb->kd_bpb }}</h1>
 
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-label-bold {{ $badge['classes'] }}">
                 <span class="w-2 h-2 rounded-full bg-current opacity-70"></span>
                 {{ strtoupper($isDraft ? 'DRAFT (Belum Diajukan)' : $badge['label']) }}
             </span>
 
-            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12px] font-label-bold {{ $prioritasBadge[$bpb->prioritas_kode] ?? $prioritasBadge['normal'] }}">
-                @if($bpb->prioritas_kode === 'darurat')
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12px] font-label-bold {{ $prioritasBadge[$urgensiKode] ?? $prioritasBadge['NORMAL'] }}">
+                @if($urgensiKode === 'DARURAT')
                     <span class="material-symbols-outlined text-[14px]">bolt</span>
                 @endif
-                {{ $prioritasLabel[$bpb->prioritas_kode] ?? $bpb->prioritas }}
+                {{ $prioritasLabel[$urgensiKode] ?? ($bpb->urgensi->nm_urgensi_bpb ?? 'Normal') }}
             </span>
         </div>
 
@@ -66,15 +83,17 @@
                 <span class="material-symbols-outlined text-[18px]">print</span>
                 Cetak Draf
             </button>
-            <button type="button" onclick="document.getElementById('modal-tambah-barang').classList.remove('hidden')" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-colors">
-                <span class="material-symbols-outlined text-[18px]">add</span>
-                Tambah Barang
-            </button>
+            @if($isDraft)
+                <button type="button" onclick="document.getElementById('modal-tambah-barang').classList.remove('hidden')" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    Tambah Barang
+                </button>
+            @endif
         </div>
 
     </div>
 
-    <p class="text-body-sm text-on-surface-variant -mt-2">{{ $bpb->judul }}</p>
+    <p class="text-body-sm text-on-surface-variant -mt-2">{{ $bpb->desc_bpb ?? 'Tidak ada keterangan pekerjaan.' }}</p>
 
 
     {{-- ================= INFO HEADER ================= --}}
@@ -85,45 +104,37 @@
                 <span class="material-symbols-outlined text-primary text-[20px]">info</span>
                 <h2 class="font-label-bold text-on-surface">Informasi Header Permintaan (BPB)</h2>
             </div>
-
-            @if($isDraft)
-                <button type="button" class="inline-flex items-center gap-1.5 px-stack-md py-1.5 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[13px] font-label-bold transition-colors">
-                    <span class="material-symbols-outlined text-[16px]">edit_note</span>
-                    Edit Informasi Header
-                </button>
-            @endif
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-stack-md p-container-padding">
 
             <div class="bg-surface-container-low rounded-lg p-stack-md">
                 <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Nomor BPB</span>
-                <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->kode }}</span>
+                <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->kd_bpb }}</span>
             </div>
 
             <div class="bg-surface-container-low rounded-lg p-stack-md">
                 <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Waktu Registrasi</span>
-                <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->waktu_registrasi ?? $bpb->tanggal.', '.$bpb->waktu }}</span>
+                <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->created_at?->translatedFormat('d M Y, H:i') }} WIB</span>
             </div>
 
             <div class="bg-surface-container-low rounded-lg p-stack-md">
                 <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Pegawai Pemohon</span>
-                <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->pegawai_pemohon }}</span>
-                <span class="block text-[12px] text-on-surface-variant">{{ $bpb->subbagian_pemohon }}</span>
+                <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->createdBy->name ?? '-' }}</span>
             </div>
 
             <div class="bg-surface-container-low rounded-lg p-stack-md">
                 <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Gudang Tujuan</span>
-                <span class="block font-label-bold text-primary mt-1">{{ $bpb->gudang_tujuan }}</span>
+                <span class="block font-label-bold text-primary mt-1">{{ $bpb->gudang->nm_gudang ?? '-' }}</span>
             </div>
 
             <div class="bg-surface-container-low rounded-lg p-stack-md">
                 <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Rujukan SPK / Pekerjaan</span>
-                @if($bpb->spk_status === 'belum_ada')
+                @if($bpb->status_spk === 'DARURAT')
                     <span class="block font-label-bold text-tertiary mt-1">Belum Ada SPK (Sementara)</span>
-                    <span class="block text-[12px] text-error">{{ $bpb->spk_pekerjaan ?? $bpb->spk_kode }}</span>
+                    <span class="block text-[12px] text-error">{{ $bpb->no_spk ?? '-' }}</span>
                 @else
-                    <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->spk_kode }}</span>
+                    <span class="block font-label-bold text-on-surface mt-1">{{ $bpb->no_spk ?? '-' }}</span>
                     <span class="block text-[12px] text-on-surface-variant">Sudah Ada SPK</span>
                 @endif
             </div>
@@ -132,7 +143,7 @@
                 <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Status Alur Dokumen</span>
                 <span class="flex items-center gap-1 font-label-bold text-on-surface-variant mt-1">
                     <span class="material-symbols-outlined text-[16px]">sentiment_neutral</span>
-                    {{ $isDraft ? 'Menunggu Pengajuan' : $badge['label'] }}
+                    {{ $bpb->status->nm_status_bpb ?? '-' }}
                 </span>
             </div>
 
@@ -170,11 +181,8 @@
 
         <div class="flex items-center justify-between p-stack-md rounded-xl bg-surface-container-lowest shadow-sm">
             <div>
-                <span class="block text-[12px] text-on-surface-variant">Target Penyerahan</span>
-                <span class="block text-xl font-bold {{ $bpb->prioritas_kode === 'darurat' ? 'text-error' : 'text-on-surface' }} mt-1">{{ $bpb->target_penyerahan ?? '-' }}</span>
-                @if(!empty($bpb->target_penyerahan_ket))
-                    <span class="block text-[11px] text-on-surface-variant">{{ $bpb->target_penyerahan_ket }}</span>
-                @endif
+                <span class="block text-[12px] text-on-surface-variant">Tanggal Permintaan</span>
+                <span class="block text-xl font-bold {{ $urgensiKode === 'DARURAT' ? 'text-error' : 'text-on-surface' }} mt-1">{{ $bpb->tgl_bpb?->translatedFormat('d M Y') }}</span>
             </div>
             <span class="p-2 rounded-lg bg-orange-100 text-orange-700 material-symbols-outlined">schedule</span>
         </div>
@@ -215,37 +223,39 @@
                         <th class="px-stack-md py-stack-md">Jumlah Diminta</th>
                         <th class="px-stack-md py-stack-md">Catatan Keperluan Lapangan</th>
                         <th class="px-stack-md py-stack-md">Ketersediaan Stok</th>
-                        <th class="px-container-padding py-stack-md text-right">Aksi</th>
+                        @if($isDraft)
+                            <th class="px-container-padding py-stack-md text-right">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
 
                 <tbody class="divide-y divide-outline-variant/60">
 
-                    @forelse($bpb->items as $i => $item)
+                    @forelse($bpb->details as $i => $item)
 
                         <tr class="hover:bg-surface-container-low/60 transition-colors">
 
                             <td class="px-container-padding py-stack-md text-on-surface-variant">{{ $i + 1 }}</td>
 
                             <td class="px-stack-md py-stack-md">
-                                <span class="block font-label-bold text-primary">{{ $item['kode'] }}</span>
-                                <span class="block font-label-bold text-on-surface">{{ $item['nama'] }}</span>
+                                <span class="block font-label-bold text-primary">{{ $item->barang->kd_master_barang ?? '-' }}</span>
+                                <span class="block font-label-bold text-on-surface">{{ $item->barang->nm_master_barang ?? 'Barang tidak ditemukan' }}</span>
                             </td>
 
                             <td class="px-stack-md py-stack-md">
-                                <span class="inline-block px-2 py-0.5 rounded-md bg-surface-container-high text-[11px] text-on-surface-variant mb-1">{{ $item['kategori'] }}</span>
-                                <span class="block text-[12px] text-on-surface-variant">{{ $item['spesifikasi'] }}</span>
+                                <span class="inline-block px-2 py-0.5 rounded-md bg-surface-container-high text-[11px] text-on-surface-variant mb-1">{{ $item->barang->kategori->nm_master_kategori ?? '-' }}</span>
+                                <span class="block text-[12px] text-on-surface-variant">{{ $item->barang->desc_master_barang ?? '-' }}</span>
                             </td>
 
-                            <td class="px-stack-md py-stack-md whitespace-nowrap">{{ $item['satuan'] }}</td>
+                            <td class="px-stack-md py-stack-md whitespace-nowrap">{{ $item->barang->satuan->nm_master_satuan ?? '-' }}</td>
 
-                            <td class="px-stack-md py-stack-md font-label-bold text-on-surface">{{ $item['jumlah_diminta'] }}</td>
+                            <td class="px-stack-md py-stack-md font-label-bold text-on-surface">{{ $item->qty_request }}</td>
 
-                            <td class="px-stack-md py-stack-md text-[13px] text-on-surface-variant max-w-[220px]">{{ $item['catatan'] }}</td>
+                            <td class="px-stack-md py-stack-md text-[13px] text-on-surface-variant max-w-[220px]">{{ $item->catatan ?? '-' }}</td>
 
                             <td class="px-stack-md py-stack-md whitespace-nowrap">
-                                <span class="block font-label-bold text-on-surface">{{ $item['stok_tersedia'] }}</span>
-                                @if($item['stok_status'] === 'aman')
+                                <span class="block font-label-bold text-on-surface">{{ $item->qty_available }} {{ $item->barang->satuan->nm_master_satuan ?? '' }}</span>
+                                @if($item->isStokAman())
                                     <span class="inline-flex items-center gap-1 text-[11px] text-green-700">
                                         <span class="material-symbols-outlined text-[13px]">check_circle</span>
                                         Stok Aman &amp; Tersedia
@@ -258,16 +268,32 @@
                                 @endif
                             </td>
 
-                            <td class="px-container-padding py-stack-md text-right whitespace-nowrap">
-                                <div class="inline-flex items-center justify-end gap-1">
-                                    <button type="button" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Edit">
+                            @if($isDraft)
+                                <td class="px-container-padding py-stack-md text-right whitespace-nowrap">
+                                    <button
+                                        type="button"
+                                        onclick="bukaEditItem(this)"
+                                        data-item-id="{{ $item->id_bpb_detail }}"
+                                        data-kode-barang="{{ $item->barang->kd_master_barang ?? '-' }}"
+                                        data-nama-barang="{{ $item->barang->nm_master_barang ?? 'Barang tidak ditemukan' }}"
+                                        data-satuan="{{ $item->barang->satuan->nm_master_satuan ?? '' }}"
+                                        data-qty="{{ $item->qty_request }}"
+                                        data-catatan="{{ $item->catatan }}"
+                                        class="p-1.5 rounded-lg text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors"
+                                        title="Edit Item"
+                                    >
                                         <span class="material-symbols-outlined text-[18px]">edit</span>
                                     </button>
-                                    <button type="button" class="p-1.5 rounded-lg text-error hover:bg-error-container transition-colors" title="Hapus">
-                                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                                    </button>
-                                </div>
-                            </td>
+
+                                    <form method="POST" action="{{ route('permintaan-barang.items.destroy', [$bpb->kd_bpb, $item->id_bpb_detail]) }}" onsubmit="return confirm('Hapus item ini dari BPB?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1.5 rounded-lg text-error hover:bg-error-container transition-colors" title="Hapus">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            @endif
 
                         </tr>
 
@@ -290,53 +316,31 @@
     </div>
 
 
-    {{-- ================= SOP VERIFIKASI ================= --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-stack-md p-container-padding rounded-xl bg-surface-container-lowest shadow-sm">
-
-        <div class="flex items-start gap-stack-sm">
-            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">shield</span>
-            <div>
-                <p class="font-label-bold text-on-surface">SOP Verifikasi Pengambilan Barang Lapangan</p>
-                <p class="text-[12px] text-on-surface-variant max-w-xl mt-0.5">
-                    Barang yang diajukan langsung mengurangi reservasi kuota gudang GU-1 setelah diverifikasi Kasubag.
-                </p>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-stack-sm text-[13px] text-on-surface-variant self-start sm:self-center">
-            <span>Lampiran Bukti Foto Kerusakan: <strong class="text-on-surface">{{ $bpb->lampiran_foto ?? 0 }} File Terunggah</strong></span>
-            <button type="button" class="inline-flex items-center gap-1 text-primary font-label-bold hover:underline">
-                <span class="material-symbols-outlined text-[16px]">attachment</span>
-                Lihat Foto
-            </button>
-        </div>
-
-    </div>
-
-
     {{-- ================= FOOTER ACTIONS ================= --}}
     <div class="flex flex-col sm:flex-row items-center justify-between gap-stack-sm p-container-padding rounded-xl bg-surface-container-lowest shadow-sm sticky bottom-0">
 
         @if($isDraft)
-            <button type="button" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-error-container text-error font-label-bold text-body-sm hover:bg-error hover:text-on-error transition-colors">
-                <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
-                Hapus Draft Permintaan Ini
-            </button>
+            <form method="POST" action="{{ route('permintaan-barang.destroy', $bpb->kd_bpb) }}" onsubmit="return confirm('Hapus draft BPB {{ $bpb->kd_bpb }}? Tindakan ini tidak bisa dibatalkan.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-error-container text-error font-label-bold text-body-sm hover:bg-error hover:text-on-error transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                    Hapus Draft Permintaan Ini
+                </button>
+            </form>
         @else
             <span></span>
         @endif
 
         <div class="flex items-center gap-stack-sm">
-            <button type="button" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-surface-container-high text-on-surface font-label-bold text-body-sm hover:bg-surface-container-highest transition-colors">
-                <span class="material-symbols-outlined text-[18px]">save</span>
-                Simpan Draft
-            </button>
-
             @if($isDraft)
-                <button type="button" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
-                    Ajukan / Submit Permintaan
-                </button>
+                <form method="POST" action="{{ route('permintaan-barang.submit', $bpb->kd_bpb) }}" onsubmit="return confirm('Ajukan BPB {{ $bpb->kd_bpb }} ke Kasubag?');">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                        Ajukan / Submit Permintaan
+                    </button>
+                </form>
             @endif
         </div>
 
@@ -344,56 +348,11 @@
 
 </div>
 
-@php
-    $katalogMaterial = [
-        [
-            'kode' => 'BRG-FIT-045',
-            'nama' => 'Klem Saddle 2 x 1/2 Inch',
-            'kategori' => 'Aksesoris Sambungan Rumah',
-            'spesifikasi' => 'Bahan Ductile Iron, Baut Anti Karat, Standard SNI',
-            'satuan' => 'Pcs',
-            'stok' => '64 Pcs',
-            'stok_status' => 'aman',
-            'stok_label' => 'Tersedia Aman',
-        ],
-        [
-            'kode' => 'BRG-PIP-012',
-            'nama' => 'Pipa PVC SNI S-12.5 RRJ 4"',
-            'kategori' => 'Pipa Distribusi',
-            'spesifikasi' => 'Panjang 6m, Tekanan 10 Bar',
-            'satuan' => 'Btg',
-            'stok' => '142 Btg',
-            'stok_status' => 'aman',
-            'stok_label' => 'Tersedia Aman',
-        ],
-        [
-            'kode' => 'BRG-VLV-089',
-            'nama' => 'Gate Valve Flange SNI 4"',
-            'kategori' => 'Valve & Kontrol',
-            'spesifikasi' => 'Cast Iron Body, PN 16',
-            'satuan' => 'Unit',
-            'stok' => '8 Unit',
-            'stok_status' => 'terbatas',
-            'stok_label' => 'Tersedia',
-        ],
-        [
-            'kode' => 'BRG-FIT-088',
-            'nama' => 'Gibault Joint 4 Inch',
-            'kategori' => 'Aksesoris Fitting',
-            'spesifikasi' => 'Rubber Ring EPDM, Baut Galvanis',
-            'satuan' => 'Pcs',
-            'stok' => '15 Pcs',
-            'stok_status' => 'terbatas',
-            'stok_label' => 'Tersedia',
-        ],
-    ];
-
-    $kategoriList = collect($katalogMaterial)->pluck('kategori')->unique()->values();
-@endphp
-
-{{-- ================= MODAL: TAMBAH ITEM MATERIAL LAPANGAN (visual only) ================= --}}
+@if($isDraft)
+{{-- ================= MODAL: TAMBAH ITEM MATERIAL LAPANGAN ================= --}}
 <div id="modal-tambah-barang" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-stack-md">
-    <div class="w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <form method="POST" action="{{ route('permintaan-barang.items.store', $bpb->kd_bpb) }}" class="w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        @csrf
 
         {{-- Header --}}
         <div class="px-container-padding py-stack-md flex items-start justify-between shrink-0 border-b border-outline-variant">
@@ -413,24 +372,21 @@
 
         <div class="p-container-padding flex flex-col gap-stack-md overflow-y-auto custom-scrollbar">
 
-            <div class="flex items-center justify-between">
-                <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Pilih Material Lapangan *</label>
-                <button type="button" class="inline-flex items-center gap-1 text-[12px] font-label-bold text-primary hover:underline">
-                    <span class="material-symbols-outlined text-[15px]">menu_book</span>
-                    Buka Katalog Material
-                </button>
-            </div>
+            <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Pilih Material Lapangan *</label>
 
-            {{-- Filter kategori barang (TODO: sambungkan ke Master Kategori — masih visual/dummy) --}}
-            <div class="flex flex-wrap items-center gap-1.5" id="filter-kategori-material">
-                <button type="button" onclick="filterKatalogMaterial('semua', this)" class="kategori-chip active px-stack-sm py-1 rounded-full bg-primary text-on-primary text-[12px] font-label-bold transition-colors">
-                    Semua Kategori
-                </button>
-                @foreach($kategoriList as $kategori)
-                    <button type="button" onclick="filterKatalogMaterial('{{ $kategori }}', this)" class="kategori-chip px-stack-sm py-1 rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[12px] transition-colors">
-                        {{ $kategori }}
-                    </button>
-                @endforeach
+            {{-- Filter kategori barang --}}
+            <div class="flex flex-col gap-1">
+                <label class="font-label-bold text-[11px] text-on-surface-variant uppercase tracking-wider" for="filter-kategori-material">Filter Kategori</label>
+                <div class="relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px] pointer-events-none">filter_alt</span>
+                    <select id="filter-kategori-material" onchange="filterKatalogMaterial(this.value)" class="w-full appearance-none pl-8 pr-8 py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm border border-outline-variant focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="semua">Semua Kategori</option>
+                        @foreach($kategoriList as $kategori)
+                            <option value="{{ $kategori->nm_master_kategori }}">{{ $kategori->nm_master_kategori }}</option>
+                        @endforeach
+                    </select>
+                    <span class="material-symbols-outlined absolute right-stack-sm text-outline text-[18px] pointer-events-none">expand_more</span>
+                </div>
             </div>
 
             {{-- Search box --}}
@@ -442,18 +398,23 @@
             {{-- Daftar material (radio list) --}}
             <div class="flex flex-col gap-1.5 max-h-64 overflow-y-auto custom-scrollbar" id="list-material">
 
-                @foreach($katalogMaterial as $i => $mat)
+                @forelse($katalogMaterial as $i => $mat)
+                    @php
+                        $stokAman = $mat->stok_status === 'NORMAL';
+                        $satuanNama = $mat->satuan->nm_master_satuan ?? '';
+                    @endphp
                     <label
                         class="material-row flex items-center justify-between gap-stack-sm p-stack-md rounded-lg border-2 {{ $i === 0 ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant bg-surface-container-lowest' }} cursor-pointer transition-colors"
-                        data-kategori="{{ $mat['kategori'] }}"
-                        data-kode="{{ $mat['kode'] }}"
-                        data-nama="{{ $mat['nama'] }}"
-                        data-spesifikasi="{{ $mat['spesifikasi'] }}"
-                        data-kategori-label="{{ $mat['kategori'] }}"
-                        data-satuan="{{ $mat['satuan'] }}"
-                        data-stok="{{ $mat['stok'] }}"
-                        data-stok-status="{{ $mat['stok_status'] }}"
-                        data-stok-label="{{ $mat['stok_label'] }}"
+                        data-kategori="{{ $mat->kategori->nm_master_kategori ?? '' }}"
+                        data-id="{{ $mat->id_master_barang }}"
+                        data-kode="{{ $mat->kd_master_barang }}"
+                        data-nama="{{ $mat->nm_master_barang }}"
+                        data-spesifikasi="{{ $mat->desc_master_barang }}"
+                        data-kategori-label="{{ $mat->kategori->nm_master_kategori ?? '-' }}"
+                        data-satuan="{{ $satuanNama }}"
+                        data-stok="{{ $mat->stok_saat_ini }} {{ $satuanNama }}"
+                        data-stok-status="{{ $stokAman ? 'aman' : 'terbatas' }}"
+                        data-stok-label="{{ $stokAman ? 'Tersedia Aman' : ($mat->stok_status === 'HABIS' ? 'Stok Habis' : 'Stok Menipis') }}"
                         onclick="pilihMaterial(this)"
                     >
                         <div class="flex items-center gap-stack-sm min-w-0">
@@ -462,33 +423,40 @@
                             </span>
                             <div class="min-w-0">
                                 <span class="block text-[13px]">
-                                    <span class="font-label-bold text-primary">{{ $mat['kode'] }}</span>
-                                    <span class="font-label-bold text-on-surface">{{ $mat['nama'] }}</span>
+                                    <span class="font-label-bold text-primary">{{ $mat->kd_master_barang }}</span>
+                                    <span class="font-label-bold text-on-surface">{{ $mat->nm_master_barang }}</span>
                                 </span>
-                                <span class="block text-[12px] text-on-surface-variant truncate">{{ $mat['kategori'] }} &bull; {{ $mat['spesifikasi'] }}</span>
+                                <span class="block text-[12px] text-on-surface-variant truncate">{{ $mat->kategori->nm_master_kategori ?? '-' }} &bull; {{ $mat->desc_master_barang }}</span>
                             </div>
                         </div>
                         <div class="flex flex-col items-end shrink-0">
-                            <span class="text-[13px] font-label-bold text-on-surface">{{ $mat['stok'] }}</span>
-                            <span class="text-[11px] {{ $mat['stok_status'] === 'aman' ? 'text-green-700' : 'text-on-surface-variant' }}">{{ $mat['stok_label'] }}</span>
+                            <span class="text-[13px] font-label-bold text-on-surface">{{ $mat->stok_saat_ini }} {{ $satuanNama }}</span>
+                            <span class="text-[11px] {{ $stokAman ? 'text-green-700' : 'text-on-surface-variant' }}">{{ $stokAman ? 'Tersedia Aman' : ($mat->stok_status === 'HABIS' ? 'Stok Habis' : 'Stok Menipis') }}</span>
                         </div>
                         <input type="radio" name="material_dipilih" class="hidden" {{ $i === 0 ? 'checked' : '' }}>
                     </label>
-                @endforeach
+                @empty
+                    <p class="text-body-sm text-on-surface-variant text-center py-stack-md">Belum ada master barang aktif.</p>
+                @endforelse
 
             </div>
+
+            @php $defaultMat = $katalogMaterial->first(); @endphp
+            <input type="hidden" name="fk_barang" id="input-fk-barang" value="{{ $defaultMat->id_master_barang ?? '' }}">
 
             {{-- Detail material terpilih --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-stack-sm p-stack-md rounded-lg bg-surface-container-low">
                 <div>
-                    <span class="inline-block px-2 py-0.5 rounded-md bg-surface-container-high text-[11px] text-on-surface-variant mb-1" id="detail-kategori">Aksesoris Sambungan Rumah</span>
-                    <p class="text-[12px] text-on-surface-variant" id="detail-spesifikasi">Bahan Ductile Iron, Baut Anti Karat, Standard SNI</p>
+                    <span class="inline-block px-2 py-0.5 rounded-md bg-surface-container-high text-[11px] text-on-surface-variant mb-1" id="detail-kategori">{{ $defaultMat?->kategori?->nm_master_kategori ?? '-' }}</span>
+                    <p class="text-[12px] text-on-surface-variant" id="detail-spesifikasi">{{ $defaultMat?->desc_master_barang ?? '-' }}</p>
                 </div>
                 <div class="flex items-center gap-stack-sm shrink-0">
                     <span class="material-symbols-outlined text-outline text-[20px]">warehouse</span>
                     <div>
-                        <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Stok GU-1 Tersedia</span>
-                        <span class="block text-[13px] font-label-bold text-primary" id="detail-stok">64 Pcs (Tersedia Aman)</span>
+                        <span class="block text-[11px] uppercase tracking-wider text-outline font-bold">Stok Tersedia</span>
+                        <span class="block text-[13px] font-label-bold text-primary" id="detail-stok">
+                            {{ $defaultMat->stok_saat_ini ?? 0 }} {{ $defaultMat?->satuan?->nm_master_satuan ?? '' }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -498,7 +466,7 @@
 
                 <div class="flex flex-col gap-1">
                     <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Satuan Barang</label>
-                    <input type="text" id="input-satuan" readonly value="Pcs" class="w-full px-stack-md py-base rounded-lg bg-surface-container-low text-on-surface-variant text-body-sm cursor-not-allowed">
+                    <input type="text" id="input-satuan" readonly value="{{ $defaultMat?->satuan?->nm_master_satuan ?? '' }}" class="w-full px-stack-md py-base rounded-lg bg-surface-container-low text-on-surface-variant text-body-sm cursor-not-allowed">
                 </div>
 
                 <div class="flex flex-col gap-1">
@@ -507,7 +475,7 @@
                         <button type="button" onclick="ubahJumlah(-1)" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors">
                             <span class="material-symbols-outlined text-[18px]">remove</span>
                         </button>
-                        <input type="number" id="input-jumlah" value="4" min="1" class="w-full text-center px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface font-label-bold text-body-sm shadow-sm border-2 border-primary focus:outline-none">
+                        <input type="number" name="qty_request" id="input-jumlah" value="1" min="1" required class="w-full text-center px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface font-label-bold text-body-sm shadow-sm border-2 border-primary focus:outline-none">
                         <button type="button" onclick="ubahJumlah(1)" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors">
                             <span class="material-symbols-outlined text-[18px]">add</span>
                         </button>
@@ -516,31 +484,103 @@
 
             </div>
 
+            <div class="flex flex-col gap-1">
+                <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Catatan Keperluan Lapangan</label>
+                <textarea name="catatan" rows="2" placeholder="Contoh: Untuk titik sambungan pipa primer patah..." class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"></textarea>
+            </div>
+
         </div>
 
         <div class="px-container-padding py-stack-md bg-surface-container flex items-center justify-end gap-stack-sm shrink-0">
             <button type="button" onclick="document.getElementById('modal-tambah-barang').classList.add('hidden')" class="px-container-padding py-2 rounded-lg bg-surface-container-highest text-on-surface font-label-bold text-body-sm hover:bg-surface-container-high transition-colors">
                 Batal
             </button>
-            <button type="button" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-sm hover:bg-primary-container transition-colors">
+            <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-sm hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[18px]">playlist_add_check</span>
                 Simpan &amp; Tambahkan ke Daftar
             </button>
         </div>
 
-    </div>
+    </form>
 </div>
+
+{{-- ================= MODAL: EDIT ITEM MATERIAL ================= --}}
+<div id="modal-edit-barang" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-stack-md">
+    <form method="POST" id="form-edit-barang" action="" class="w-full max-w-lg bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        @csrf
+        @method('PUT')
+
+        <div class="px-container-padding py-stack-md flex items-start justify-between shrink-0 border-b border-outline-variant">
+            <div class="flex items-start gap-stack-sm">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-fixed text-primary">
+                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                </div>
+                <div>
+                    <h2 class="text-body-lg font-label-bold text-on-surface">Edit Item Material</h2>
+                    <span class="text-[12px] text-on-surface-variant">Ubah jumlah atau catatan keperluan lapangan untuk item ini</span>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-edit-barang').classList.add('hidden')" class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-highest transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <div class="p-container-padding flex flex-col gap-stack-md overflow-y-auto custom-scrollbar">
+
+            <div class="flex flex-col gap-stack-sm p-stack-md rounded-lg bg-surface-container-low">
+                <span class="text-[13px]">
+                    <span class="font-label-bold text-primary" id="edit-kode-barang"></span>
+                    <span class="font-label-bold text-on-surface" id="edit-nama-barang"></span>
+                </span>
+                <span class="text-[12px] text-on-surface-variant">Material tidak bisa diganti lewat form edit ini. Kalau perlu material berbeda, hapus item ini lalu tambahkan ulang.</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Satuan Barang</label>
+                    <input type="text" id="edit-satuan" readonly class="w-full px-stack-md py-base rounded-lg bg-surface-container-low text-on-surface-variant text-body-sm cursor-not-allowed">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Jumlah / Kuantitas Diminta *</label>
+                    <div class="flex items-center gap-stack-sm">
+                        <button type="button" onclick="ubahJumlahEdit(-1)" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">remove</span>
+                        </button>
+                        <input type="number" name="qty_request" id="edit-jumlah" value="1" min="1" required class="w-full text-center px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface font-label-bold text-body-sm shadow-sm border-2 border-primary focus:outline-none">
+                        <button type="button" onclick="ubahJumlahEdit(1)" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">add</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Catatan Keperluan Lapangan</label>
+                <textarea name="catatan" id="edit-catatan" rows="2" placeholder="Contoh: Untuk titik sambungan pipa primer patah..." class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"></textarea>
+            </div>
+
+        </div>
+
+        <div class="px-container-padding py-stack-md bg-surface-container flex items-center justify-end gap-stack-sm shrink-0">
+            <button type="button" onclick="document.getElementById('modal-edit-barang').classList.add('hidden')" class="px-container-padding py-2 rounded-lg bg-surface-container-highest text-on-surface font-label-bold text-body-sm hover:bg-surface-container-high transition-colors">
+                Batal
+            </button>
+            <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-sm hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                Simpan Perubahan
+            </button>
+        </div>
+
+    </form>
+</div>
+@endif
 
 @push('scripts')
 <script>
-    function filterKatalogMaterial(kategori, el) {
-        document.querySelectorAll('.kategori-chip').forEach(function (chip) {
-            chip.classList.remove('active', 'bg-primary', 'text-on-primary');
-            chip.classList.add('bg-surface-container', 'text-on-surface-variant');
-        });
-        el.classList.add('active', 'bg-primary', 'text-on-primary');
-        el.classList.remove('bg-surface-container', 'text-on-surface-variant');
-
+    function filterKatalogMaterial(kategori) {
         document.querySelectorAll('.material-row').forEach(function (row) {
             const cocok = (kategori === 'semua') || (row.dataset.kategori === kategori);
             row.style.display = cocok ? 'flex' : 'none';
@@ -568,6 +608,7 @@
         document.getElementById('detail-spesifikasi').textContent = el.dataset.spesifikasi;
         document.getElementById('detail-stok').textContent = el.dataset.stok + ' (' + el.dataset.stokLabel + ')';
         document.getElementById('input-satuan').value = el.dataset.satuan;
+        document.getElementById('input-fk-barang').value = el.dataset.id;
     }
 
     function ubahJumlah(delta) {
@@ -575,6 +616,39 @@
         const nilai = Math.max(1, (parseInt(input.value, 10) || 1) + delta);
         input.value = nilai;
     }
+
+    // Template URL untuk update item, item id diganti lewat JS saat modal edit dibuka.
+    // Dibangun pakai route() Laravel supaya slash di kd_bpb (format "BPB/2026/09/1")
+    // ter-generate sama persis seperti route items.destroy yang sudah jalan.
+    const itemsUpdateUrlTemplate = "{{ route('permintaan-barang.items.update', [$bpb->kd_bpb, '__ITEM__']) }}";
+
+    function bukaEditItem(el) {
+        const d = el.dataset;
+
+        document.getElementById('edit-kode-barang').textContent = d.kodeBarang;
+        document.getElementById('edit-nama-barang').textContent = d.namaBarang;
+        document.getElementById('edit-satuan').value = d.satuan;
+        document.getElementById('edit-jumlah').value = d.qty;
+        document.getElementById('edit-catatan').value = d.catatan || '';
+
+        document.getElementById('form-edit-barang').action = itemsUpdateUrlTemplate.replace('__ITEM__', d.itemId);
+
+        document.getElementById('modal-edit-barang').classList.remove('hidden');
+    }
+
+    function ubahJumlahEdit(delta) {
+        const input = document.getElementById('edit-jumlah');
+        const nilai = Math.max(1, (parseInt(input.value, 10) || 1) + delta);
+        input.value = nilai;
+    }
+
+    document.getElementById('search-material')?.addEventListener('input', function (e) {
+        const kata = e.target.value.toLowerCase();
+        document.querySelectorAll('.material-row').forEach(function (row) {
+            const cocok = row.dataset.kode.toLowerCase().includes(kata) || row.dataset.nama.toLowerCase().includes(kata);
+            row.style.display = cocok ? 'flex' : 'none';
+        });
+    });
 </script>
 @endpush
 

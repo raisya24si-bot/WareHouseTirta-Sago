@@ -342,7 +342,7 @@
 
                 {{-- ==================== APPROVAL (PO + Barang Masuk / GRN) ==================== --}}
                 @php
-                    $isApprovalActive = request()->routeIs('approval.*') || request()->routeIs('penerimaan.approval.*');
+                    $isApprovalActive = request()->routeIs('approval.*') || request()->routeIs('penerimaan.approval.*') || request()->routeIs('approval-bpb.*');
                 @endphp
 
                 <button
@@ -425,6 +425,33 @@
                                 </a>
 
                             @endforeach
+
+                        </div>
+                    </div>
+
+                    {{-- Sub-grup: Approval BPB (Kasubag) --}}
+                    {{-- Catatan: untuk sekarang alur approval BPB baru 1 tingkat, khusus Kasubag saja --}}
+                    <div>
+                        <p class="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-outline">
+                            Approval BPB (Kasubag)
+                        </p>
+
+                        <div class="space-y-0.5">
+
+                            <a href="{{ route('approval-bpb.index') }}"
+                            class="{{ request()->routeIs('approval-bpb.*')
+                                    ? 'bg-primary text-on-primary shadow-sm shadow-primary/30'
+                                    : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}
+                                    flex items-center px-4 py-2.5 rounded-lg transition-all duration-150">
+
+                                <span class="material-symbols-outlined mr-3 text-[19px]" @if(request()->routeIs('approval-bpb.*')) style="font-variation-settings: 'FILL' 1;" @endif>
+                                    assignment
+                                </span>
+
+                                <span class="text-sidebar-nav font-sidebar-nav">
+                                    Permintaan Barang (BPB)
+                                </span>
+                            </a>
 
                         </div>
                     </div>

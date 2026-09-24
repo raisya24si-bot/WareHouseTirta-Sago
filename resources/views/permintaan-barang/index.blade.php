@@ -11,6 +11,8 @@
         'menunggu_approval' => ['label' => 'Menunggu Approval Kasubag', 'classes' => 'bg-amber-100 text-amber-800', 'dot' => 'bg-amber-600'],
         'diproses_gudang' => ['label' => 'Sedang Disiapkan Gudang', 'classes' => 'bg-blue-100 text-primary', 'dot' => 'bg-primary'],
         'siap_ambil' => ['label' => 'Siap Ambil di Gudang', 'classes' => 'bg-green-100 text-green-800', 'dot' => 'bg-green-700'],
+        'selesai' => ['label' => 'Selesai Diambil', 'classes' => 'bg-green-100 text-green-800', 'dot' => 'bg-green-700'],
+        'ditolak' => ['label' => 'Ditolak', 'classes' => 'bg-error-container text-on-error-container', 'dot' => 'bg-error'],
     ];
 
     $prioritasBadge = [
@@ -18,9 +20,23 @@
         'tinggi' => 'bg-primary-fixed text-on-primary-fixed',
         'normal' => 'bg-surface-container-high text-on-surface-variant',
     ];
+
+    $currentStatus = request('status', 'semua');
 @endphp
 
 <div class="flex flex-col w-full pb-container-padding gap-stack-md">
+
+    @if(session('success'))
+        <div class="px-container-padding py-stack-sm rounded-xl bg-green-100 text-green-800 text-body-sm font-label-bold">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="px-container-padding py-stack-sm rounded-xl bg-error-container text-on-error-container text-body-sm font-label-bold">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
     {{-- ================= HEADER ================= --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-gutter">
@@ -40,6 +56,11 @@
         </div>
 
         <div class="flex items-center gap-stack-sm self-start md:self-center">
+
+            <a href="{{ route('approval-bpb.index') }}" class="inline-flex items-center gap-base px-stack-md py-stack-sm rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-label-bold text-body-sm shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">fact_check</span>
+                Approval Kasubag
+            </a>
 
             <button type="button" class="inline-flex items-center gap-base px-stack-md py-stack-sm rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-label-bold text-body-sm shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">download</span>
@@ -123,41 +144,45 @@
 
 
     {{-- ================= FILTER BAR ================= --}}
-    <div class="p-stack-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-stack-md">
+    <form method="GET" action="{{ route('permintaan-barang.index') }}" class="p-stack-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-stack-md">
 
         <div class="flex flex-wrap items-center gap-stack-sm">
-            <button type="button" class="px-stack-md py-base rounded-lg bg-primary text-on-primary font-label-bold text-body-sm">Semua ({{ $stats['total'] }})</button>
-            <button type="button" class="px-stack-md py-base rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors text-body-sm">Draf ({{ $stats['draft'] }})</button>
-            <button type="button" class="px-stack-md py-base rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors text-body-sm">Approval Kasubag ({{ $stats['menunggu_approval'] }})</button>
-            <button type="button" class="px-stack-md py-base rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors text-body-sm">Diproses Gudang ({{ $stats['diproses_gudang'] }})</button>
-            <button type="button" class="px-stack-md py-base rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors text-body-sm">Siap Ambil ({{ $stats['siap_ambil'] }})</button>
+            <a href="{{ route('permintaan-barang.index') }}" class="px-stack-md py-base rounded-lg {{ $currentStatus === 'semua' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' }} font-label-bold text-body-sm transition-colors">Semua ({{ $stats['total'] }})</a>
+            <a href="{{ route('permintaan-barang.index', ['status' => 'draft']) }}" class="px-stack-md py-base rounded-lg {{ $currentStatus === 'draft' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' }} text-body-sm transition-colors">Draf ({{ $stats['draft'] }})</a>
+            <a href="{{ route('permintaan-barang.index', ['status' => 'menunggu_approval']) }}" class="px-stack-md py-base rounded-lg {{ $currentStatus === 'menunggu_approval' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' }} text-body-sm transition-colors">Approval Kasubag ({{ $stats['menunggu_approval'] }})</a>
+            <a href="{{ route('permintaan-barang.index', ['status' => 'diproses_gudang']) }}" class="px-stack-md py-base rounded-lg {{ $currentStatus === 'diproses_gudang' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' }} text-body-sm transition-colors">Diproses Gudang ({{ $stats['diproses_gudang'] }})</a>
+            <a href="{{ route('permintaan-barang.index', ['status' => 'siap_ambil']) }}" class="px-stack-md py-base rounded-lg {{ $currentStatus === 'siap_ambil' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high' }} text-body-sm transition-colors">Siap Ambil ({{ $stats['siap_ambil'] }})</a>
         </div>
 
         <div class="flex items-center gap-stack-sm">
 
             <div class="relative w-full md:w-64">
                 <span class="material-symbols-outlined absolute left-stack-sm top-2 text-outline text-[18px]">filter_alt</span>
-                <select class="w-full pl-8 pr-stack-sm py-base rounded-lg bg-surface-container-low text-on-surface text-[13px] focus:outline-none focus:bg-surface-container-lowest">
-                    <option>Filter: Semua Prioritas</option>
-                    <option>Sangat Mendesak (Darurat)</option>
-                    <option>Prioritas Tinggi</option>
-                    <option>Normal / Terencana</option>
+                <select name="prioritas" onchange="this.form.submit()" class="w-full pl-8 pr-stack-sm py-base rounded-lg bg-surface-container-low text-on-surface text-[13px] focus:outline-none focus:bg-surface-container-lowest">
+                    <option value="">Filter: Semua Prioritas</option>
+                    <option value="darurat" {{ request('prioritas') === 'darurat' ? 'selected' : '' }}>Sangat Mendesak (Darurat)</option>
+                    <option value="tinggi" {{ request('prioritas') === 'tinggi' ? 'selected' : '' }}>Prioritas Tinggi</option>
+                    <option value="normal" {{ request('prioritas') === 'normal' ? 'selected' : '' }}>Normal / Terencana</option>
                 </select>
             </div>
 
             <div class="relative w-full md:w-56">
                 <span class="material-symbols-outlined absolute left-stack-sm top-2 text-outline text-[18px]">warehouse</span>
-                <select class="w-full pl-8 pr-stack-sm py-base rounded-lg bg-surface-container-low text-on-surface text-[13px] focus:outline-none">
-                    <option>Semua Gudang Tujuan</option>
-                    <option>GU-1 Gudang Induk</option>
-                    <option>GU-2 Distribusi Selatan</option>
-                    <option>GU-3 Instalasi Pengolahan</option>
+                <select name="gudang" onchange="this.form.submit()" class="w-full pl-8 pr-stack-sm py-base rounded-lg bg-surface-container-low text-on-surface text-[13px] focus:outline-none">
+                    <option value="">Semua Gudang Tujuan</option>
+                    @foreach($gudangList as $gudang)
+                        <option value="{{ $gudang->id_gudang }}" {{ (string) request('gudang') === (string) $gudang->id_gudang ? 'selected' : '' }}>{{ $gudang->nm_gudang }}</option>
+                    @endforeach
                 </select>
             </div>
 
+            @if($currentStatus !== 'semua')
+                <input type="hidden" name="status" value="{{ $currentStatus }}">
+            @endif
+
         </div>
 
-    </div>
+    </form>
 
 
     {{-- ================= TABLE ================= --}}
@@ -182,7 +207,13 @@
                     @forelse($permintaan as $bpb)
 
                         @php
-                            $badge = $statusBadge[$bpb['status']] ?? $statusBadge['draft'];
+                            $statusKode = strtolower($bpb->status->kd_status_bpb ?? 'draft');
+                            $badge = $statusBadge[$statusKode] ?? $statusBadge['draft'];
+
+                            $prioritasKode = strtolower($bpb->urgensi->kd_urgensi_bpb ?? 'normal');
+                            $prioritasLabel = $bpb->urgensi->nm_urgensi_bpb ?? 'Normal';
+
+                            $belumAdaSpk = $bpb->status_spk === 'DARURAT';
                         @endphp
 
                         <tr class="hover:bg-surface-container-low/60 transition-colors">
@@ -190,44 +221,44 @@
                             <td class="px-container-padding py-stack-md">
                                 <div class="flex flex-col">
                                     <div class="flex items-center gap-2">
-                                        <a href="{{ route('permintaan-barang.show', $bpb['kode']) }}" class="font-label-bold text-primary hover:underline">
-                                            {{ $bpb['kode'] }}
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="font-label-bold text-primary hover:underline">
+                                            {{ $bpb->kd_bpb }}
                                         </a>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-label-bold {{ $prioritasBadge[$bpb['prioritas_kode']] ?? $prioritasBadge['normal'] }}">
-                                            {{ $bpb['prioritas'] }}
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-label-bold {{ $prioritasBadge[$prioritasKode] ?? $prioritasBadge['normal'] }}">
+                                            {{ $prioritasLabel }}
                                         </span>
                                     </div>
-                                    <span class="text-[13px] text-on-surface font-medium mt-1">{{ $bpb['judul'] }}</span>
-                                    <span class="text-[11px] text-outline mt-0.5">{{ $bpb['total_jenis_barang'] }} item barang{{ $bpb['status'] === 'draft' ? ' disiapkan' : '' }} &bull; {{ $bpb['gudang_tujuan'] }}</span>
+                                    <span class="text-[13px] text-on-surface font-medium mt-1">{{ $bpb->desc_bpb ?? '-' }}</span>
+                                    <span class="text-[11px] text-outline mt-0.5">{{ $bpb->total_jenis_barang }} item barang &bull; {{ $bpb->gudang->nm_gudang ?? '-' }}</span>
                                 </div>
                             </td>
 
                             <td class="px-stack-md py-stack-md whitespace-nowrap">
                                 <div class="flex flex-col">
-                                    <span class="font-label-bold text-on-surface">{{ $bpb['tanggal'] }}</span>
-                                    <span class="text-[12px] text-outline">{{ $bpb['waktu'] }}</span>
+                                    <span class="font-label-bold text-on-surface">{{ $bpb->tgl_bpb?->translatedFormat('d M Y') }}</span>
+                                    <span class="text-[12px] text-outline">{{ $bpb->created_at?->format('H:i') }} WIB</span>
                                 </div>
                             </td>
 
                             <td class="px-stack-md py-stack-md whitespace-nowrap">
                                 <div class="flex flex-col">
-                                    @if($bpb['spk_status'] === 'belum_ada')
+                                    @if($belumAdaSpk)
                                         <span class="inline-flex items-center gap-1 text-[11px] font-label-bold px-2 py-0.5 rounded-md bg-tertiary-fixed text-on-tertiary-fixed w-fit">
-                                            <span class="material-symbols-outlined text-[13px]">warning</span> {{ $bpb['spk_label'] }}
+                                            <span class="material-symbols-outlined text-[13px]">warning</span> Belum Ada SPK (Darurat)
                                         </span>
                                     @else
                                         <span class="inline-flex items-center gap-1 text-[11px] font-label-bold px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-fixed w-fit">
-                                            <span class="material-symbols-outlined text-[13px]">verified</span> {{ $bpb['spk_label'] }}
+                                            <span class="material-symbols-outlined text-[13px]">verified</span> Sudah Ada SPK
                                         </span>
                                     @endif
-                                    <span class="text-[11px] text-outline font-mono mt-0.5">{{ $bpb['spk_kode'] }}</span>
+                                    <span class="text-[11px] text-outline font-mono mt-0.5">{{ $bpb->no_spk ?? '-' }}</span>
                                 </div>
                             </td>
 
                             <td class="px-stack-md py-stack-md whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-label-bold {{ $badge['classes'] }}">
                                     <span class="w-2 h-2 rounded-full {{ $badge['dot'] }}"></span>
-                                    {{ $badge['label'] }}
+                                    {{ $bpb->status->nm_status_bpb ?? $badge['label'] }}
                                 </span>
                             </td>
 
@@ -235,51 +266,54 @@
 
                                 <div class="inline-flex items-center justify-end gap-1.5">
 
-                                    @if($bpb['status'] === 'draft')
+                                    @if($statusKode === 'draft')
 
-                                        <button type="button" class="p-1.5 rounded-lg text-primary hover:bg-primary-fixed transition-colors" title="Edit Header Permintaan">
-                                            <span class="material-symbols-outlined text-[18px]">edit_note</span>
-                                        </button>
-
-                                        <a href="{{ route('permintaan-barang.show', $bpb['kode']) }}" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Tambah / Kelola Item Barang">
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Tambah / Kelola Item Barang">
                                             <span class="material-symbols-outlined text-[18px]">post_add</span>
                                         </a>
 
-                                        <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-[12px] font-label-bold transition-colors" title="Ajukan ke Kasubag">
-                                            <span class="material-symbols-outlined text-[15px]">send</span>
-                                            Ajukan
-                                        </button>
+                                        <form method="POST" action="{{ route('permintaan-barang.submit', $bpb->kd_bpb) }}" onsubmit="return confirm('Ajukan BPB {{ $bpb->kd_bpb }} ke Kasubag?');" class="inline">
+                                            @csrf
+                                            <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-[12px] font-label-bold transition-colors" title="Ajukan ke Kasubag">
+                                                <span class="material-symbols-outlined text-[15px]">send</span>
+                                                Ajukan
+                                            </button>
+                                        </form>
 
-                                        <button type="button" class="p-1.5 rounded-lg text-error hover:bg-error-container transition-colors" title="Hapus Dokumen Draf">
-                                            <span class="material-symbols-outlined text-[18px]">delete</span>
-                                        </button>
+                                        <form method="POST" action="{{ route('permintaan-barang.destroy', $bpb->kd_bpb) }}" onsubmit="return confirm('Hapus draft BPB {{ $bpb->kd_bpb }}?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1.5 rounded-lg text-error hover:bg-error-container transition-colors" title="Hapus Dokumen Draf">
+                                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                        </form>
 
-                                    @elseif($bpb['status'] === 'menunggu_approval')
+                                    @elseif($statusKode === 'menunggu_approval')
 
-                                        <a href="{{ route('permintaan-barang.show', $bpb['kode']) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[12px] font-label-bold transition-colors" title="Lihat Detail">
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[12px] font-label-bold transition-colors" title="Lihat Detail">
                                             <span class="material-symbols-outlined text-[15px]">visibility</span>
                                             Lihat Detail
                                         </a>
                                         <span class="text-[11px] text-outline">Terkunci</span>
 
-                                    @elseif($bpb['status'] === 'diproses_gudang')
+                                    @elseif($statusKode === 'diproses_gudang')
 
-                                        <a href="{{ route('permintaan-barang.show', $bpb['kode']) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[12px] font-label-bold transition-colors" title="Tracking Gudang">
+                                        <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-[12px] font-label-bold transition-colors" title="Tracking Gudang">
                                             <span class="material-symbols-outlined text-[15px]">local_shipping</span>
                                             Tracking Gudang
                                         </a>
 
-                                    @elseif($bpb['status'] === 'siap_ambil')
+                                    @elseif($statusKode === 'siap_ambil')
 
-                                        <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 text-[12px] font-label-bold transition-colors" title="Ambil Barang">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-600 text-white text-[12px] font-label-bold" title="Ambil Barang">
                                             <span class="material-symbols-outlined text-[15px]">move_to_inbox</span>
-                                            Ambil Barang
-                                        </button>
+                                            Siap Diambil
+                                        </span>
 
                                     @endif
 
                                     {{-- Selalu tersedia: akses cepat ke halaman detail / show blade --}}
-                                    <a href="{{ route('permintaan-barang.show', $bpb['kode']) }}" class="p-1.5 rounded-lg text-outline hover:bg-primary/10 hover:text-primary transition-colors" title="Lihat Halaman Detail">
+                                    <a href="{{ route('permintaan-barang.show', $bpb->kd_bpb) }}" class="p-1.5 rounded-lg text-outline hover:bg-primary/10 hover:text-primary transition-colors" title="Lihat Halaman Detail">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>
                                     </a>
 
@@ -306,13 +340,9 @@
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-between gap-stack-sm px-container-padding py-stack-md border-t border-outline-variant text-[13px] text-on-surface-variant">
-            <span>Menampilkan 1-{{ $permintaan->count() }} dari {{ $stats['total'] }} permohonan aktif</span>
-            <div class="flex items-center gap-1">
-                <button type="button" class="px-3 py-1.5 rounded-lg text-outline cursor-not-allowed" disabled>Sebelumnya</button>
-                <button type="button" class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-bold">1</button>
-                <button type="button" class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high">2</button>
-                <button type="button" class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high">3</button>
-                <button type="button" class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high">Selanjutnya</button>
+            <span>Menampilkan {{ $permintaan->firstItem() ?? 0 }}-{{ $permintaan->lastItem() ?? 0 }} dari {{ $permintaan->total() }} permohonan</span>
+            <div>
+                {{ $permintaan->links() }}
             </div>
         </div>
 
@@ -334,7 +364,7 @@
                 <div>
                     <p class="font-label-bold text-on-surface">Langkah 1: Buat Header Permintaan (Simpan Draft)</p>
                     <p class="text-[13px] text-on-surface-variant mt-1">
-                        Klik tombol <span class="text-primary font-label-bold">+ Buat Permintaan Baru</span>. Tentukan data referensi utama seperti Subbagian Pemohon, Nomor SPK (atau pilih opsi Darurat jika belum ada nomor pekerjaan formal), Gudang Pengambilan, dan Tingkat Urgensi. Sistem akan membuat nomor tiket BPB baru berstatus <span class="font-label-bold">Draft</span>.
+                        Klik tombol <span class="text-primary font-label-bold">+ Buat Permintaan Baru</span>. Tentukan data referensi utama seperti Nomor SPK (atau pilih opsi Darurat jika belum ada nomor pekerjaan formal), Gudang Pengambilan, dan Tingkat Urgensi. Sistem akan membuat nomor tiket BPB baru berstatus <span class="font-label-bold">Draft</span>.
                     </p>
                 </div>
             </div>
@@ -356,9 +386,10 @@
 </div>
 
 
-{{-- ================= MODAL: BUAT PERMINTAAN BARU (visual only) ================= --}}
+{{-- ================= MODAL: BUAT PERMINTAAN BARU ================= --}}
 <div id="modal-create-bpb" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-stack-md">
-    <div class="w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <form method="POST" action="{{ route('permintaan-barang.store') }}" class="w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        @csrf
 
         <div class="px-container-padding py-stack-md bg-surface-container flex items-center justify-between shrink-0">
             <div class="flex flex-col">
@@ -375,41 +406,44 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
                 <div class="flex flex-col gap-1">
                     <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Nomor BPB (Otomatis)</label>
-                    <input type="text" readonly value="BPB-2023-1111" class="px-stack-md py-base rounded-lg bg-surface-container-low text-on-surface font-mono text-body-sm font-label-bold cursor-not-allowed">
+                    <input type="text" readonly value="Otomatis dibuat sistem" class="px-stack-md py-base rounded-lg bg-surface-container-low text-on-surface font-mono text-body-sm font-label-bold cursor-not-allowed">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Tanggal Pengajuan</label>
-                    <input type="date" class="px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                    <input type="date" name="tgl_bpb" value="{{ now()->toDateString() }}" class="px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
                 </div>
             </div>
 
+            {{-- Subbagian pemohon: data dummy dulu, belum terhubung API/tabel --}}
             <div class="flex flex-col gap-1">
                 <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Subbagian Pemohon *</label>
                 <div class="relative flex items-center">
-                    <span class="material-symbols-outlined absolute left-stack-sm text-primary text-[18px] pointer-events-none">apartment</span>
-                    <select class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
-                        <option selected>Sub. Bagian Distribusi</option>
-                        <option>Sub. Bagian Produksi</option>
-                        <option>Sub. Bagian Perencana Teknik</option>
-                        <option>Sub. Bagian IT</option>
+                    <span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px] pointer-events-none">domain</span>
+                    <select name="subbagian_pemohon" class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="distribusi">Sub. Bagian Distribusi</option>
+                        <option value="produksi">Sub. Bagian Produksi</option>
+                        <option value="perencana_teknik">Sub. Bagian Perencana Teknik</option>
+                        <option value="it">Sub. Bagian IT</option>
                     </select>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+                {{-- Nama pemohon: dipakai otomatis dari user yang sedang login --}}
                 <div class="flex flex-col gap-1">
-                    <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Nama Pemohon / User Pemohon *</label>
+                    <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Nama Pemohon / User Pemohon</label>
                     <div class="relative flex items-center">
                         <span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px] pointer-events-none">person</span>
-                        <input type="text" readonly value="Budi Pratama (Teknisi Distribusi)" class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-low text-on-surface text-body-sm cursor-not-allowed">
+                        <input type="text" readonly value="{{ auth()->user()->name ?? '-' }}" class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-low text-on-surface text-body-sm cursor-not-allowed">
+                        <input type="hidden" name="user_pemohon_id" value="{{ auth()->id() }}">
                     </div>
-                    <span class="text-[11px] text-outline">* Otomatis terisi dari akun yang sedang login</span>
                 </div>
+
                 <div class="flex flex-col gap-1">
                     <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Keterangan Permintaan</label>
                     <div class="relative flex items-center">
                         <span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px] pointer-events-none">description</span>
-                        <input type="text" placeholder="Contoh: Untuk pengerjaan perbaikan pipa bocor..." class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                        <input type="text" name="desc_bpb" placeholder="Contoh: Untuk pengerjaan perbaikan" class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
                     </div>
                 </div>
             </div>
@@ -422,7 +456,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-sm">
 
                     <label class="spk-option flex items-start gap-stack-sm p-stack-md rounded-lg bg-surface-container-lowest border-2 border-primary cursor-pointer" onclick="toggleSpkField(true, this)">
-                        <input type="radio" name="status_spk" id="radio-spk-ada" checked class="mt-1">
+                        <input type="radio" name="status_spk" value="ADA" id="radio-spk-ada" checked class="mt-1">
                         <span class="flex flex-col">
                             <span class="font-label-bold text-body-sm text-on-surface">Sudah Ada Nomor SPK</span>
                             <span class="text-[12px] text-on-surface-variant">Pekerjaan terencana / proyek dinas</span>
@@ -430,7 +464,7 @@
                     </label>
 
                     <label class="spk-option flex items-start gap-stack-sm p-stack-md rounded-lg bg-surface-container-lowest border-2 border-transparent cursor-pointer" onclick="toggleSpkField(false, this)">
-                        <input type="radio" name="status_spk" id="radio-spk-darurat" class="mt-1">
+                        <input type="radio" name="status_spk" value="DARURAT" id="radio-spk-darurat" class="mt-1">
                         <span class="flex flex-col">
                             <span class="font-label-bold text-body-sm text-on-surface">Belum Ada SPK / Sementara</span>
                             <span class="text-[12px] text-tertiary">Pipa bocor mendesak (Emergency Ticket)</span>
@@ -441,20 +475,20 @@
 
                 <div class="flex flex-col gap-1 mt-1">
                     <label class="font-label-bold text-[11px] text-on-surface-variant uppercase tracking-wider" id="label-nomor-spk">Nomor SPK Aktif / Rujukan Dokumen</label>
-                    <input type="text" id="input-nomor-spk" placeholder="Contoh: SPK-DIST-2023-112 atau pilih..." class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                    <input type="text" name="no_spk" id="input-nomor-spk" placeholder="Contoh: SPK-DIST-2023-112" class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
                 </div>
 
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
                 <div class="flex flex-col gap-1">
-                    <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Gudang Pengambilan *</label>
+                    <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Gudang Tujuan Pengambilan *</label>
                     <div class="relative flex items-center">
                         <span class="material-symbols-outlined absolute left-stack-sm text-outline text-[18px] pointer-events-none">warehouse</span>
-                        <select class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
-                            <option>GU-1 Gudang Induk Distribusi</option>
-                            <option>GU-2 Distribusi Selatan</option>
-                            <option>GU-3 Instalasi Pengolahan</option>
+                        <select name="fk_gudang_pengambilan" required class="w-full pl-8 pr-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                            @foreach($gudangList as $gudang)
+                                <option value="{{ $gudang->id_gudang }}">{{ $gudang->nm_gudang }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -462,25 +496,20 @@
                 <div class="flex flex-col gap-1">
                     <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Tingkat Urgensi / Prioritas *</label>
                     <div class="grid grid-cols-3 gap-1.5">
-                        <label class="urgensi-option flex items-center justify-center gap-1 p-stack-sm rounded-lg bg-surface-container-lowest border-2 border-primary cursor-pointer" onclick="toggleUrgensi(this)">
-                            <input type="radio" name="urgensi" checked class="hidden">
-                            <span class="text-[13px] font-label-bold text-primary">Normal</span>
-                        </label>
-                        <label class="urgensi-option flex items-center justify-center gap-1 p-stack-sm rounded-lg bg-surface-container-lowest border-2 border-transparent cursor-pointer" onclick="toggleUrgensi(this)">
-                            <input type="radio" name="urgensi" class="hidden">
-                            <span class="text-[13px] text-on-surface-variant">Tinggi</span>
-                        </label>
-                        <label class="urgensi-option flex items-center justify-center gap-1 p-stack-sm rounded-lg bg-surface-container-lowest border-2 border-transparent cursor-pointer" onclick="toggleUrgensi(this)">
-                            <input type="radio" name="urgensi" class="hidden">
-                            <span class="text-[13px] text-on-surface-variant">Sangat Mendesak</span>
-                        </label>
+                        @foreach($urgensiList as $i => $urgensi)
+                            <label class="urgensi-option flex items-center justify-center gap-1 p-stack-sm rounded-lg bg-surface-container-lowest border-2 {{ $i === 0 ? 'border-primary' : 'border-transparent' }} cursor-pointer" onclick="toggleUrgensi(this)">
+                                <input type="radio" name="fk_tingkat_urgensi" value="{{ $urgensi->id_urgensi_bpb }}" {{ $i === 0 ? 'checked' : '' }} class="hidden">
+                                <span class="text-[13px] {{ $i === 0 ? 'font-label-bold text-primary' : 'text-on-surface-variant' }}">{{ $urgensi->nm_urgensi_bpb }}</span>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
             </div>
 
+            {{-- Catatan teknis: belum ada kolom di header BPB, disiapkan dulu untuk nanti disambungkan --}}
             <div class="flex flex-col gap-1">
                 <label class="font-label-bold text-[12px] text-on-surface uppercase tracking-wider">Catatan / Peruntukan Pekerjaan Teknis</label>
-                <textarea rows="3" placeholder="Tuliskan spesifikasi lokasi perbaikan, koordinat, atau keperluan pemakaian barang teknis..." class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"></textarea>
+                <textarea name="catatan_pekerjaan" rows="2" placeholder="Tuliskan spesifikasi lokasi perbaikan, koordinat, atau keperluan pemakaian barang teknis..." class="w-full px-stack-md py-base rounded-lg bg-surface-container-lowest text-on-surface text-body-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"></textarea>
             </div>
 
         </div>
@@ -489,13 +518,13 @@
             <button type="button" onclick="document.getElementById('modal-create-bpb').classList.add('hidden')" class="px-container-padding py-2 rounded-lg bg-surface-container-highest text-on-surface font-label-bold text-body-sm hover:bg-surface-container-high transition-colors">
                 Batal
             </button>
-            <a href="{{ route('permintaan-barang.show', 'BPB-2023-1110') }}" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-sm hover:bg-primary-container transition-colors">
+            <button type="submit" class="inline-flex items-center gap-stack-sm px-container-padding py-2 rounded-lg bg-primary text-on-primary font-label-bold text-body-sm shadow-sm hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[18px]">save</span>
                 Simpan &amp; Lanjut ke Detail
-            </a>
+            </button>
         </div>
 
-    </div>
+    </form>
 </div>
 
 @push('scripts')
@@ -513,7 +542,7 @@
 
         if (adaSpk) {
             label.textContent = 'Nomor SPK Aktif / Rujukan Dokumen';
-            input.placeholder = 'Contoh: SPK-DIST-2023-112 atau pilih...';
+            input.placeholder = 'Contoh: SPK-DIST-2023-112';
             input.disabled = false;
             input.classList.remove('bg-surface-container-low', 'cursor-not-allowed');
             input.classList.add('bg-surface-container-lowest');
